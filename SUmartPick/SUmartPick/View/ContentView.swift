@@ -7,6 +7,8 @@
 
 import AuthenticationServices
 import Firebase
+import GoogleSignIn
+import GoogleSignInSwift
 import SwiftUI
 
 struct ContentView: View {
@@ -18,15 +20,24 @@ struct ContentView: View {
         } else {
             NavigationStack {
                 VStack {
-                    Text("Apple 로그인 예제")
+                    Text("로그인 예제")
                         .font(.headline)
                         .padding()
 
+                    // Apple 로그인 버튼
                     SignInWithAppleButton(
                         onRequest: configureSignInWithApple,
                         onCompletion: handleSignInWithAppleCompletion
                     )
                     .signInWithAppleButtonStyle(.black)
+                    .frame(height: 50)
+                    .cornerRadius(10)
+                    .padding()
+
+                    // Google 로그인 버튼
+                    GoogleSignInButton {
+                        handleGoogleSignIn()
+                    }
                     .frame(height: 50)
                     .cornerRadius(10)
                     .padding()
@@ -70,6 +81,43 @@ struct ContentView: View {
                 }
             case .failure(let error):
                 print("Apple 로그인 실패: \(error.localizedDescription)")
+        }
+    }
+
+    func handleGoogleSignIn() {
+        guard let clientID = FirebaseApp.app()?.options.clientID else { return }
+
+        let config = GIDConfiguration(clientID: clientID)
+        GIDSignIn.sharedInstance.configuration = config
+
+        // 현재 활성화된 UIWindowScene 가져오기
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let rootViewController = windowScene.windows.first?.rootViewController
+        else {
+            print("Root view controller를 찾을 수 없습니다.")
+            return
+        }
+
+        GIDSignIn.sharedInstance.signIn(withPresenting: rootViewController) { user, error in
+            if let error = error {
+                print("Google 로그인 실패: \(error.localizedDescription)")
+                return
+            }
+
+            guard let user = user?.user else { return }
+
+            let userIdentifier = user.userID
+            let email = user.profile?.email
+            let fullName = "\(user.profile?.givenName ?? "") \(user.profile?.familyName ?? "")"
+
+            authState.userIdentifier = userIdentifier
+            authState.isAuthenticated = true
+
+            saveUserToDatabase(
+                userIdentifier: userIdentifier ?? "Unknown",
+                email: email,
+                fullName: fullName
+            )
         }
     }
 
