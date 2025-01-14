@@ -9,14 +9,22 @@ import AuthenticationServices
 import Firebase
 import GoogleSignIn
 import GoogleSignInSwift
+import LocalAuthentication
+import RealmSwift
 import SwiftUI
 
 struct ContentView: View {
-    @EnvironmentObject var authState: AuthenticationState // 인증 상태 공유 객체
+    @EnvironmentObject var authState: AuthenticationState
+    @State private var showingLoginPopup = false // 팝업 상태
+    @State private var showingErrorAlert = false // 오류 알림 상태
+    @State private var errorMessage = "" // 오류 메시지
 
     var body: some View {
         if authState.isAuthenticated {
-            MainView() // 로그인 후에는 MainView로 이동
+            MainView()
+                .onAppear {
+                    showingLoginPopup = false // 로그아웃 시 팝업 닫기
+                }
         } else {
             NavigationStack {
                 VStack {
@@ -42,6 +50,35 @@ struct ContentView: View {
                     .cornerRadius(10)
                     .padding()
 
+                    // 간편 로그인 등록 버튼
+                    Button(action: {
+                        showingLoginPopup = true
+                    }) {
+                        Text("간편 로그인 등록")
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(Color.green)
+                            .foregroundColor(.white)
+                            .cornerRadius(10)
+                    }
+                    .padding()
+                    .sheet(isPresented: $showingLoginPopup) {
+                        LoginPopupView() // 팝업에서 로그인 진행
+                    }
+
+                    // 간편 로그인 버튼
+                    Button(action: {
+                        performEasyLoginWithAuthentication()
+                    }) {
+                        Text("간편 로그인")
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(Color.blue)
+                            .foregroundColor(.white)
+                            .cornerRadius(10)
+                    }
+                    .padding()
+
                     if let userID = authState.userIdentifier {
                         Text("환영합니다, \(userID)!")
                             .font(.headline)
@@ -49,6 +86,11 @@ struct ContentView: View {
                     }
                 }
                 .padding()
+                .alert("오류 발생", isPresented: $showingErrorAlert) {
+                    Button("확인", role: .cancel) {}
+                } message: {
+                    Text(errorMessage)
+                }
             }
         }
     }
@@ -65,11 +107,9 @@ struct ContentView: View {
                     authState.isAuthenticated = true
                     print("Apple 로그인 성공 - 사용자 ID: \(appleIDCredential.user)")
 
-                    // 이메일과 이름 (최초 로그인 시에만 제공)
                     let email = appleIDCredential.email
                     let fullName = appleIDCredential.fullName
 
-                    // 데이터베이스 저장
                     saveUserToDatabase(
                         userIdentifier: appleIDCredential.user,
                         email: email,
@@ -78,9 +118,12 @@ struct ContentView: View {
                             fullName?.familyName
                         ].compactMap { $0 }.joined(separator: " ")
                     )
+
+                    registerEasyLogin()
                 }
             case .failure(let error):
-                print("Apple 로그인 실패: \(error.localizedDescription)")
+                errorMessage = "Apple 로그인 실패: \(error.localizedDescription)"
+                showingErrorAlert = true
         }
     }
 
@@ -90,7 +133,6 @@ struct ContentView: View {
         let config = GIDConfiguration(clientID: clientID)
         GIDSignIn.sharedInstance.configuration = config
 
-        // 현재 활성화된 UIWindowScene 가져오기
         guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
               let rootViewController = windowScene.windows.first?.rootViewController
         else {
@@ -100,7 +142,8 @@ struct ContentView: View {
 
         GIDSignIn.sharedInstance.signIn(withPresenting: rootViewController) { user, error in
             if let error = error {
-                print("Google 로그인 실패: \(error.localizedDescription)")
+                errorMessage = "Google 로그인 실패: \(error.localizedDescription)"
+                showingErrorAlert = true
                 return
             }
 
@@ -118,6 +161,31 @@ struct ContentView: View {
                 email: email,
                 fullName: fullName
             )
+
+            registerEasyLogin()
+        }
+    }
+
+    func registerEasyLogin() {
+        guard let userIdentifier = authState.userIdentifier else { return }
+
+        let db = Firestore.firestore()
+        let userDoc = db.collection("users").document(userIdentifier)
+
+        userDoc.getDocument { document, error in
+            if let error = error {
+                print("Firebase에서 사용자 정보를 가져오는 중 오류 발생: \(error.localizedDescription)")
+                return
+            }
+
+            guard let document = document, document.exists,
+                  let userData = document.data()
+            else {
+                print("사용자 정보를 찾을 수 없습니다.")
+                return
+            }
+
+            saveAccountToRealm(userIdentifier: userIdentifier, userData: userData)
         }
     }
 
@@ -127,7 +195,7 @@ struct ContentView: View {
 
         userDoc.getDocument { document, error in
             if let document = document, document.exists {
-                print("User already exists in database.")
+                print("User already exists in the database.")
             } else {
                 let userData: [String: Any] = [
                     "userIdentifier": userIdentifier,
@@ -138,12 +206,75 @@ struct ContentView: View {
 
                 userDoc.setData(userData) { error in
                     if let error = error {
-                        print("Error saving user to database: \(error.localizedDescription)")
+                        print("Error saving user to the database: \(error.localizedDescription)")
                     } else {
-                        print("User saved successfully!")
+                        print("User successfully saved to the database!")
                     }
                 }
             }
+        }
+    }
+
+    func saveAccountToRealm(userIdentifier: String, userData: [String: Any]) {
+        do {
+            let realm = try Realm()
+            let account = EasyLoginAccount()
+            account.id = userIdentifier
+            account.email = userData["email"] as? String ?? ""
+            account.fullName = userData["fullName"] as? String ?? ""
+
+            try realm.write {
+                realm.add(account)
+            }
+            print("계정 정보를 Realm에 저장했습니다.")
+        } catch {
+            errorMessage = "Realm에 계정 정보를 저장하는 중 오류 발생: \(error.localizedDescription)"
+            showingErrorAlert = true
+        }
+    }
+
+    func performEasyLoginWithAuthentication() {
+        let context = LAContext()
+        var error: NSError?
+
+        // Face ID 또는 Touch ID 사용 가능 여부 확인
+        if context.canEvaluatePolicy(.deviceOwnerAuthentication, error: &error) {
+            let reason = "간편 로그인을 위해 인증해주세요."
+            context.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: reason) { success, authenticationError in
+                DispatchQueue.main.async {
+                    if success {
+                        // 인증 성공 시 간편 로그인 수행
+                        self.performEasyLogin()
+                    } else {
+                        // 인증 실패 시 오류 메시지 표시
+                        self.errorMessage = "인증 실패: \(authenticationError?.localizedDescription ?? "알 수 없는 오류")"
+                        self.showingErrorAlert = true
+                    }
+                }
+            }
+        } else {
+            // Face ID 또는 비밀번호 사용 불가 시 오류 메시지 표시
+            DispatchQueue.main.async {
+                self.errorMessage = "Face ID 또는 비밀번호를 사용할 수 없습니다."
+                self.showingErrorAlert = true
+            }
+        }
+    }
+
+    func performEasyLogin() {
+        do {
+            let realm = try Realm()
+            if let account = realm.objects(EasyLoginAccount.self).first {
+                print("간편 로그인 계정 불러오기 성공: \(account.email)")
+                authState.userIdentifier = account.id
+                authState.isAuthenticated = true
+            } else {
+                errorMessage = "저장된 간편 로그인 계정을 찾을 수 없습니다."
+                showingErrorAlert = true
+            }
+        } catch {
+            errorMessage = "Realm에서 계정을 불러오는 중 오류 발생: \(error.localizedDescription)"
+            showingErrorAlert = true
         }
     }
 }
