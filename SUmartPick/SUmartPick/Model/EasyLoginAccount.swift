@@ -8,7 +8,7 @@
 import RealmSwift
 
 class EasyLoginAccount: Object {
-    @Persisted(primaryKey: true) var id: String // Firebase User ID
+    @Persisted(primaryKey: true) var id: String
     @Persisted var email: String
     @Persisted var fullName: String
 }
