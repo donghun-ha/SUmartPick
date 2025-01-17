@@ -169,31 +169,29 @@ struct LoginPopupView: View {
     func registerEasyLogin() {
         guard let userIdentifier = authState.userIdentifier else { return }
 
-        guard let url = URL(string: "http://127.0.0.1:8000/users/\(userIdentifier)") else { return }
-
-        let task = URLSession.shared.dataTask(with: url) { data, response, error in
-            if let error = error {
-                showError(message: "서버에서 사용자 정보를 가져오는 중 오류 발생: \(error.localizedDescription)")
-                return
-            }
-
-            guard let data = data else {
-                showError(message: "서버에서 데이터를 받을 수 없습니다.")
-                return
-            }
-
+        Task {
             do {
+                // 서버 요청 및 응답 처리
+                guard let url = URL(string: "http://127.0.0.1:8000/users/\(userIdentifier)") else { return }
+                let (data, response) = try await URLSession.shared.data(from: url)
+
+                guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+                    showError(message: "서버에서 잘못된 응답을 받았습니다.")
+                    return
+                }
+
+                // JSON 데이터를 파싱
                 if let userData = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
                     saveAccountToRealm(userIdentifier: userIdentifier, userData: userData)
-                    authState.isAuthenticated = true
+                    authState.isAuthenticated = true // 메인 스레드에서 자동 업데이트
                 } else {
                     showError(message: "사용자 정보를 찾을 수 없습니다.")
                 }
             } catch {
-                showError(message: "데이터 처리 중 오류 발생: \(error.localizedDescription)")
+                // 오류 처리
+                showError(message: "서버에서 사용자 정보를 가져오는 중 오류 발생: \(error.localizedDescription)")
             }
         }
-        task.resume()
     }
 
     // Realm에 사용자 계정 정보 저장
