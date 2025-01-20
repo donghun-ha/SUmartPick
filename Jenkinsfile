@@ -1,3 +1,4 @@
+// pipeline 연동
 pipeline {
     agent any
 
