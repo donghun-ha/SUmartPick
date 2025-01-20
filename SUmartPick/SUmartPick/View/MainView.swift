@@ -46,7 +46,7 @@ struct MainView: View {
 // 홈 화면 구성
 struct HomeView: View {
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack {
                 // 상단 타이틀
                 HStack {
@@ -82,7 +82,7 @@ struct HomeView: View {
 
                 Spacer()
             }
-            .navigationBarHidden(true)
+            .toolbar(.hidden, for: .navigationBar)
         }
     }
 }

@@ -206,7 +206,6 @@ class AuthenticationState: ObservableObject {
     // Realm에 계정 정보 저장
     func saveAccountToRealm(userIdentifier: String, email: String?, fullName: String?) async throws {
         do {
-            // 비동기 초기화 사용
             let realm = try await Realm()
             let account = EasyLoginAccount()
             account.id = userIdentifier
