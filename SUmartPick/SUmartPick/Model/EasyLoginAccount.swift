@@ -3,7 +3,7 @@
 //  SUmartPick
 //
 //  Created by aeong on 1/14/25.
-//
+/// Realm에 저장할 간편 로그인 계정 Model
 
 import RealmSwift
 

@@ -3,7 +3,7 @@
 //  SUmartPick
 //
 //  Created by aeong on 1/14/25.
-//
+// FaceID 인증 서비스 (필요 시 ViewModel에서 호출)
 
 import LocalAuthentication
 
