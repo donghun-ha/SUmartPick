@@ -1,86 +1,70 @@
 pipeline {
-    agent any // Jenkins가 어떤 노드에서든 실행되도록 설정
+    agent any
 
     environment {
-        DOCKER_IMAGE_TAG = "SUmartPick-${BUILD_NUMBER}"  // 빌드 번호를 포함한 고유한 Docker 이미지 태그
-        ECR_REPO = "664418991926.dkr.ecr.ap-northeast-2.amazonaws.com/sumartpick" // Amazon ECR 저장소 URL
-        AWS_REGION = "ap-northeast-2" // AWS 리전(서버가 있는 지역) 설정
-        TMP_WORKSPACE = "/tmp/jenkins_workspace"  // 임시 작업을 저장할 폴더
-        AWS_ACCESS_KEY_ID = credentials('sumartpick_jenkins') // AWS 접근 ID를 Jenkins 자격증명에서 가져옴
-        AWS_SECRET_ACCESS_KEY = credentials('sumartpick_jenkins') // AWS 비밀번호를 Jenkins 자격증명에서 가져옴
+        DOCKER_IMAGE_TAG = "SUmartPick-${BUILD_NUMBER}"
+        ECR_REPO = "664418991926.dkr.ecr.ap-northeast-2.amazonaws.com/sumartpick"
+        AWS_REGION = "ap-northeast-2"
+        TMP_WORKSPACE = "/tmp/jenkins_workspace"
+        AWS_ACCESS_KEY_ID = credentials('sumartpick_jenkins')
+        AWS_SECRET_ACCESS_KEY = credentials('sumartpick_jenkins')
     }
 
     stages {
-        stage("Init") { // 파이프라인 초기화 단계
+        stage("Init") {
             steps {
                 script {
-                    gv = load "script.groovy" // 외부에 있는 "script.groovy" 파일을 로드
+                    gv = load "script.groovy"
                 }
             }
         }
-        stage("Checkout") { // GitHub에서 코드를 가져오는 단계
+        stage("Checkout") {
             steps {
-                checkout scm // Git 저장소에서 현재 브랜치의 코드를 가져옴
+                checkout scm
             }
         }
-        stage("Debug Environment") { // 환경 변수 확인 단계 (디버그 용도)
+        stage("Debug Environment") {
             steps {
                 sh '''
-                    echo "AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID" // AWS 접근 ID를 출력
-                    echo "AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY" // AWS 비밀번호를 출력
-                    echo "AWS_REGION: $AWS_REGION" // 설정된 AWS 리전을 출력
+                    echo "AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID"
+                    echo "AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY"
+                    echo "AWS_REGION: $AWS_REGION"
                 '''
             }
         }
-stage('Build Docker Image') {
-    steps {
-        sh '''
-            echo "Building Docker Image with tag: ${DOCKER_IMAGE_TAG}"
-            
-            # 작업 디렉토리를 명확히 지정
-            cd /var/lib/jenkins/workspace/SumartPick-pipeline
-
-            # Docker 빌드 명령어 실행
-            docker build -t ${ECR_REPO}:${DOCKER_IMAGE_TAG} -f Dockerfile .
-            
-            # 태그를 'latest'로 추가
-            docker tag ${ECR_REPO}:${DOCKER_IMAGE_TAG} ${ECR_REPO}:latest
-        '''
-    }
-}
-        }
-        stage('Push Docker Image to ECR Repo') { // Docker 이미지를 Amazon ECR 저장소로 업로드하는 단계
+        stage('Build Docker Image') {
             steps {
-                withAWS(credentials: 'sumartpick_jenkins', region: "${AWS_REGION}") { // AWS 인증 정보를 사용
+                sh '''
+                    echo "Building Docker Image with tag: ${DOCKER_IMAGE_TAG}"
+                    cd /var/lib/jenkins/workspace/SumartPick-pipeline
+                    docker build -t ${ECR_REPO}:${DOCKER_IMAGE_TAG} -f Dockerfile .
+                    docker tag ${ECR_REPO}:${DOCKER_IMAGE_TAG} ${ECR_REPO}:latest
+                '''
+            }
+        }
+        stage('Push Docker Image to ECR Repo') {
+            steps {
+                withAWS(credentials: 'sumartpick_jenkins', region: "${AWS_REGION}") {
                     sh '''
-                        # ECR 로그인
                         aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin "${ECR_REPO}"
-                        
-                        # 고유한 태그로 이미지 푸시
-                        echo "Pushing Docker Image with tag: ${DOCKER_IMAGE_TAG}" // 고유 태그로 이미지를 푸시한다고 출력
-                        docker push "${ECR_REPO}:${DOCKER_IMAGE_TAG}" // 고유 태그를 가진 이미지를 ECR에 업로드
-                        
-                        # 'latest' 태그로 이미지 푸시
-                        echo "Pushing Docker Image with tag: latest" // 최신 태그로 이미지를 푸시한다고 출력
-                        docker push "${ECR_REPO}:latest" // 최신 태그를 가진 이미지를 ECR에 업로드
+                        echo "Pushing Docker Image with tag: ${DOCKER_IMAGE_TAG}"
+                        docker push "${ECR_REPO}:${DOCKER_IMAGE_TAG}"
+                        echo "Pushing Docker Image with tag: latest"
+                        docker push "${ECR_REPO}:latest"
                     '''
                 }
             }
         }
-stage("Deploy") { // 애플리케이션을 배포하는 단계
-    steps {
-        sh '''
-            echo "Deploying Docker Image with tag: ${DOCKER_IMAGE_TAG}" // Docker 이미지를 배포한다고 출력
-            
-            # 환경 변수 설정
-            export DOCKER_IMAGE_TAG=${DOCKER_IMAGE_TAG} 
-            export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-            export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-
-            # Docker Compose로 컨테이너 실행
-            docker-compose -f docker-compose.yml up -d
-        '''
-    }
-}
+        stage("Deploy") {
+            steps {
+                sh '''
+                    echo "Deploying Docker Image with tag: ${DOCKER_IMAGE_TAG}"
+                    export DOCKER_IMAGE_TAG=${DOCKER_IMAGE_TAG}
+                    export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+                    export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+                    docker-compose -f docker-compose.yml up -d
+                '''
+            }
+        }
     }
 }
