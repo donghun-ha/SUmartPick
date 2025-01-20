@@ -32,15 +32,22 @@ pipeline {
                 '''
             }
         }
-        stage('Build Docker Image') { // Docker 이미지를 생성하는 단계
-            steps {
-                sh '''
-                    echo "Building Docker Image with tag: ${DOCKER_IMAGE_TAG}" // Docker 이미지를 빌드한다고 출력
-                    docker build -t ${ECR_REPO}:${DOCKER_IMAGE_TAG} -f Dockerfile . // Docker 이미지를 지정된 태그로 생성
-                    echo "Tagging image as latest" // 최신 태그로 이미지에 추가 태그를 붙였다고 출력
-                    docker tag ${ECR_REPO}:${DOCKER_IMAGE_TAG} ${ECR_REPO}:latest // 이미지를 'latest'라는 이름으로 태그
-                '''
-            }
+stage('Build Docker Image') {
+    steps {
+        sh '''
+            echo "Building Docker Image with tag: ${DOCKER_IMAGE_TAG}"
+            
+            # 작업 디렉토리를 명확히 지정
+            cd /var/lib/jenkins/workspace/SumartPick-pipeline
+
+            # Docker 빌드 명령어 실행
+            docker build -t ${ECR_REPO}:${DOCKER_IMAGE_TAG} -f Dockerfile .
+            
+            # 태그를 'latest'로 추가
+            docker tag ${ECR_REPO}:${DOCKER_IMAGE_TAG} ${ECR_REPO}:latest
+        '''
+    }
+}
         }
         stage('Push Docker Image to ECR Repo') { // Docker 이미지를 Amazon ECR 저장소로 업로드하는 단계
             steps {
