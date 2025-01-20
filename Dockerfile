@@ -24,10 +24,10 @@ FROM python:3.12-slim
 WORKDIR /SUmartPick
 
 # Copy the application folder
-COPY ./Develop ./Develop
+COPY ./fastapi ./fastapi
 
 # Set the working directory for the app
-WORKDIR /SUmartPick/Develop
+WORKDIR /SUmartPick/fastapi
 
 # Install dependencies
 COPY ./Develop/requirements.txt ./requirements.txt
