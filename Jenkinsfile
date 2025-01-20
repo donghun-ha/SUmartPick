@@ -60,16 +60,20 @@ pipeline {
                 }
             }
         }
-        stage("Deploy") { // 애플리케이션을 배포하는 단계
-            steps {
-                sh '''
-                    echo "Deploying Docker Image with tag: ${DOCKER_IMAGE_TAG}" // Docker 이미지를 배포한다고 출력
-                    DOCKER_IMAGE_TAG=${DOCKER_IMAGE_TAG} \ // Docker 이미지 태그를 환경 변수로 설정
-                    AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \ // AWS 접근 ID를 환경 변수로 설정
-                    AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \ // AWS 비밀번호를 환경 변수로 설정
-                    docker-compose -f docker-compose.yml up -d // Docker Compose로 컨테이너를 실행
-                '''
-            }
-        }
+stage("Deploy") { // 애플리케이션을 배포하는 단계
+    steps {
+        sh '''
+            echo "Deploying Docker Image with tag: ${DOCKER_IMAGE_TAG}" // Docker 이미지를 배포한다고 출력
+            
+            # 환경 변수 설정
+            export DOCKER_IMAGE_TAG=${DOCKER_IMAGE_TAG} 
+            export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+            export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+
+            # Docker Compose로 컨테이너 실행
+            docker-compose -f docker-compose.yml up -d
+        '''
+    }
+}
     }
 }
