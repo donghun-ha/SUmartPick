@@ -23,7 +23,7 @@ struct ContentView: View {
         } else {
             NavigationStack {
                 VStack {
-                    Text("로그인 예제")
+                    Text("로그인")
                         .font(.headline)
                         .padding()
 
