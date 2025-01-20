@@ -9,42 +9,87 @@ import SwiftUI
 
 struct MainView: View {
     @EnvironmentObject var authState: AuthenticationState // 인증 상태 공유 객체
-    @State private var showLogoutAlert = false // 로그아웃 확인 경고창 상태
 
     var body: some View {
-        VStack {
-            Text("환영합니다!")
-                .font(.largeTitle)
-                .padding()
-
-            Button(action: {
-                showLogoutAlert = true // 로그아웃 경고창 표시
-            }) {
-                Text("로그아웃")
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(Color.red)
-                    .foregroundColor(.white)
-                    .cornerRadius(10)
-            }
-            .padding()
-            .alert("로그아웃", isPresented: $showLogoutAlert) {
-                Button("취소", role: .cancel) {}
-                Button("로그아웃", role: .destructive) {
-                    performLogout()
+        TabView {
+            // 홈 화면
+            HomeView()
+                .tabItem {
+                    Image(systemName: "house.fill")
+                    Text("홈")
                 }
-            } message: {
-                Text("정말로 로그아웃 하시겠습니까?")
-            }
-        }
-        .padding()
-    }
 
-    func performLogout() {
-        withAnimation {
-            authState.isAuthenticated = false // 인증 상태 변경
-            authState.userIdentifier = nil
+            // 검색 화면
+            SearchView()
+                .tabItem {
+                    Image(systemName: "magnifyingglass")
+                    Text("검색")
+                }
+
+            // 마이페이지 화면
+            Text("마이페이지")
+                .tabItem {
+                    Image(systemName: "person.fill")
+                    Text("마이페이지")
+                }
+
+            // 장바구니 화면
+            Text("장바구니")
+                .tabItem {
+                    Image(systemName: "cart.fill")
+                    Text("장바구니")
+                }
         }
-        print("로그아웃 완료")
+    }
+}
+
+// 홈 화면 구성
+struct HomeView: View {
+    var body: some View {
+        NavigationView {
+            VStack {
+                // 상단 타이틀
+                HStack {
+                    Text("SUmartPick")
+                        .font(.title)
+                        .fontWeight(.bold)
+                        .padding(.leading)
+                    Spacer()
+                    Image(systemName: "cart")
+                        .resizable()
+                        .frame(width: 24, height: 24)
+                        .padding(.trailing)
+                }
+                .padding(.top)
+
+                // 검색창
+                HStack {
+                    TextField("상품 검색", text: .constant(""))
+                        .padding(10)
+                        .background(Color(.systemGray6))
+                        .cornerRadius(8)
+                        .padding(.horizontal)
+                    Image(systemName: "magnifyingglass")
+                        .padding(.trailing)
+                }
+                .padding(.bottom)
+
+                // 추천 상품
+                Spacer()
+                Text("추천 상품")
+                    .font(.headline)
+                    .padding(.bottom)
+
+                Spacer()
+            }
+            .navigationBarHidden(true)
+        }
+    }
+}
+
+// 검색 화면 구성
+struct SearchView: View {
+    var body: some View {
+        Text("검색 화면")
     }
 }
