@@ -29,8 +29,10 @@ struct ContentView: View {
 
                     // Apple 로그인 버튼
                     SignInWithAppleButton(
-                        onRequest: authState.configureSignInWithApple, // ViewModel 메서드 호출
-                        onCompletion: authState.handleSignInWithAppleCompletionForContentView
+                        onRequest: authState.configureSignInWithApple,
+                        onCompletion: { result in
+                            authState.handleSignInWithAppleCompletion(result, isPopup: false)
+                        }
                     )
                     .signInWithAppleButtonStyle(.black)
                     .frame(height: 50)
@@ -39,7 +41,9 @@ struct ContentView: View {
 
                     // Google 로그인 버튼
                     GoogleSignInButton {
-                        authState.handleGoogleSignInForContentView() // ViewModel 메서드 호출
+                        Task {
+                            await authState.handleGoogleSignIn(isPopup: false)
+                        }
                     }
                     .frame(height: 50)
                     .cornerRadius(10)
@@ -63,7 +67,7 @@ struct ContentView: View {
 
                     // 간편 로그인 버튼
                     Button {
-                        authState.performEasyLoginWithAuthentication() // ViewModel 메서드 호출
+                        authState.performEasyLoginWithAuthentication()
                     } label: {
                         Text("간편 로그인")
                             .padding()

@@ -20,8 +20,10 @@ struct LoginPopupView: View {
 
             // Apple 로그인 버튼
             SignInWithAppleButton(
-                onRequest: authState.configureSignInWithApple, // ViewModel 메서드
-                onCompletion: authState.handleSignInWithAppleCompletionForPopup
+                onRequest: authState.configureSignInWithApple,
+                onCompletion: { result in
+                    authState.handleSignInWithAppleCompletion(result, isPopup: true)
+                }
             )
             .signInWithAppleButtonStyle(.black)
             .frame(height: 50)
@@ -30,7 +32,9 @@ struct LoginPopupView: View {
 
             // Google 로그인 버튼
             GoogleSignInButton {
-                authState.handleGoogleSignInForPopup() // ViewModel 메서드
+                Task {
+                    await authState.handleGoogleSignIn(isPopup: true)
+                }
             }
             .frame(height: 50)
             .cornerRadius(10)
