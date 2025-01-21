@@ -12,10 +12,10 @@ enum AppEnvironment {
 }
 
 enum Config {
-    static let environment: AppEnvironment = .local
+    static let dbenvironment: AppEnvironment = .local
 
     static var baseURL: String {
-        switch environment {
+        switch dbenvironment {
             case .local:
                 return "http://127.0.0.1:8000"
             case .remote:

@@ -1,5 +1,5 @@
 # 사용할 모드: "local" 또는 "remote"
-MODE = "remote"
+MODE = "local"
 
 db_config = {
     "local": {

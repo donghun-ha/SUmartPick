@@ -13,100 +13,77 @@ struct MyPageView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(alignment: .leading, spacing: 0) {
-                // 유저 이름 표시
-                HStack {
-                    Text(authState.userFullName ?? "UserFullName")
-                        .font(.title)
-                    Image(systemName: "chevron.right")
-                        .foregroundColor(.gray)
+            ZStack {
+                // SafeArea를 무시하고 화면 전체를 가로지르는 Divider
+                VStack(spacing: 56) {
+                    Color.clear
+                        .frame(height: 24)
+                    Divider()
+                        .frame(height: 1)
+                        .ignoresSafeArea(edges: .horizontal) // SafeArea 무시
+                    Spacer()
                 }
-                .padding(.vertical, 12)
 
-                Divider()
-
-                // 예시 버튼들
-                HStack {
-                    Spacer()
-                    NavigationLink(destination: Text("주문목록 뷰")) {
-                        VStack {
-                            Image(systemName: "doc.text.fill")
-                                .font(.title)
-                                .foregroundColor(.indigo)
-                                .padding(.bottom, 4)
-                            Text("주문목록")
-                                .font(.caption)
-                                .foregroundColor(.indigo)
-                        }
+                // 실제 화면 내용
+                VStack(alignment: .leading, spacing: 0) {
+                    // 유저 이름 표시
+                    HStack {
+                        Text(authState.userFullName ?? "UserFullName")
+                            .font(.title)
                     }
-                    Spacer()
+                    .padding(.vertical, 24)
 
-                    NavigationLink(destination: Text("찜한상품 뷰")) {
-                        VStack {
-                            Image(systemName: "heart.fill")
-                                .font(.title)
-                                .foregroundColor(.indigo)
-                                .padding(.bottom, 4)
-                            Text("찜한상품")
-                                .font(.caption)
-                                .foregroundColor(.indigo)
-                        }
+                    // 주문 목록
+                    NavigationLink(destination: OrderListView()) {
+                        rowItem(title: "주문목록", icon: "doc.text.fill")
                     }
-                    Spacer()
+                    Divider()
 
+                    // 최근 본 상품
                     NavigationLink(destination: Text("최근본상품 뷰")) {
-                        VStack {
-                            Image(systemName: "clock.fill")
-                                .font(.title)
-                                .foregroundColor(.indigo)
-                                .padding(.bottom, 4)
-                            Text("최근본상품")
-                                .font(.caption)
-                                .foregroundColor(.indigo)
-                        }
+                        rowItem(title: "최근본상품", icon: "clock.fill")
                     }
+                    Divider()
+
+                    // 취소·반품·교환 목록
+                    NavigationLink(destination: Text("취소·반품·교환목록 뷰")) {
+                        rowItem(title: "취소·반품·교환목록", icon: "arrow.uturn.backward.circle.fill")
+                    }
+                    Divider()
+
+                    // 리뷰 관리
+                    NavigationLink(destination: Text("리뷰 관리 뷰")) {
+                        rowItem(title: "리뷰 관리", icon: "star.fill")
+                    }
+                    Divider()
+
+                    // 간편 로그인 등록
+                    NavigationLink(destination: EasyLoginRegisterView()) {
+                        rowItem(title: "간편 로그인 등록", icon: "person.badge.plus")
+                    }
+                    Divider()
+
                     Spacer()
-                }
-                .padding(.vertical, 16)
 
-                Divider()
-
-                NavigationLink(destination: Text("취소·반품·교환목록 뷰")) {
-                    rowItem(title: "취소·반품·교환목록", icon: "arrow.uturn.backward.circle.fill")
-                }
-                Divider()
-
-                NavigationLink(destination: Text("리뷰 관리 뷰")) {
-                    rowItem(title: "리뷰 관리", icon: "star.fill")
-                }
-                Divider()
-
-                // 간편 로그인 등록 버튼
-                NavigationLink(destination: EasyLoginRegisterView()) {
-                    rowItem(title: "간편 로그인 등록", icon: "person.badge.plus")
-                }
-                Divider()
-
-                Spacer()
-
-                // 로그아웃
-                Text("로그아웃")
-                    .font(.system(size: 14))
-                    .foregroundColor(.black)
-                    .underline()
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .padding(.vertical, 16)
-                    .onTapGesture {
-                        showLogoutConfirmation = true
-                    }
-                    .alert("로그아웃 하시겠습니까?", isPresented: $showLogoutConfirmation) {
-                        Button("취소", role: .cancel) {}
-                        Button("로그아웃", role: .destructive) {
-                            authState.logout()
+                    // 로그아웃
+                    Text("로그아웃")
+                        .font(.system(size: 14))
+                        .foregroundColor(.black)
+                        .underline()
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .padding(.vertical)
+                        .onTapGesture {
+                            showLogoutConfirmation = true
                         }
-                    }
+                        .alert("로그아웃 하시겠습니까?", isPresented: $showLogoutConfirmation) {
+                            Button("취소", role: .cancel) {}
+                            Button("로그아웃", role: .destructive) {
+                                authState.logout()
+                            }
+                        }
+                }
+                .padding(.horizontal, 24)
             }
-            .padding(.horizontal, 16)
             .navigationBarTitleDisplayMode(.inline)
         }
     }
@@ -124,6 +101,6 @@ struct MyPageView: View {
             Image(systemName: "chevron.right")
                 .foregroundColor(.gray)
         }
-        .padding(.vertical, 12)
+        .padding(.vertical)
     }
 }

@@ -219,6 +219,48 @@ async def view(file_name: str):
     return {"result": "Error"}
 
 
+@app.get("/orders/{user_id}")
+async def get_user_orders(user_id: str):
+    """
+    특정 User_ID가 주문한 내역을 조회하는 API 엔드포인트
+    """
+    conn = connect()
+    cursor = conn.cursor()
+    try:
+        # Orders 테이블과 Products 테이블을 JOIN
+        sql = """
+            SELECT 
+                o.Order_ID,
+                o.Product_seq,
+                o.User_ID,
+                o.Product_ID,
+                o.Order_Date,
+                o.Address,
+                o.refund_demands_time,
+                o.refund_time,
+                o.payment_method,
+                o.Arrival_Time,
+                o.Order_state,
+                p.name AS product_name,
+                p.preview_image AS product_image,
+                p.price AS product_price
+            FROM Orders o
+            JOIN Products p ON o.Product_ID = p.Product_ID
+            WHERE o.User_ID = %s
+            ORDER BY o.Order_Date DESC
+        """
+        cursor.execute(sql, (user_id,))
+        orders = cursor.fetchall()
+
+        return orders
+
+    except pymysql.MySQLError as ex:
+        print("Error:", ex)
+        raise HTTPException(status_code=500, detail="Database error occurred.")
+    finally:
+        conn.close()
+
+
 if __name__ == "__main__":
     import uvicorn
 
