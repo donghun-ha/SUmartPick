@@ -26,12 +26,14 @@ if not os.path.exists(UPLOAD_FOLDER):
 
 # Database connection
 def connect():
+    # config에서 DB 정보를 받아옴
+    db = config.get_db_config()
     try:
         conn = pymysql.connect(
-            host=config.host,
-            user=config.user,
-            password="qwer1234",
-            database="sumartpick",
+            host=db["host"],
+            user=db["user"],
+            password=db["password"],
+            database=db["database"],
             charset="utf8mb4",
             cursorclass=pymysql.cursors.DictCursor,
         )
@@ -59,6 +61,7 @@ class Product(BaseModel):
 
 @app.post("/upload")
 async def upload_file(file: UploadFile = File(...)):
+    # 업로드 처리
     try:
         file_path = os.path.join(UPLOAD_FOLDER, file.filename)
         with open(file_path, "wb") as buffer:
@@ -71,6 +74,7 @@ async def upload_file(file: UploadFile = File(...)):
 
 @app.delete("/deleteFile/{file_name}")
 async def delete_file(file_name: str):
+    # 파일 삭제 처리
     try:
         file_path = os.path.join(UPLOAD_FOLDER, file_name)
         if os.path.exists(file_path):
@@ -83,8 +87,8 @@ async def delete_file(file_name: str):
 
 @app.post("/users")
 async def add_user(user: User):
-    print(f"Received request: {user.dict()}")  # 요청 데이터 로그 출력
-
+    # 유저 추가
+    print(f"Received request: {user.dict()}")
     conn = connect()
     cursor = conn.cursor()
 
@@ -108,6 +112,7 @@ async def add_user(user: User):
 
 @app.get("/users/{user_id}")
 async def get_user(user_id: str):
+    # 유저 정보 조회
     conn = connect()
     cursor = conn.cursor()
 
@@ -128,6 +133,7 @@ async def get_user(user_id: str):
 
 @app.get("/products")
 async def get_products():
+    # 전체 상품 조회
     conn = connect()
     cursor = conn.cursor()
 
@@ -144,6 +150,7 @@ async def get_products():
 
 @app.post("/products")
 async def add_product(product: Product):
+    # 상품 추가
     conn = connect()
     cursor = conn.cursor()
 
@@ -170,6 +177,7 @@ async def add_product(product: Product):
 
 @app.get("/categories")
 async def get_categories():
+    # 카테고리 조회
     conn = connect()
     cursor = conn.cursor()
 
@@ -186,6 +194,7 @@ async def get_categories():
 
 @app.post("/categories")
 async def add_category(name: str):
+    # 카테고리 추가
     conn = connect()
     cursor = conn.cursor()
 
@@ -203,6 +212,7 @@ async def add_category(name: str):
 
 @app.get("/view/{file_name}")
 async def view(file_name: str):
+    # 이미지 파일 직접 보기
     file_path = os.path.join(UPLOAD_FOLDER, file_name)
     if os.path.exists(file_path):
         return FileResponse(path=file_path, filename=file_name)
