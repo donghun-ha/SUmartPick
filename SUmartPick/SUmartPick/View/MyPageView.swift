@@ -8,13 +8,13 @@
 import SwiftUI
 
 struct MyPageView: View {
-    @EnvironmentObject var authState: AuthenticationState // 인증 상태 관리 객체
-    @State private var showLogoutConfirmation = false // 로그아웃 확인 Alert 표시 여부
+    @EnvironmentObject var authState: AuthenticationState
+    @State private var showLogoutConfirmation = false
 
     var body: some View {
         NavigationStack {
             VStack(alignment: .leading, spacing: 0) {
-                // 유저 이름 영역
+                // 유저 이름 표시
                 HStack {
                     Text(authState.userFullName ?? "UserFullName")
                         .font(.title)
@@ -25,11 +25,9 @@ struct MyPageView: View {
 
                 Divider()
 
-                // 아이콘 3개 (주문목록 / 찜한상품 / 최근본상품)
+                // 예시 버튼들
                 HStack {
                     Spacer()
-
-                    // 주문목록 버튼
                     NavigationLink(destination: Text("주문목록 뷰")) {
                         VStack {
                             Image(systemName: "doc.text.fill")
@@ -41,10 +39,8 @@ struct MyPageView: View {
                                 .foregroundColor(.indigo)
                         }
                     }
-
                     Spacer()
 
-                    // 찜한상품 버튼
                     NavigationLink(destination: Text("찜한상품 뷰")) {
                         VStack {
                             Image(systemName: "heart.fill")
@@ -56,10 +52,8 @@ struct MyPageView: View {
                                 .foregroundColor(.indigo)
                         }
                     }
-
                     Spacer()
 
-                    // 최근본상품 버튼
                     NavigationLink(destination: Text("최근본상품 뷰")) {
                         VStack {
                             Image(systemName: "clock.fill")
@@ -71,35 +65,31 @@ struct MyPageView: View {
                                 .foregroundColor(.indigo)
                         }
                     }
-
                     Spacer()
                 }
                 .padding(.vertical, 16)
 
                 Divider()
 
-                // 목록 영역 (주문목록 / 취소·반품·교환목록 / 리뷰 관리)
-                NavigationLink(destination: Text("주문목록 뷰")) {
-                    rowItem(title: "주문목록", icon: "doc.text.fill")
-                        .padding(.vertical, 4)
-                }
-                Divider()
-
                 NavigationLink(destination: Text("취소·반품·교환목록 뷰")) {
                     rowItem(title: "취소·반품·교환목록", icon: "arrow.uturn.backward.circle.fill")
-                        .padding(.vertical, 4)
                 }
                 Divider()
 
                 NavigationLink(destination: Text("리뷰 관리 뷰")) {
                     rowItem(title: "리뷰 관리", icon: "star.fill")
-                        .padding(.vertical, 4)
+                }
+                Divider()
+
+                // 간편 로그인 등록 버튼
+                NavigationLink(destination: EasyLoginRegisterView()) {
+                    rowItem(title: "간편 로그인 등록", icon: "person.badge.plus")
                 }
                 Divider()
 
                 Spacer()
 
-                // 로그아웃 텍스트
+                // 로그아웃
                 Text("로그아웃")
                     .font(.system(size: 14))
                     .foregroundColor(.black)
@@ -107,12 +97,12 @@ struct MyPageView: View {
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding(.vertical, 16)
                     .onTapGesture {
-                        showLogoutConfirmation = true // Alert 표시
+                        showLogoutConfirmation = true
                     }
                     .alert("로그아웃 하시겠습니까?", isPresented: $showLogoutConfirmation) {
                         Button("취소", role: .cancel) {}
                         Button("로그아웃", role: .destructive) {
-                            authState.logout() // 로그아웃 로직 호출
+                            authState.logout()
                         }
                     }
             }
@@ -121,15 +111,15 @@ struct MyPageView: View {
         }
     }
 
-    // 각 행을 간단히 구성하는 뷰
+    // 공용 행 레이아웃
     func rowItem(title: String, icon: String) -> some View {
         HStack {
-            Image(systemName: icon) // 아이콘 추가
+            Image(systemName: icon)
                 .font(.title3)
                 .foregroundColor(.black)
-                .padding(.trailing, 8) // 아이콘과 텍스트 간 간격 조정
+                .padding(.trailing, 8)
             Text(title)
-                .foregroundColor(.black) // 텍스트 색상 설정
+                .foregroundColor(.black)
             Spacer()
             Image(systemName: "chevron.right")
                 .foregroundColor(.gray)

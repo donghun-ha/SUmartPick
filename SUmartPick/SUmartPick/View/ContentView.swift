@@ -11,25 +11,22 @@ import SwiftUI
 
 struct ContentView: View {
     @EnvironmentObject var authState: AuthenticationState
-    @State private var showingLoginPopup = false // 팝업 화면 표시 여부 (View 전용)
 
     var body: some View {
         Group {
             if authState.isAuthenticated {
-                // 로그인 성공 시 메인 화면 이동
+                // 이미 로그인된 상태 → 메인 화면
                 MainView()
-                    .onAppear {
-                        showingLoginPopup = false
-                    }
-                    .transition(.slide) // 메인 화면 전환 애니메이션
+                    .transition(.slide)
             } else {
+                // 미로그인 상태 → 로그인 화면
                 NavigationStack {
                     VStack {
                         Text("로그인")
                             .font(.headline)
                             .padding()
 
-                        // Apple 로그인 버튼
+                        // Apple 로그인
                         SignInWithAppleButton(
                             onRequest: authState.configureSignInWithApple,
                             onCompletion: { result in
@@ -41,7 +38,7 @@ struct ContentView: View {
                         .cornerRadius(10)
                         .padding()
 
-                        // Google 로그인 버튼
+                        // Google 로그인
                         GoogleSignInButton {
                             Task {
                                 await authState.handleGoogleSignIn(isPopup: false)
@@ -51,23 +48,7 @@ struct ContentView: View {
                         .cornerRadius(10)
                         .padding()
 
-                        // 간편 로그인 등록 버튼
-                        Button {
-                            showingLoginPopup = true
-                        } label: {
-                            Text("간편 로그인 등록")
-                                .padding()
-                                .frame(maxWidth: .infinity)
-                                .background(Color.green)
-                                .foregroundColor(.white)
-                                .cornerRadius(10)
-                        }
-                        .padding()
-                        .sheet(isPresented: $showingLoginPopup) {
-                            LoginPopupView() // 팝업 표시
-                        }
-
-                        // 간편 로그인 버튼
+                        // 간편 로그인 버튼 (이미 등록되어 있는 계정으로 Face ID/비밀번호 인증 후 로그인)
                         Button {
                             authState.performEasyLoginWithAuthentication()
                         } label: {
