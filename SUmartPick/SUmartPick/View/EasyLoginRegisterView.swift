@@ -10,8 +10,8 @@ import SwiftUI
 struct EasyLoginRegisterView: View {
     @EnvironmentObject var authState: AuthenticationState
     @Environment(\.dismiss) private var dismiss // 뒤로 이동(dismiss) 기능
-    @State private var showSuccessMessage = false         // 등록 성공시 메시지
-    @State private var showRegisterConfirmation = false   // 등록 전 확인 다이얼로그
+    @State private var showSuccessMessage = false // 등록 성공시 메시지
+    @State private var showRegisterConfirmation = false // 등록 전 확인 다이얼로그
 
     var body: some View {
         VStack {

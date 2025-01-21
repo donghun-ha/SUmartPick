@@ -7,6 +7,7 @@ from pydantic import BaseModel
 import pymysql
 import os
 import shutil
+import config
 
 app = FastAPI()
 
@@ -27,10 +28,10 @@ if not os.path.exists(UPLOAD_FOLDER):
 def connect():
     try:
         conn = pymysql.connect(
-            host="localhost",
-            user="root",
+            host=config.host,
+            user=config.user,
             password="qwer1234",
-            database="SUmartPick",
+            database="sumartpick",
             charset="utf8mb4",
             cursorclass=pymysql.cursors.DictCursor,
         )

@@ -168,7 +168,7 @@ class AuthenticationState: ObservableObject {
 
     // 사용자 정보를 서버(MySQL)에 저장
     func saveUserToDatabase(userIdentifier: String, email: String?, fullName: String?, provider: AuthProvider) async throws {
-        guard let url = URL(string: "http://127.0.0.1:8000/users") else {
+        guard let url = URL(string: "\(Config.baseURL)/users") else {
             throw AuthenticationError.invalidURL
         }
 
@@ -274,7 +274,7 @@ class AuthenticationState: ObservableObject {
 
     // 서버로 사용자 계정 존재 여부 대조
     func validateAccountWithServer(userIdentifier: String) async throws -> Bool {
-        guard let url = URL(string: "http://127.0.0.1:8000/users/\(userIdentifier)") else {
+        guard let url = URL(string: "\(Config.baseURL)/users/\(userIdentifier)") else {
             throw AuthenticationError.invalidURL
         }
 
@@ -308,7 +308,7 @@ class AuthenticationState: ObservableObject {
             throw AuthenticationError.authenticationFailed("사용자 식별자가 없습니다.")
         }
 
-        guard let url = URL(string: "http://127.0.0.1:8000/users/\(userIdentifier)") else {
+        guard let url = URL(string: "\(Config.baseURL)/users/\(userIdentifier)") else {
             throw AuthenticationError.invalidURL
         }
 
@@ -382,7 +382,7 @@ class AuthenticationState: ObservableObject {
 //
 //    // 서버 로그아웃 (옵션)
 //    private func performServerLogout() async throws {
-//        guard let url = URL(string: "http://127.0.0.1:8000/logout") else {
+//        guard let url = URL(string: "\(Config.baseURL)/logout") else {
 //            throw AuthenticationError.invalidURL
 //        }
 //
