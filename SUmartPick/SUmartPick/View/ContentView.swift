@@ -93,9 +93,9 @@ struct ContentView: View {
                         Text(authState.errorMessage)
                     }
                 }
-                .transition(.slide) // 로그인 화면 전환 애니메이션
+                .transition(.slide)
             }
         }
-        .animation(.easeInOut, value: authState.isAuthenticated) // 상태 변화에 애니메이션 적용
+        .animation(.easeInOut, value: authState.isAuthenticated)
     }
 }
