@@ -262,7 +262,7 @@ class AuthenticationState: ObservableObject {
             let isValid = try await self.validateAccountWithServer(userIdentifier: account.id)
             if isValid {
                 self.userIdentifier = account.id
-                self.userFullName = account.fullName
+                self.userFullName = account.fullName // 사용자 이름 업데이트
                 self.isAuthenticated = true
             } else {
                 throw AuthenticationError.authenticationFailed("간편 로그인 계정이 서버에서 확인되지 않았습니다. 다시 등록해주세요.")
@@ -325,8 +325,23 @@ class AuthenticationState: ObservableObject {
             throw AuthenticationError.parsingError
         }
 
+        // 기존 Realm 데이터 삭제 (중복 방지)
+        try await self.clearAccountFromRealm()
+
+        // Realm에 계정 정보 저장
         try await self.saveAccountToRealm(userIdentifier: userIdentifier, email: email, fullName: fullName)
+
+        // 상태 업데이트
+        self.userFullName = fullName
         self.isAuthenticated = true
+    }
+
+    // 기존 Realm 데이터 삭제
+    private func clearAccountFromRealm() async throws {
+        let realm = try await Realm()
+        try realm.write {
+            realm.deleteAll()
+        }
     }
 
     // 로그아웃 메서드

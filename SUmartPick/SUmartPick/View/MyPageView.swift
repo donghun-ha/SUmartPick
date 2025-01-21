@@ -9,6 +9,7 @@ import SwiftUI
 
 struct MyPageView: View {
     @EnvironmentObject var authState: AuthenticationState // 인증 상태 관리 객체
+    @State private var showLogoutConfirmation = false // 로그아웃 확인 Alert 표시 여부
 
     var body: some View {
         NavigationStack {
@@ -106,7 +107,13 @@ struct MyPageView: View {
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding(.vertical, 16)
                     .onTapGesture {
-                        authState.logout()
+                        showLogoutConfirmation = true // Alert 표시
+                    }
+                    .alert("로그아웃 하시겠습니까?", isPresented: $showLogoutConfirmation) {
+                        Button("취소", role: .cancel) {}
+                        Button("로그아웃", role: .destructive) {
+                            authState.logout() // 로그아웃 로직 호출
+                        }
                     }
             }
             .padding(.horizontal, 16)
