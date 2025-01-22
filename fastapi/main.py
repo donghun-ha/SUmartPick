@@ -1,8 +1,6 @@
 """
-author: 
-Description: 
-Fixed: 
-Usage: 
+author: "하동훈"
+Description: FASTAPI 연동
 """
 
 from fastapi import FastAPI
