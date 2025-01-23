@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:sumatpick_web/view/Dashboard.dart';
@@ -5,6 +7,7 @@ import 'package:sumatpick_web/view/Dashboard.dart';
 import 'Inventorypage.dart';
 import 'Orderpage.dart';
 import 'Productspage.dart';
+import 'package:http/http.dart' as http;
 
 class Userpage extends StatefulWidget {
   const Userpage({super.key});
@@ -16,6 +19,8 @@ class Userpage extends StatefulWidget {
 class _UserpageState extends State<Userpage> {
   late String selectedFilter;
   late TextEditingController searchController;
+  late List<String> keys;
+  late List data;
   // 임시 데이터 선언
   late List<Map<String, dynamic>> members;
   // 검색 데이터 선언
@@ -24,45 +29,34 @@ class _UserpageState extends State<Userpage> {
   @override
   void initState() {
     super.initState();
+    data = [];
+    members = [];
+    filteredMembers = [];
+    // key
+    keys = ["아이디", "로그인방법", "회원명", "이메일", "가입일시"];
+
     selectedFilter = "아이디";
     searchController = TextEditingController();
-    // 임시데이터
-    members = [
-    {
-      "번호": 1,
-      "회원명": "김매직",
-      "아이디": "submall",
-      "가입일시": "2024-12-16 06:14:39",
-      "연락처": "010-3026-3093",
-      "상태": "가입중"
-    },
-    {
-      "번호": 2,
-      "회원명": "박코딩",
-      "아이디": "testuser",
-      "가입일시": "2023-01-05 10:14:39",
-      "연락처": "010-1234-5678",
-      "상태": "가입중"
-    },
-    {
-      "번호": 3,
-      "회원명": "이개발",
-      "아이디": "flutterdev",
-      "가입일시": "2022-05-16 12:24:39",
-      "연락처": "010-5678-1234",
-      "상태": "탈퇴"
-    },
-    {
-      "번호": 4,
-      "회원명": "김매직",
-      "아이디": "submall",
-      "가입일시": "2024-12-16 06:14:39",
-      "연락처": "010-3026-3093",
-      "상태": "가입중"
-    },
-  ];
-  // 임시데이터 넣기
+  getJSONData();
+  }
+
+  getJSONData() async{
+    var url = Uri.parse('http://127.0.0.1:8000/users/user_select');
+    var response = await http.get(url);
+    // print(response.body);
+    data.clear();
+    var dataConvertedJSON = json.decode(utf8.decode(response.bodyBytes));
+    List result = dataConvertedJSON['results'];
+    data.addAll(result);
+    members = data.map((entry) {
+    return Map.fromIterables(keys, entry);
+  }).toList();
   filteredMembers = members;
+    if (mounted) {
+  setState(() {
+    // 상태 업데이트
+  });
+}
   }
 
 
@@ -149,8 +143,8 @@ class _UserpageState extends State<Userpage> {
               thickness: 2,
               color: Color(0xffD9D9D9),
             ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(0, 50, 0, 0),
+            const Padding(
+              padding: EdgeInsets.fromLTRB(0, 50, 0, 0),
               child: Row(
                 children: [
                   Text(
@@ -174,18 +168,19 @@ class _UserpageState extends State<Userpage> {
                     BoxShadow(
                       color: Colors.grey.withOpacity(0.3),
                       blurRadius: 10,
-                      offset: Offset(0, 5),
+                      offset: const Offset(0, 5),
                     ),
                   ],
                 ),
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: Row(
                   children: [
                     // 드롭다운 버튼
                     DropdownButtonHideUnderline(
                       child: DropdownButton<String>(
+                        dropdownColor: Colors.white,
                         value: selectedFilter, // 현재 선택된 값
-                        items: ['아이디', '회원명', '상태']
+                        items: ['아이디', '회원명', '로그인방법']
                 .map((String option) => DropdownMenuItem<String>(
                       value: option,
                       child: Text(option),
@@ -207,6 +202,9 @@ class _UserpageState extends State<Userpage> {
               hintText: "검색어를 입력하세요",
               border: InputBorder.none,
                         ),
+                        onSubmitted: (value) {
+                          filterMembers();
+                        },
                       ),
                     ),
                     // 검색 버튼
@@ -238,47 +236,37 @@ class _UserpageState extends State<Userpage> {
                 ),
               ),
             ),
-Padding(
-  padding: const EdgeInsets.fromLTRB(0, 50, 0, 0),
-  child: Container(
-    height: 80,
-    decoration: BoxDecoration(
-    color: Colors.white,
-    borderRadius: BorderRadius.circular(15)
-    ),
-  child: Center(
-    child: Row(
+      Padding(
+        padding: const EdgeInsets.fromLTRB(0, 50, 0, 0),
+        child: Container(
+          height: 80,
+          decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(15)
+          ),
+        child: Center(
+          child: Row(
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 0, 0, 0),
           child: Text(
             "총 회원 수 : ${filteredMembers.length}명",
-            style: TextStyle(
+            style: const TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 17
             ),
             ),
         )
       ],
-    ),
-  ),
-  ),
-),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
+          ),
+        ),
+        ),
+      ),
+            const Padding(
+              padding: EdgeInsets.fromLTRB(0, 20, 0, 0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Expanded(
-                    child: Text(
-                      '번호',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      textAlign: TextAlign.center,
-                      ),
-                  ),
                     Expanded(
                       child: Text(
                       '회원명',
@@ -301,27 +289,27 @@ Padding(
                     ),
                     Expanded(
                       child: Text(
+                      '로그인방법',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold
+                      ),
+                      textAlign: TextAlign.center,
+                      ),
+                    ),
+                    Expanded(
+                      child: Text(
+                      '이메일',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold
+                      ),
+                      textAlign: TextAlign.center,
+                      ),
+                    ),
+                    Expanded(
+                      child: Text(
                       '가입일시',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold
-                      ),
-                      textAlign: TextAlign.center,
-                      ),
-                    ),
-                    Expanded(
-                      child: Text(
-                      '연락처',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold
-                      ),
-                      textAlign: TextAlign.center,
-                      ),
-                    ),
-                    Expanded(
-                      child: Text(
-                      '상태',
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.bold
@@ -352,12 +340,6 @@ Padding(
                                     children: [
                                       Expanded(
                                         child: Text(
-                                          "${member['번호']}",
-                                          textAlign: TextAlign.center,
-                                          ),
-                                      ),
-                                      Expanded(
-                                        child: Text(
                                           "${member['회원명']}",
                                           textAlign: TextAlign.center,
                                           ),
@@ -370,19 +352,19 @@ Padding(
                                       ),
                                       Expanded(
                                         child: Text(
+                                          "${member['로그인방법']}",
+                                          textAlign: TextAlign.center,
+                                          ),
+                                      ),
+                                      Expanded(
+                                        child: Text(
+                                          "${member['이메일']}",
+                                          textAlign: TextAlign.center,
+                                          ),
+                                      ),
+                                      Expanded(
+                                        child: Text(
                                           "${member['가입일시']}",
-                                          textAlign: TextAlign.center,
-                                          ),
-                                      ),
-                                      Expanded(
-                                        child: Text(
-                                          "${member['연락처']}",
-                                          textAlign: TextAlign.center,
-                                          ),
-                                      ),
-                                      Expanded(
-                                        child: Text(
-                                          "${member['상태']}",
                                           textAlign: TextAlign.center,
                                           ),
                                       ),
@@ -417,5 +399,6 @@ Padding(
   resetFilter(){
     searchController.clear();
     filteredMembers = members; // 지금은 초기화 하면 임시데이터를 넣지만 DB가 있을땐 초기 DB데이터를 넣어야 함
+    setState(() {});
   }
 }
