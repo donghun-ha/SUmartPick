@@ -52,7 +52,7 @@ async def products_query(query: ProductQuery):
         # SQL 쿼리 작성
         sql_query = """
         SELECT Product_ID, Category_ID, name, price, detail, manufacturer, created 
-        FROM Products 
+        FROM products 
         WHERE name LIKE %s
         """
         params = [f"%{query.name}%"]
