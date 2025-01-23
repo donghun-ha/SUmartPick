@@ -61,7 +61,7 @@ def connect_to_mysql():
             password=DB_PASSWORD,
             charset='utf8',
             db=DB_TABLE,
-            port=int(DB_PORT)
+            port=3306
         )
         print("MySQL 연결 성공")
         print(f"{conn.host, conn.user, conn.password, conn.db, conn.port}")
