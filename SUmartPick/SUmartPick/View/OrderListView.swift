@@ -8,31 +8,47 @@
 import SwiftUI
 
 struct OrderListView: View {
-    // 로그인 정보 (현재 로그인한 userID 등)를 참조
     @EnvironmentObject var authState: AuthenticationState
-
     @StateObject var viewModel = OrdersViewModel()
 
     var body: some View {
         NavigationStack {
-            // 날짜별 섹션 예시
-            List {
-                ForEach(viewModel.sortedDateKeys, id: \.self) { dateKey in
-                    Section(header: Text(dateKey)) {
-                        if let items = viewModel.groupedByDate[dateKey] {
-                            ForEach(items) { order in
-                                // 주문 1건에 대한 Row
-                                OrderRow(order: order)
+            VStack(spacing: 0) {
+                // (A) 검색 영역
+                HStack(spacing: 8) {
+                    Image(systemName: "magnifyingglass")
+                    TextField("주문 검색", text: $viewModel.searchText)
+                        .textFieldStyle(.roundedBorder)
+                }
+                .padding()
+
+                // (B) 주문 목록 리스트
+                List {
+                    ForEach(viewModel.sortedDateKeys, id: \.self) { dateKey in
+                        // 날짜별 구역
+                        Section {
+                            // 실제 주문 목록
+                            if let items = viewModel.groupedByDate[dateKey] {
+                                ForEach(items) { order in
+                                    OrderRow(order: order)
+                                }
                             }
+                        } header: {
+                            // 날짜 표시를 커스텀 헤더로 만듦
+                            HStack {
+                                Text(dateKey)
+                                    .font(.headline)
+                                    .textCase(nil)
+                                Spacer()
+                            }
+                            .padding(.vertical, 4)
+//                            .background(Color(.systemGray6))
                         }
                     }
                 }
             }
-
-            .searchable(text: $viewModel.searchText, prompt: "주문한 상품을 검색할 수 있어요!")
             .navigationTitle("주문목록")
-            .toolbar {}
-            // 뷰가 나타날 때(또는 리프레시 시점)에 주문 데이터 불러오기
+            .navigationBarTitleDisplayMode(.inline)
             .task {
                 if let userID = authState.userIdentifier {
                     await viewModel.fetchOrders(for: userID)
@@ -48,13 +64,11 @@ struct OrderRow: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            // 1) 배송이 완료되어 arrivalTime이 존재하면 "도착" 날짜 표시
+            // 배송 완료 vs 미완료 구분
             if let arrival = order.arrivalTime {
                 Text("\(formatDate(arrival)) 도착")
                     .font(.subheadline)
-            }
-            // 2) 아직 배송이 완료되지 않았다면 "주문" 날짜 표시
-            else {
+            } else {
                 Text("\(formatDate(order.orderDate)) 주문")
                     .font(.subheadline)
             }
@@ -83,7 +97,7 @@ struct OrderRow: View {
     // 날짜를 간단히 "M/d(EEE)" 형식으로 표시
     func formatDate(_ date: Date) -> String {
         let formatter = DateFormatter()
-        formatter.dateFormat = "M/d(EEE)"
+        formatter.dateFormat = "M/d(EEE)" // 예: "1/23(Thu)"
         return formatter.string(from: date)
     }
 }

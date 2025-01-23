@@ -46,13 +46,13 @@ struct MyPageView: View {
                     Divider()
 
                     // 취소·반품·교환 목록
-                    NavigationLink(destination: Text("취소·반품·교환목록 뷰")) {
+                    NavigationLink(destination: RefundExchangeListView()) {
                         rowItem(title: "취소·반품·교환목록", icon: "arrow.uturn.backward.circle.fill")
                     }
                     Divider()
 
                     // 리뷰 관리
-                    NavigationLink(destination: Text("리뷰 관리 뷰")) {
+                    NavigationLink(destination: ReviewManagementView()) {
                         rowItem(title: "리뷰 관리", icon: "star.fill")
                     }
                     Divider()

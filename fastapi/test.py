@@ -268,6 +268,174 @@ async def get_user_orders(user_id: str):
         conn.close()
 
 
+@app.get("/orders/refunds/{user_id}")
+async def get_refund_exchange_orders(user_id: str):
+    """
+    특정 User_ID가 "취소, 반품, 교환" 상태인 주문들만 조회
+    예: Order_state가 'Cancelled', 'Returned', 'Exchanged' 등
+    """
+    conn = connect()
+    cursor = conn.cursor()
+    try:
+        # 예: 상태가 'Cancelled'(취소), 'Returned'(반품), 'Exchanged'(교환)인 주문만 가져온다.
+        # 실제 사용 프로젝트 상태값에 따라 WHERE 문을 추가로 변경하면 됨.
+        sql = """
+            SELECT 
+                o.Order_ID,
+                o.Product_seq,
+                o.User_ID,
+                o.Product_ID,
+                o.Order_Date,
+                o.Address,
+                o.refund_demands_time,
+                o.refund_time,
+                o.payment_method,
+                o.Arrival_Time,
+                o.Order_state,
+                p.name AS product_name,
+                p.preview_image AS product_image,
+                p.price AS product_price
+            FROM Orders o
+            JOIN Products p ON o.Product_ID = p.Product_ID
+            WHERE o.User_ID = %s
+              AND o.Order_state IN ('Cancelled', 'Returned', 'Exchanged')
+            ORDER BY o.Order_Date DESC
+        """
+        cursor.execute(sql, (user_id,))
+        orders = cursor.fetchall()
+
+        # 날짜/시간 필드를 isoformat() 변환
+        for row in orders:
+            if row["Order_Date"]:
+                row["Order_Date"] = row["Order_Date"].isoformat()
+            if row["refund_demands_time"]:
+                row["refund_demands_time"] = row["refund_demands_time"].isoformat()
+            if row["refund_time"]:
+                row["refund_time"] = row["refund_time"].isoformat()
+            if row["Arrival_Time"]:
+                row["Arrival_Time"] = row["Arrival_Time"].isoformat()
+
+        return orders
+
+    except pymysql.MySQLError as ex:
+        print("Error:", ex)
+        raise HTTPException(status_code=500, detail="Database error occurred.")
+    finally:
+        conn.close()
+
+
+# 리뷰 조회: 특정 유저의 리뷰 목록을 가져오고, Product 테이블 join해서 상품명도 함께 반환
+@app.get("/reviews/{user_id}")
+async def get_user_reviews(user_id: str):
+    conn = connect()
+    cursor = conn.cursor()
+    try:
+        sql = """
+            SELECT r.ReviewSeq,
+                   r.User_ID,
+                   r.Product_ID,
+                   r.Review_Content,
+                   r.Star,
+                   p.name AS product_name
+            FROM Reviews r
+            JOIN Products p ON r.Product_ID = p.Product_ID
+            WHERE r.User_ID = %s
+            ORDER BY r.ReviewSeq DESC
+        """
+        cursor.execute(sql, (user_id,))
+        reviews = cursor.fetchall()
+        return reviews
+
+    except pymysql.MySQLError as ex:
+        print("Error:", ex)
+        raise HTTPException(status_code=500, detail="Database error occurred.")
+    finally:
+        conn.close()
+
+
+# 리뷰 작성
+@app.post("/reviews")
+async def add_review(review: dict):
+    """
+    Body 예시:
+    {
+      "User_ID": "...",
+      "Product_ID": 123,
+      "Review_Content": "리뷰 내용",
+      "Star": 5
+    }
+    """
+    conn = connect()
+    cursor = conn.cursor()
+    try:
+        sql = """
+            INSERT INTO Reviews (User_ID, Product_ID, Review_Content, Star)
+            VALUES (%s, %s, %s, %s)
+        """
+        cursor.execute(
+            sql,
+            (
+                review["User_ID"],
+                review["Product_ID"],
+                review["Review_Content"],
+                review["Star"],
+            ),
+        )
+        conn.commit()
+        return {"message": "리뷰가 등록되었습니다."}
+    except pymysql.MySQLError as ex:
+        print("Error:", ex)
+        raise HTTPException(status_code=500, detail="Database error occurred.")
+    finally:
+        conn.close()
+
+
+# 리뷰 수정
+@app.put("/reviews/{review_id}")
+async def update_review(review_id: int, review: dict):
+    """
+    Body 예시:
+    {
+      "Review_Content": "수정된 리뷰 내용",
+      "Star": 4
+    }
+    """
+    conn = connect()
+    cursor = conn.cursor()
+    try:
+        sql = """
+            UPDATE Reviews
+            SET Review_Content = %s,
+                Star = %s
+            WHERE ReviewSeq = %s
+        """
+        cursor.execute(sql, (review["Review_Content"], review["Star"], review_id))
+        conn.commit()
+        return {"message": "리뷰가 수정되었습니다."}
+    except pymysql.MySQLError as ex:
+        print("Error:", ex)
+        raise HTTPException(status_code=500, detail="Database error occurred.")
+    finally:
+        conn.close()
+
+
+# 리뷰 삭제
+@app.delete("/reviews/{review_id}")
+async def delete_review(review_id: int):
+    conn = connect()
+    cursor = conn.cursor()
+    try:
+        sql = "DELETE FROM Reviews WHERE ReviewSeq = %s"
+        cursor.execute(sql, (review_id,))
+        conn.commit()
+        return {"message": "리뷰가 삭제되었습니다."}
+    except pymysql.MySQLError as ex:
+        print("Error:", ex)
+        raise HTTPException(status_code=500, detail="Database error occurred.")
+    finally:
+        conn.close()
+
+
 if __name__ == "__main__":
     import uvicorn
 
