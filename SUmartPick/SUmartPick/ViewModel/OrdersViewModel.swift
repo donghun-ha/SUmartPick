@@ -23,18 +23,29 @@ class OrdersViewModel: ObservableObject {
 
         do {
             let (data, response) = try await URLSession.shared.data(from: url)
+
+            // 1) 먼저 서버에서 받은 raw JSON을 출력해보기
+            if let rawJSON = String(data: data, encoding: .utf8) {
+                print("서버 응답 raw JSON:\n\(rawJSON)")
+            }
+
             guard let httpResponse = response as? HTTPURLResponse,
                   httpResponse.statusCode == 200 else {
                 print("Server error or invalid response.")
                 return
             }
 
-            // 날짜 파싱을 위해 JSONDecoder 설정(ISO8601 예시)
+            // 2) 여기서부터 DateFormatter & 디코딩
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+            dateFormatter.timeZone = TimeZone(abbreviation: "UTC")
+
             let decoder = JSONDecoder()
-            decoder.dateDecodingStrategy = .iso8601
+            decoder.dateDecodingStrategy = .formatted(dateFormatter)
 
             let fetchedOrders = try decoder.decode([OrderItem].self, from: data)
             self.orders = fetchedOrders
+
         } catch {
             print("Failed to fetch orders:", error.localizedDescription)
         }
@@ -66,7 +77,6 @@ class OrdersViewModel: ObservableObject {
     // 날짜 문자열을 내림차순 정렬한 키
     var sortedDateKeys: [String] {
         Array(groupedByDate.keys)
-        // "2025. 1. 8" 이런 식을 Date로 바꿔서 정렬 → 다시 string
             .sorted {
                 let formatter = DateFormatter()
                 formatter.dateFormat = "yyyy. M. d"

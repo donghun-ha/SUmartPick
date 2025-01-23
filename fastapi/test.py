@@ -221,13 +221,9 @@ async def view(file_name: str):
 
 @app.get("/orders/{user_id}")
 async def get_user_orders(user_id: str):
-    """
-    특정 User_ID가 주문한 내역을 조회하는 API 엔드포인트
-    """
     conn = connect()
     cursor = conn.cursor()
     try:
-        # Orders 테이블과 Products 테이블을 JOIN
         sql = """
             SELECT 
                 o.Order_ID,
@@ -251,6 +247,17 @@ async def get_user_orders(user_id: str):
         """
         cursor.execute(sql, (user_id,))
         orders = cursor.fetchall()
+
+        # Python dict 형태로 온 데이터 중 datetime 타입을 isoformat()으로 변환
+        for row in orders:
+            if row["Order_Date"]:
+                row["Order_Date"] = row["Order_Date"].isoformat()
+            if row["refund_demands_time"]:
+                row["refund_demands_time"] = row["refund_demands_time"].isoformat()
+            if row["refund_time"]:
+                row["refund_time"] = row["refund_time"].isoformat()
+            if row["Arrival_Time"]:
+                row["Arrival_Time"] = row["Arrival_Time"].isoformat()
 
         return orders
 

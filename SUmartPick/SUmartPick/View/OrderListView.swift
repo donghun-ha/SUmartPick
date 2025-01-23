@@ -28,12 +28,10 @@ struct OrderListView: View {
                     }
                 }
             }
-            // iOS 15+에서 사용할 수 있는 검색어 바
+
             .searchable(text: $viewModel.searchText, prompt: "주문한 상품을 검색할 수 있어요!")
             .navigationTitle("주문목록")
-            .toolbar {
-                // 우측 상단 등에 버튼 배치도 가능
-            }
+            .toolbar {}
             // 뷰가 나타날 때(또는 리프레시 시점)에 주문 데이터 불러오기
             .task {
                 if let userID = authState.userIdentifier {
@@ -50,9 +48,14 @@ struct OrderRow: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            // 도착(또는 주문) 날짜 표시: 여기서는 arrivalTime이 있다면 표시
+            // 1) 배송이 완료되어 arrivalTime이 존재하면 "도착" 날짜 표시
             if let arrival = order.arrivalTime {
-                Text("\(formatDate(arrival)) 도착 예정")
+                Text("\(formatDate(arrival)) 도착")
+                    .font(.subheadline)
+            }
+            // 2) 아직 배송이 완료되지 않았다면 "주문" 날짜 표시
+            else {
+                Text("\(formatDate(order.orderDate)) 주문")
                     .font(.subheadline)
             }
 
@@ -64,7 +67,7 @@ struct OrderRow: View {
             Text("\(Int(order.productPrice))원 · 1개")
                 .font(.subheadline)
 
-            // 교환/반품, 배송조회 버튼 등 (UI 예시)
+            // 교환/반품, 배송조회 버튼
             HStack {
                 Button("교환, 반품 신청") {}
                     .buttonStyle(.bordered)
@@ -77,7 +80,7 @@ struct OrderRow: View {
         .padding(.vertical, 6)
     }
 
-    // 간단히 날짜만 "M/d(EEE)" 형식 등으로 표시
+    // 날짜를 간단히 "M/d(EEE)" 형식으로 표시
     func formatDate(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.dateFormat = "M/d(EEE)"
