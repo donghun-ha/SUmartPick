@@ -35,20 +35,6 @@ async def health_check():
         "uptime": "100%"  # Example additional info
     }
 
-@app.get("/test", response_model=HealthCheckResponse)
-async def health_check():
-    """
-    Health check endpoint
-    """
-    await user.get_redis_connection()
-    user.connect()
-    user.s
-    return {
-        "status": "healthy",
-        "message": "The server is running fine!",
-        "uptime": "100%"  # Example additional info
-    }
-
 app.include_router(user_router, tags=["User Login"])
 
 if __name__ == "__main__":
