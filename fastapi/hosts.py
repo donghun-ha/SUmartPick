@@ -56,7 +56,7 @@ def connect_to_mysql():
     print(DB_PORT)
     try:
         conn = pymysql.connect(
-            host=DB,
+            host="43.202.97.15",
             user=DB_USER,
             password=DB_PASSWORD,
             charset='utf8',
@@ -64,6 +64,7 @@ def connect_to_mysql():
             port=int(DB_PORT)
         )
         print("MySQL 연결 성공")
+        print(f"{conn.host, conn.user, conn.password, conn.db, conn.port}")
         return conn
     except Exception as e:
         print(f"MySQL 연결 실패: {e}")
