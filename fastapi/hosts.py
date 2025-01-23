@@ -48,7 +48,7 @@ async def get_redis_connection():
             raise e
     return redis_client
 
-def connect():
+def connect_to_mysql():
     """
     MySQL 데이터베이스 연결 및 반환
     """
