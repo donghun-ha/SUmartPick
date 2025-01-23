@@ -20,9 +20,10 @@ class ProductQuery(BaseModel):
 
 # 응답 데이터 모델
 class ProductResponse(BaseModel):
-    Product_id: int
-    Category_id: int
+    Product_ID: int
+    Category_ID: int
     name: str
+    preview_image: str
     price: float
     detail: str
     manufacturer: str
@@ -51,7 +52,7 @@ async def products_query(query: ProductQuery):
     try:
         # SQL 쿼리 작성
         sql_query = """
-        SELECT Product_ID, Category_ID, name, price, detail, manufacturer, created 
+        SELECT Product_ID, Category_ID, name, preview_image ,price, detail, manufacturer, created 
         FROM products 
         WHERE name LIKE %s
         """
