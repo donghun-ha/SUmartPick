@@ -5,9 +5,9 @@ Description: FASTAPI 연동
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import user
 from pydantic import BaseModel
 from user import router as user_router
+from product import router as product_router
 
 app = FastAPI()
 
@@ -36,6 +36,7 @@ async def health_check():
     }
 
 app.include_router(user_router, tags=["User Login"])
+app.include_router(product_router, tags=["Products"])
 
 if __name__ == "__main__":
     import uvicorn
