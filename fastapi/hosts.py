@@ -1,3 +1,7 @@
+"""
+환경 변수 설정
+"""
+
 from fastapi import HTTPException
 import os
 import pymysql 
