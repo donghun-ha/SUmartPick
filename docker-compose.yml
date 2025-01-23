@@ -4,7 +4,7 @@ services:
   web:
     build: .
     image: 664418991926.dkr.ecr.ap-northeast-2.amazonaws.com/sumartpick:${DOCKER_IMAGE_TAG:-latest}
-    container_name: sumartpick
+    container_name: sumartpick-${DOCKER_IMAGE_TAG} # 동적 이름 설정
     volumes:
       - /tmp/jenkins_workspace:/code # Jenkins 디렉터리 대신 임시 디렉터리 사용
     ports:
