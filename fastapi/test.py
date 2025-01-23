@@ -27,10 +27,10 @@ if not os.path.exists(UPLOAD_FOLDER):
 def connect():
     try:
         conn = pymysql.connect(
-            host="localhost",
-            user="root",
+            host="192.168.50.71",
+            user="sumartpick",
             password="qwer1234",
-            database="SUmartPick",
+            database="sumartpick",
             charset="utf8mb4",
             cursorclass=pymysql.cursors.DictCursor,
         )

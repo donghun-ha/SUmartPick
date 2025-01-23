@@ -27,69 +27,18 @@ struct MainView: View {
                 }
 
             // 마이페이지 화면
-            Text("마이페이지")
+            MyPageView()
                 .tabItem {
                     Image(systemName: "person.fill")
                     Text("마이페이지")
                 }
 
             // 장바구니 화면
-            Text("장바구니")
+            CartView()
                 .tabItem {
                     Image(systemName: "cart.fill")
                     Text("장바구니")
                 }
         }
-    }
-}
-
-// 홈 화면 구성
-struct HomeView: View {
-    var body: some View {
-        NavigationStack {
-            VStack {
-                // 상단 타이틀
-                HStack {
-                    Text("SUmartPick")
-                        .font(.title)
-                        .fontWeight(.bold)
-                        .padding(.leading)
-                    Spacer()
-                    Image(systemName: "cart")
-                        .resizable()
-                        .frame(width: 24, height: 24)
-                        .padding(.trailing)
-                }
-                .padding(.top)
-
-                // 검색창
-                HStack {
-                    TextField("상품 검색", text: .constant(""))
-                        .padding(10)
-                        .background(Color(.systemGray6))
-                        .cornerRadius(8)
-                        .padding(.horizontal)
-                    Image(systemName: "magnifyingglass")
-                        .padding(.trailing)
-                }
-                .padding(.bottom)
-
-                // 추천 상품
-                Spacer()
-                Text("추천 상품")
-                    .font(.headline)
-                    .padding(.bottom)
-
-                Spacer()
-            }
-            .toolbar(.hidden, for: .navigationBar)
-        }
-    }
-}
-
-// 검색 화면 구성
-struct SearchView: View {
-    var body: some View {
-        Text("검색 화면")
     }
 }

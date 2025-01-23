@@ -61,6 +61,7 @@ enum AuthenticationError: LocalizedError {
 class AuthenticationState: ObservableObject {
     @Published var isAuthenticated: Bool = false // 로그인 성공 여부
     @Published var userIdentifier: String? = nil // 로그인된 사용자 식별자
+    @Published var userFullName: String? = nil // 로그인된 사용자 이름
     @Published var showingErrorAlert = false // 오류 Alert 노출 여부
     @Published var errorMessage = "" // 오류 메시지
 
@@ -89,6 +90,9 @@ class AuthenticationState: ObservableObject {
                 ]
                 .compactMap { $0 }
                 .joined(separator: " ")
+
+                // 사용자 이름 업데이트
+                self.userFullName = fullName
 
                 Task {
                     do {
@@ -140,8 +144,9 @@ class AuthenticationState: ObservableObject {
             let email = user.profile?.email
             let fullName = "\(user.profile?.givenName ?? "") \(user.profile?.familyName ?? "")"
 
-            // 사용자 식별자 및 인증 상태 설정
+            // 사용자 식별자, 이름 및 인증 상태 설정
             self.userIdentifier = userID
+            self.userFullName = fullName
             self.isAuthenticated = true
 
             // 사용자 정보를 서버에 저장
@@ -257,6 +262,7 @@ class AuthenticationState: ObservableObject {
             let isValid = try await self.validateAccountWithServer(userIdentifier: account.id)
             if isValid {
                 self.userIdentifier = account.id
+                self.userFullName = account.fullName
                 self.isAuthenticated = true
             } else {
                 throw AuthenticationError.authenticationFailed("간편 로그인 계정이 서버에서 확인되지 않았습니다. 다시 등록해주세요.")
@@ -322,6 +328,59 @@ class AuthenticationState: ObservableObject {
         try await self.saveAccountToRealm(userIdentifier: userIdentifier, email: email, fullName: fullName)
         self.isAuthenticated = true
     }
+
+    // 로그아웃 메서드
+    func logout() {
+        // 사용자 상태 초기화
+        self.isAuthenticated = false
+        self.userIdentifier = nil
+        self.userFullName = nil
+//
+//        // Realm 데이터 삭제 (옵션)
+//        Task {
+//            do {
+//                try await self.clearAccountFromRealm()
+//                print("Realm 데이터가 삭제되었습니다.")
+//            } catch {
+//                print("Realm 데이터 삭제 중 오류 발생: \(error.localizedDescription)")
+//            }
+//        }
+//
+//        // 추가 작업: 로그아웃 API 호출 (옵션)
+//        Task {
+//            do {
+//                try await self.performServerLogout()
+//                print("서버 로그아웃이 성공적으로 처리되었습니다.")
+//            } catch {
+//                print("서버 로그아웃 중 오류 발생: \(error.localizedDescription)")
+//            }
+//        }
+    }
+
+//    // Realm 데이터 삭제
+//    private func clearAccountFromRealm() async throws {
+//        let realm = try await Realm()
+//        try realm.write {
+//            realm.deleteAll() // 모든 데이터 삭제
+//        }
+//    }
+//
+//    // 서버 로그아웃 (옵션)
+//    private func performServerLogout() async throws {
+//        guard let url = URL(string: "http://127.0.0.1:8000/logout") else {
+//            throw AuthenticationError.invalidURL
+//        }
+//
+//        var request = URLRequest(url: url)
+//        request.httpMethod = "POST"
+//        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+//
+//        let (_, response) = try await URLSession.shared.data(for: request)
+//
+//        guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+//            throw AuthenticationError.serverError(statusCode: (response as? HTTPURLResponse)?.statusCode ?? -1)
+//        }
+//    }
 
     // 에러 처리
     func showError(message: String) {
