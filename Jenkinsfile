@@ -9,7 +9,7 @@ pipeline {
         TMP_WORKSPACE = "/tmp/jenkins_workspace"
         AWS_ACCESS_KEY_ID = credentials('sumartpick_jenkins')
         AWS_SECRET_ACCESS_KEY = credentials('sumartpick_jenkins')
-        FIREBASE_KEY = credentials("sumartpick_firebase") // // Jenkins에 등록한 Secret File의 ID
+        FIREBASE_KEY = credentials("sumartpick-firebase") // // Jenkins에 등록한 Secret File의 ID
     }
 
     stages {
