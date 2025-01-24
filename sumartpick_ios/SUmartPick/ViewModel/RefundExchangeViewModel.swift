@@ -12,7 +12,7 @@ class RefundExchangeViewModel: ObservableObject {
     @Published var orders: [OrderItem] = []
     @Published var searchText: String = ""
 
-    let baseURL = Config.baseURL
+    let baseURL = SUmartPickConfig.baseURL
 
     func fetchRefundExchangeOrders(for userID: String) async {
         guard let url = URL(string: "\(baseURL)/orders/refunds/\(userID)") else { return }

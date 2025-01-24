@@ -11,7 +11,7 @@ enum AppEnvironment {
     case server
 }
 
-enum Config {
+enum SUmartPickConfig {
     static let dbenvironment: AppEnvironment = .local
 
     static var baseURL: String {

@@ -115,7 +115,7 @@ class AuthenticationState: ObservableObject {
     }
 
     func fetchUserFromServer(userID: String) async throws -> (name: String, email: String)? {
-        guard let url = URL(string: "\(Config.baseURL)/users/\(userID)") else {
+        guard let url = URL(string: "\(SUmartPickConfig.baseURL)/users/\(userID)") else {
             throw AuthenticationError.invalidURL
         }
         let (data, response) = try await URLSession.shared.data(from: url)
@@ -179,7 +179,7 @@ class AuthenticationState: ObservableObject {
 
     // 사용자 정보를 서버(MySQL)에 저장
     func saveUserToDatabase(userIdentifier: String, email: String?, fullName: String?, provider: AuthProvider) async throws {
-        guard let url = URL(string: "\(Config.baseURL)/users") else {
+        guard let url = URL(string: "\(SUmartPickConfig.baseURL)/users") else {
             throw AuthenticationError.invalidURL
         }
 
@@ -281,7 +281,7 @@ class AuthenticationState: ObservableObject {
 
     // 서버로 사용자 계정 존재 여부 확인
     func validateAccountWithServer(userIdentifier: String) async throws -> Bool {
-        guard let url = URL(string: "\(Config.baseURL)/users/\(userIdentifier)") else {
+        guard let url = URL(string: "\(SUmartPickConfig.baseURL)/users/\(userIdentifier)") else {
             throw AuthenticationError.invalidURL
         }
         let (data, response) = try await URLSession.shared.data(from: url)
@@ -311,7 +311,7 @@ class AuthenticationState: ObservableObject {
         guard let userIdentifier = self.userIdentifier else {
             throw AuthenticationError.authenticationFailed("사용자 식별자가 없습니다.")
         }
-        guard let url = URL(string: "\(Config.baseURL)/users/\(userIdentifier)") else {
+        guard let url = URL(string: "\(SUmartPickConfig.baseURL)/users/\(userIdentifier)") else {
             throw AuthenticationError.invalidURL
         }
 
@@ -382,7 +382,7 @@ class AuthenticationState: ObservableObject {
     // 만약 서버 로그아웃이 필요 없다면 제거해도 됩니다.
     /*
      private func performServerLogout() async throws {
-     guard let url = URL(string: "\(Config.baseURL)/logout") else {
+     guard let url = URL(string: "\(SUmartPickConfig.baseURL)/logout") else {
      throw AuthenticationError.invalidURL
      }
      var request = URLRequest(url: url)
