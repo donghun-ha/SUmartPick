@@ -50,7 +50,7 @@ async def user_login(request: Request):
 
     try:
         # MySQL에서 사용자 확인
-        query = "SELECT User_Id, email, name, auth_provider, Creation_date FROM Users WHERE email = %s"
+        query = "SELECT User_Id, email, name, auth_provider, Creation_date FROM users WHERE email = %s"
         cursor.execute(query, (email,))
         user = cursor.fetchone()
 
@@ -69,7 +69,7 @@ async def user_login(request: Request):
 
         # MySQL에 사용자 추가
         insert_query = """
-        INSERT INTO Users (email, name, auth_provider, Creation_date)
+        INSERT INTO users (email, name, auth_provider, Creation_date)
         VALUES (%s, %s, %s, NOW())
         """
         cursor.execute(insert_query, (email, name, login_type))
@@ -98,7 +98,7 @@ async def select():
     conn = connect_to_mysql()
     curs = conn.cursor()
     # 결과값을 딕셔너리로 변환할때 쓰이는 SQL문장
-    sql = "SELECT * FROM Users"
+    sql = "SELECT * FROM users"
     # sql = "select * from student"
     curs.execute(sql)
     rows = curs.fetchall()
