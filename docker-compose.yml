@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    image: 664418991926.dkr.ecr.ap-northeast-2.amazonaws.com/sumartpick:${DOCKER_IMAGE_TAG:-latest}
+    container_name: ${DOCKER_IMAGE_TAG} # 동적 이름
+    volumes:
+      - /tmp/jenkins_workspace:/code # Jenkins 디렉터리 대신 임시 디렉터리 사용
+      - ${FIREBASE_KEY}:/app/sumartpick-firebase-adminsdk-v701f-ad1da0148c.json
+    ports:
+      - "6003:6003"  # EC2의 6003번 포트를 컨테이너의 6003번 포트에 매핑
+    environment:
+      SUMARTPICK_DB: "43.202.97.15"
+      SUMARTPICK_DB_USER: "sumartpick"
+      SUMARTPICK_DB_PASSWORD: "qwer1234"
+      SUMARTPICK_DB_TABLE: "sumartpick"
+      SUMARTPICK_PORT: "3306"
+      REDIS_HOST: "redis_host"
+      REDIS_PORT: "6379"
+      AWS_ACCESS_KEY_ID: "${AWS_ACCESS_KEY_ID}" # Jenkins 환경 변수 전달
+      AWS_SECRET_ACCESS_KEY: "${AWS_SECRET_ACCESS_KEY}" # Jenkins 환경 변수 전달
+      REGION: "ap-northeast-2"
+      FIREBASE_KEY_PATH: /app/sumartpick-firebase-adminsdk-v701f-ad1da0148c.json
