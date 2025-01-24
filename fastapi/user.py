@@ -10,44 +10,12 @@ Usage: 로그인 시 캐싱을 통한 반환 및 MySQL Insert 처리
 from fastapi import APIRouter, HTTPException, Request
 from hosts import get_redis_connection, connect_to_mysql
 import json
+from datetime import datetime
 
-# FastAPI 라우터 생성
 router = APIRouter()
-
 
 @router.post("/login")
 async def user_login(request: Request):
-    """
-    사용자 로그인 요청 처리:
-    1. Redis에서 사용자 데이터 검색
-    2. Redis에 데이터가 없으면 MySQL에서 확인 후 추가
-    3. Apple/Google 로그인 처리
-    """
-    data = await request.json()
-    email = data.get("email")
-    name = data.get("name")
-    login_type = data.get("login_type")
-
-    if not email:
-        raise HTTPException(status_code=400, detail="email이 누락되었습니다.")
-    if login_type not in ["apple", "google"]:
-        raise HTTPException(status_code=400, detail="지원되지 않는 로그인 유형입니다.")
-
-    # Redis 키 설정 (이메일 기반)
-    redis_key = f"user:{email}"
-    redis = await get_redis_connection()
-
-    # Redis에서 데이터 검색
-    cached_user = await redis.get(redis_key)
-    if cached_user:
-        user_data = json.loads(cached_user)
-        print("Redis에서 사용자 데이터를 반환")
-        return {"source": "redis", "user_data": user_data}
-
-    # Redis에 데이터가 없을 경우 MySQL 확인
-    mysql_conn = connect_to_mysql()
-    cursor = mysql_conn.cursor()
-
     try:
         # MySQL에서 사용자 확인
         query = "SELECT User_Id, email, name, auth_provider, Creation_date FROM users WHERE email = %s"
@@ -55,16 +23,14 @@ async def user_login(request: Request):
         user = cursor.fetchone()
 
         if user:
-            # MySQL 사용자 데이터를 반환
             user_data = {
-                "User_Id": user[0],
-                "email": user[1],
-                "name": user[2],
-                "auth_provider": user[3],
-                "Creation_date": user[4].strftime('%Y-%m-%d %H:%M:%S')
+                "User_Id": user["User_Id"],
+                "email": user["email"],
+                "name": user["name"],
+                "auth_provider": user["auth_provider"],
+                "Creation_date": user["Creation_date"].strftime('%Y-%m-%d %H:%M:%S'),
             }
-            # Redis에 사용자 데이터 캐싱
-            await redis.set(redis_key, json.dumps(user_data), ex=3600)  # 1시간 캐싱
+            await redis.set(redis_key, json.dumps(user_data), ex=3600)
             return {"source": "mysql", "user_data": user_data}
 
         # MySQL에 사용자 추가
@@ -75,20 +41,19 @@ async def user_login(request: Request):
         cursor.execute(insert_query, (email, name, login_type))
         mysql_conn.commit()
 
-        user_id = cursor.lastrowid  # 새로 생성된 User_Id 가져오기
         user_data = {
-            "User_Id": user_id,
+            "User_Id": cursor.lastrowid,
             "email": email,
             "name": name,
             "auth_provider": login_type,
-            "Creation_date": None  # 새 사용자는 현재 Creation_date를 가져오지 않음
+            "Creation_date": creation_date,
         }
         await redis.set(redis_key, json.dumps(user_data), ex=3600)
-        return {"source": "mysql", "user_data": user_data}
 
+        return {"source": "mysql", "user_data": user_data}
     except Exception as e:
-        print(f"MySQL 쿼리 실패: {e}")
-        raise HTTPException(status_code=500, detail="MySQL 작업 실패")
+        print(f"에러 발생: {e}")
+        raise HTTPException(status_code=500, detail="로그인 처리 중 오류가 발생했습니다.")
     finally:
         cursor.close()
         mysql_conn.close()
