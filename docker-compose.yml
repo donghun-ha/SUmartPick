@@ -3,6 +3,7 @@ version: '3.8'
 services:
   web:
     build: .
+    dockerfile: Dockerfile
     image: 664418991926.dkr.ecr.ap-northeast-2.amazonaws.com/sumartpick:${DOCKER_IMAGE_TAG:-latest}
     container_name: ${DOCKER_IMAGE_TAG} # 동적 이름
     volumes:
@@ -20,3 +21,4 @@ services:
       AWS_ACCESS_KEY_ID: "${AWS_ACCESS_KEY_ID}" # Jenkins 환경 변수 전달
       AWS_SECRET_ACCESS_KEY: "${AWS_SECRET_ACCESS_KEY}" # Jenkins 환경 변수 전달
       REGION: "ap-northeast-2"
+      FIREBASE_KEY_PATH: /app/sumartpick-firebase-adminsdk-v701f-ad1da0148c.json

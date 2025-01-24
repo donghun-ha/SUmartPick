@@ -9,6 +9,7 @@ pipeline {
         TMP_WORKSPACE = "/tmp/jenkins_workspace"
         AWS_ACCESS_KEY_ID = credentials('sumartpick_jenkins')
         AWS_SECRET_ACCESS_KEY = credentials('sumartpick_jenkins')
+        FIREBASE_KEY = credentials("sumartpick_firebase") // // Jenkins에 등록한 Secret File의 ID
     }
 
     stages {
@@ -22,6 +23,7 @@ pipeline {
         stage("Checkout") {
             steps {
                 checkout scm
+                sh 'cp docker-compose.yml ${TMP_WORKSPACE}/docker-compose.yml'
             }
         }
         stage("Debug Environment") {
@@ -62,8 +64,10 @@ pipeline {
                     echo "Deploying Docker Image with tag: ${DOCKER_IMAGE_TAG}"
                     export DOCKER_IMAGE_TAG=${DOCKER_IMAGE_TAG}
                     export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-                    export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-                    docker-compose -f docker-compose.yml up -d
+                    export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}   
+                    
+                    # docker-compose 실행
+                    docker-compose -f docker-compose.yml up -d --build
                 '''
             }
         }
