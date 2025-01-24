@@ -1,8 +1,21 @@
 """
 Author : 하동훈
+Date : 2025-01-24
 Description : 
-상품 검색 Query문 작성
-Usage: 상품 이름으로 MySQL에서 검색
+이 모듈은 FastAPI를 사용하여 상품 검색 및 등록 API를 제공합니다.
+- /products_query: MySQL 데이터베이스에서 상품 이름으로 검색하는 API
+- /products/: 상품 데이터를 MySQL에 등록하는 API
+
+Usage:
+1. /products_query:
+   - 상품 이름으로 검색 요청
+   - Request: {"name": "상품명"}
+   - Response: 상품 목록 리스트
+
+2. /products/:
+   - 상품 등록 요청
+   - Request: {"Category_ID": 1, "name": "상품명", "preview_image": "URL", "price": 1000, "detail": "상세 설명", "manufacturer": "제조사"}
+   - Response: {"message": "Product registered successfully"}
 """
 
 from fastapi import APIRouter, HTTPException, Request
@@ -28,6 +41,16 @@ class ProductResponse(BaseModel):
     detail: str
     manufacturer: str
     created: str
+
+# 등록 데이터 모델
+class ProductCreateRequest(BaseModel):
+    Category_ID: int  # 카테고리 ID
+    name: str         # 상품 이름
+    preview_image: str  # Firebase 이미지 URL
+    price: float
+    detail: str
+    manufacturer: str
+
 
 @router.post("/products_query", response_model=List[ProductResponse])
 async def products_query(query: ProductQuery):
@@ -70,6 +93,45 @@ async def products_query(query: ProductQuery):
         # 에러 처리
         print(f"MySQL 쿼리 실패: {e}")
         raise HTTPException(status_code=500, detail="MySQL 작업 실패")
+
+    finally:
+        # MySQL 연결 닫기
+        cursor.close()
+        mysql_conn.close()
+
+@router.post("/products/")
+async def create_product(product: ProductCreateRequest):
+    """
+    상품 등록 요청 처리:
+    1. 입력받은 상품 데이터를 MySQL에 저장
+    2. 성공 메시지 반환
+
+    Parameters:
+    - product (ProductCreateRequest): 상품 데이터
+
+    Returns:
+    - dict: 성공 메시지
+    """
+    # MySQL 연결
+    mysql_conn = connect_to_mysql()
+    cursor = mysql_conn.cursor()
+
+    # MySQL 데이터베이스 삽입
+    try:
+        cursor.execute(
+            """
+            INSERT INTO products (Category_ID, name, preview_image, price, detail, manufacturer, created)
+            VALUES (%s, %s, %s, %s, %s, %s, NOW())
+            """,
+            (product.Category_ID, product.name, product.preview_image, product.price, product.detail, product.manufacturer)
+        )
+        mysql_conn.commit()
+        return {"message": "Product registered successfully"}
+
+    except Exception as e:
+        # 에러 처리
+        print(f"MySQL 쿼리 실패: {e}")
+        raise HTTPException(status_code=500, detail=f"MySQL 작업 실패: {str(e)}")
 
     finally:
         # MySQL 연결 닫기
