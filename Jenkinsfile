@@ -23,7 +23,6 @@ pipeline {
         stage("Checkout") {
             steps {
                 checkout scm
-                sh 'cp docker-compose.yml ${TMP_WORKSPACE}/docker-compose.yml'
             }
         }
         stage("Debug Environment") {
