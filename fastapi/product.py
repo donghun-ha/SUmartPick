@@ -25,14 +25,15 @@ from hosts import connect_to_mysql
 import pymysql
 from firebase_admin import credentials, storage # firebase
 import firebase_admin
-import base64
+import base64, os
 
 # FastAPI 라우터 생성
 router = APIRouter()
 
 
 # Firebase Admin SDK 초기화
-cred = credentials.Certificate("sumartpick-firebase-adminsdk-v701f-ad1da0148c.json")  # Firebase 서비스 계정 키 경로
+firebase_key_path = os.getenv("FIREBASE_KEY_PATH", "sumartpick-firebase-adminsdk-v701f-ad1da0148c.json")
+cred = credentials.Certificate(firebase_key_path)  # Firebase 서비스 계정 키 경로
 firebase_admin.initialize_app(cred, {
     'storageBucket': 'sumartpick.firebasestorage.app'  # Firebase Storage 버킷 이름
 })
