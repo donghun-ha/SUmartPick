@@ -24,6 +24,21 @@ async def select():
     curs.execute(sql)
     rows = curs.fetchall()
     conn.close()
-    print(rows)
     # 데이터가 많을때 쓰는 방법
     return {'results' : rows}
+
+@router.get("/product_update")
+async def update(Product_ID: int, Category_ID: int, name: str, price: float):
+    conn = connection()
+    curs = conn.cursor()
+
+    try:
+        sql = "update Products set Category_ID = %s, name = %s, price = %s where Product_ID = %s"
+        curs.execute(sql, (Category_ID, name, price, Product_ID))
+        conn.commit()
+        conn.close()
+        return {'results' : 'OK'}
+    except Exception as e:
+        conn.close()
+        print("Error :", e)
+        return {'results' : 'Error'}

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:sumatpick_web/view/Userpage.dart';
+import 'package:sumatpick_web/view/product_update_page.dart';
 
 import 'Dashboard.dart';
 import 'Inventorypage.dart';
@@ -434,7 +435,7 @@ class _ProductspageState extends State<Productspage> {
                                   height: 20,
                                   child: ElevatedButton(
                                       onPressed: () {
-                                        //
+                                        Get.to(const ProductUpdatePage(), arguments: [product['상품코드'], product['상품명'], product['판매가']])!.then((value) => reloadData(),);
                                       },
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: Colors.black,
@@ -518,4 +519,7 @@ class _ProductspageState extends State<Productspage> {
     setState(() {});
   }
   
+  reloadData(){
+    getJSONData();
+  }
 }
