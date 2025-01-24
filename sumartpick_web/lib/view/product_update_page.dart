@@ -68,7 +68,7 @@ class _ProductUpdatePageState extends State<ProductUpdatePage> {
                               setState(() {
                                 selectedDropdown = value!; // 선택된 값 업데이트
                                 selectedCategoryId = categoryId[categoryList.indexOf(value)];
-                                print(selectedCategoryId);
+                                // print(selectedCategoryId);
                               });
                             },
                           ),

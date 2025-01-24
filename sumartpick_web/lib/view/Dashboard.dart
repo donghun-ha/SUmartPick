@@ -197,60 +197,46 @@ class _DashboardState extends State<Dashboard> {
                   ],
                 ),
               ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // 전체 주문 현황
-                  Container(
-                    width: 300,
-                    height: 150,
-                    decoration: BoxDecoration(
-                    color: Colors.white, // 배경색
-                    border: Border.all(
-                      color: const Color.fromARGB(255, 199, 199, 199), // 외곽선 색상
-                      width: 1.0, // 외곽선 두께
-                    ),
-                    ),
-                    child: Center(
-                      child: Column(
-                        children: [
-                          const Padding(
-                            padding: EdgeInsets.all(13.0),
-                            child: Text(
-                              '전체 주문현황',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18
-                              ),
-                              ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(13, 0, 0, 0),
-                            child: Row(
-                              children: [
-                                Container(
-                                  width: 100,
-                                  height: 35,
-                                  color: const Color.fromARGB(255, 232, 232, 232),
-                                  child: const Center(
-                                    child: Text(
-                                      '총 주문건수',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold
-                                      ),
-                                      ),
-                                  ),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // 전체 주문 현황
+                    Container(
+                      width: 300,
+                      height: 150,
+                      decoration: BoxDecoration(
+                      color: Colors.white, // 배경색
+                      border: Border.all(
+                        color: const Color.fromARGB(255, 199, 199, 199), // 외곽선 색상
+                        width: 1.0, // 외곽선 두께
+                      ),
+                      ),
+                      child: Center(
+                        child: Column(
+                          children: [
+                            const Padding(
+                              padding: EdgeInsets.all(13.0),
+                              child: Text(
+                                '전체 주문현황',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18
                                 ),
-                                Padding(
-                                  padding: const EdgeInsets.fromLTRB(3, 0, 0, 0),
-                                  child: Container(
-                                    width: 170,
+                                ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(13, 0, 0, 0),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 100,
                                     height: 35,
                                     color: const Color.fromARGB(255, 232, 232, 232),
                                     child: const Center(
                                       child: Text(
-                                        '총 주문액',
+                                        '총 주문건수',
                                         style: TextStyle(
                                           fontSize: 12,
                                           fontWeight: FontWeight.bold
@@ -258,369 +244,386 @@ class _DashboardState extends State<Dashboard> {
                                         ),
                                     ),
                                   ),
-                                )
-                              ],
+                                  Padding(
+                                    padding: const EdgeInsets.fromLTRB(3, 0, 0, 0),
+                                    child: Container(
+                                      width: 170,
+                                      height: 35,
+                                      color: const Color.fromARGB(255, 232, 232, 232),
+                                      child: const Center(
+                                        child: Text(
+                                          '총 주문액',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold
+                                          ),
+                                          ),
+                                      ),
+                                    ),
+                                  )
+                                ],
+                              ),
                             ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(13, 0, 0, 0),
-                            child: Row(
-                              children: [
-                                Container(
-                                  width: 100,
-                                  height: 55,
-                                  color: const Color.fromARGB(255, 243, 243, 243),
-                                child: Center(
-                                  child: Text(
-                                    '$totalOrders',
-                                    style: const TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold
-                                    ),
-                                    ),
-                                ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.fromLTRB(3, 0, 0, 0),
-                                  child: Container(
-                                    width: 170,
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(13, 0, 0, 0),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 100,
                                     height: 55,
                                     color: const Color.fromARGB(255, 243, 243, 243),
+                                  child: Center(
+                                    child: Text(
+                                      '$totalOrders',
+                                      style: const TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold
+                                      ),
+                                      ),
+                                  ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.fromLTRB(3, 0, 0, 0),
+                                    child: Container(
+                                      width: 170,
+                                      height: 55,
+                                      color: const Color.fromARGB(255, 243, 243, 243),
+                                      child: Center(
+                                        child: Text(
+                                          '$totalsales',
+                                          style: const TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold
+                                          ),
+                                          ),
+                                      ),
+                                    ),
+                                  )
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    // 주문상태 현황
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(50, 0, 0, 0),
+                      child: Container(
+                        width: 437,
+                        height: 150,
+                        decoration: BoxDecoration(
+                        color: Colors.white, // 배경색
+                        border: Border.all(
+                          color: const Color.fromARGB(255, 199, 199, 199), // 외곽선 색상
+                          width: 1.0, // 외곽선 두께
+                        ),
+                        ),
+                        child: Center(
+                          child: Column(
+                            children: [
+                              const Padding(
+                                padding: EdgeInsets.all(13.0),
+                                child: Text(
+                                  '주문상태 현황',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18
+                                  ),
+                                  ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(13, 0, 0, 0),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      width: 100,
+                                      height: 35,
+                                      color: const Color.fromARGB(255, 232, 232, 232),
+                                      child: const Center(
+                                        child: Text(
+                                          '결제완료',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold
+                                          ),
+                                          ),
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.fromLTRB(3, 0, 0, 0),
+                                      child: Container(
+                                        width: 100,
+                                        height: 35,
+                                        color: const Color.fromARGB(255, 232, 232, 232),
+                                        child: const Center(
+                                          child: Text(
+                                            '배송준비',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold
+                                            ),
+                                            ),
+                                        ),
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.fromLTRB(3, 0, 0, 0),
+                                      child: Container(
+                                        width: 100,
+                                        height: 35,
+                                        color: const Color.fromARGB(255, 232, 232, 232),
+                                        child: const Center(
+                                          child: Text(
+                                            '배송중',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold
+                                            ),
+                                            ),
+                                        ),
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.fromLTRB(3, 0, 0, 0),
+                                      child: Container(
+                                        width: 100,
+                                        height: 35,
+                                        color: const Color.fromARGB(255, 232, 232, 232),
+                                        child: const Center(
+                                          child: Text(
+                                            '배송완료',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold
+                                            ),
+                                            ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(13, 0, 0, 0),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      width: 100,
+                                      height: 55,
+                                      color: const Color.fromARGB(255, 243, 243, 243),
                                     child: Center(
                                       child: Text(
-                                        '$totalsales',
+                                        '$completedPayment',
                                         style: const TextStyle(
                                           fontSize: 18,
                                           fontWeight: FontWeight.bold
                                         ),
                                         ),
                                     ),
-                                  ),
-                                )
-                              ],
-                            ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.fromLTRB(3, 0, 0, 0),
+                                      child: Container(
+                                        width: 100,
+                                        height: 55,
+                                        color: const Color.fromARGB(255, 243, 243, 243),
+                                        child: Center(
+                                          child: Text(
+                                            '$readyDelivery',
+                                            style: const TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold
+                                            ),
+                                            ),
+                                        ),
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.fromLTRB(3, 0, 0, 0),
+                                      child: Container(
+                                        width: 100,
+                                        height: 55,
+                                        color: const Color.fromARGB(255, 243, 243, 243),
+                                        child: Center(
+                                          child: Text(
+                                            '$inDelivery',
+                                            style: const TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold
+                                            ),
+                                            ),
+                                        ),
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.fromLTRB(3, 0, 0, 0),
+                                      child: Container(
+                                        width: 100,
+                                        height: 55,
+                                        color: const Color.fromARGB(255, 243, 243, 243),
+                                        child: Center(
+                                          child: Text(
+                                            '$completedDelivery',
+                                            style: const TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold
+                                            ),
+                                            ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
+                        ),
                       ),
                     ),
-                  ),
-                  // 주문상태 현황
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(50, 0, 0, 0),
-                    child: Container(
-                      width: 437,
-                      height: 150,
-                      decoration: BoxDecoration(
-                      color: Colors.white, // 배경색
-                      border: Border.all(
-                        color: const Color.fromARGB(255, 199, 199, 199), // 외곽선 색상
-                        width: 1.0, // 외곽선 두께
-                      ),
-                      ),
-                      child: Center(
-                        child: Column(
-                          children: [
-                            const Padding(
-                              padding: EdgeInsets.all(13.0),
-                              child: Text(
-                                '주문상태 현황',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 18
+                    // 환불, 반품, 교환
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(50, 0, 0, 0),
+                      child: Container(
+                        width: 335,
+                        height: 150,
+                        decoration: BoxDecoration(
+                        color: Colors.white, // 배경색
+                        border: Border.all(
+                          color: const Color.fromARGB(255, 199, 199, 199), // 외곽선 색상
+                          width: 1.0, // 외곽선 두께
+                        ),
+                        ),
+                        child: Center(
+                          child: Column(
+                            children: [
+                              const Padding(
+                                padding: EdgeInsets.all(13.0),
+                                child: Text(
+                                  '클래임 현황',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18
+                                  ),
+                                  ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(13, 0, 0, 0),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      width: 100,
+                                      height: 35,
+                                      color: const Color.fromARGB(255, 232, 232, 232),
+                                      child: const Center(
+                                        child: Text(
+                                          '환불',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold
+                                          ),
+                                          ),
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.fromLTRB(3, 0, 0, 0),
+                                      child: Container(
+                                        width: 100,
+                                        height: 35,
+                                        color: const Color.fromARGB(255, 232, 232, 232),
+                                        child: const Center(
+                                          child: Text(
+                                            '반품',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold
+                                            ),
+                                            ),
+                                        ),
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.fromLTRB(3, 0, 0, 0),
+                                      child: Container(
+                                        width: 100,
+                                        height: 35,
+                                        color: const Color.fromARGB(255, 232, 232, 232),
+                                        child: const Center(
+                                          child: Text(
+                                            '교환',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold
+                                            ),
+                                            ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(13, 0, 0, 0),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    width: 100,
-                                    height: 35,
-                                    color: const Color.fromARGB(255, 232, 232, 232),
-                                    child: const Center(
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(13, 0, 0, 0),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      width: 100,
+                                      height: 55,
+                                      color: const Color.fromARGB(255, 243, 243, 243),
+                                    child: Center(
                                       child: Text(
-                                        '결제완료',
-                                        style: TextStyle(
-                                          fontSize: 12,
+                                        '$refundStatus',
+                                        style: const TextStyle(
+                                          fontSize: 18,
                                           fontWeight: FontWeight.bold
                                         ),
                                         ),
                                     ),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.fromLTRB(3, 0, 0, 0),
-                                    child: Container(
-                                      width: 100,
-                                      height: 35,
-                                      color: const Color.fromARGB(255, 232, 232, 232),
-                                      child: const Center(
-                                        child: Text(
-                                          '배송준비',
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.bold
-                                          ),
-                                          ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.fromLTRB(3, 0, 0, 0),
+                                      child: Container(
+                                        width: 100,
+                                        height: 55,
+                                        color: const Color.fromARGB(255, 243, 243, 243),
+                                        child: Center(
+                                          child: Text(
+                                            '$returnStatus',
+                                            style: const TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold
+                                            ),
+                                            ),
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.fromLTRB(3, 0, 0, 0),
-                                    child: Container(
-                                      width: 100,
-                                      height: 35,
-                                      color: const Color.fromARGB(255, 232, 232, 232),
-                                      child: const Center(
-                                        child: Text(
-                                          '배송중',
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.bold
-                                          ),
-                                          ),
+                                    Padding(
+                                      padding: const EdgeInsets.fromLTRB(3, 0, 0, 0),
+                                      child: Container(
+                                        width: 100,
+                                        height: 55,
+                                        color: const Color.fromARGB(255, 243, 243, 243),
+                                        child: Center(
+                                          child: Text(
+                                            '$exchangeStatus',
+                                            style: const TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold
+                                            ),
+                                            ),
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.fromLTRB(3, 0, 0, 0),
-                                    child: Container(
-                                      width: 100,
-                                      height: 35,
-                                      color: const Color.fromARGB(255, 232, 232, 232),
-                                      child: const Center(
-                                        child: Text(
-                                          '배송완료',
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.bold
-                                          ),
-                                          ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(13, 0, 0, 0),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    width: 100,
-                                    height: 55,
-                                    color: const Color.fromARGB(255, 243, 243, 243),
-                                  child: Center(
-                                    child: Text(
-                                      '$completedPayment',
-                                      style: const TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold
-                                      ),
-                                      ),
-                                  ),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.fromLTRB(3, 0, 0, 0),
-                                    child: Container(
-                                      width: 100,
-                                      height: 55,
-                                      color: const Color.fromARGB(255, 243, 243, 243),
-                                      child: Center(
-                                        child: Text(
-                                          '$readyDelivery',
-                                          style: const TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold
-                                          ),
-                                          ),
-                                      ),
-                                    ),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.fromLTRB(3, 0, 0, 0),
-                                    child: Container(
-                                      width: 100,
-                                      height: 55,
-                                      color: const Color.fromARGB(255, 243, 243, 243),
-                                      child: Center(
-                                        child: Text(
-                                          '$inDelivery',
-                                          style: const TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold
-                                          ),
-                                          ),
-                                      ),
-                                    ),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.fromLTRB(3, 0, 0, 0),
-                                    child: Container(
-                                      width: 100,
-                                      height: 55,
-                                      color: const Color.fromARGB(255, 243, 243, 243),
-                                      child: Center(
-                                        child: Text(
-                                          '$completedDelivery',
-                                          style: const TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold
-                                          ),
-                                          ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  // 환불, 반품, 교환
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(50, 0, 0, 0),
-                    child: Container(
-                      width: 335,
-                      height: 150,
-                      decoration: BoxDecoration(
-                      color: Colors.white, // 배경색
-                      border: Border.all(
-                        color: const Color.fromARGB(255, 199, 199, 199), // 외곽선 색상
-                        width: 1.0, // 외곽선 두께
-                      ),
-                      ),
-                      child: Center(
-                        child: Column(
-                          children: [
-                            const Padding(
-                              padding: EdgeInsets.all(13.0),
-                              child: Text(
-                                '클래임 현황',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 18
-                                ),
-                                ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(13, 0, 0, 0),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    width: 100,
-                                    height: 35,
-                                    color: const Color.fromARGB(255, 232, 232, 232),
-                                    child: const Center(
-                                      child: Text(
-                                        '환불',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.bold
-                                        ),
-                                        ),
-                                    ),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.fromLTRB(3, 0, 0, 0),
-                                    child: Container(
-                                      width: 100,
-                                      height: 35,
-                                      color: const Color.fromARGB(255, 232, 232, 232),
-                                      child: const Center(
-                                        child: Text(
-                                          '반품',
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.bold
-                                          ),
-                                          ),
-                                      ),
-                                    ),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.fromLTRB(3, 0, 0, 0),
-                                    child: Container(
-                                      width: 100,
-                                      height: 35,
-                                      color: const Color.fromARGB(255, 232, 232, 232),
-                                      child: const Center(
-                                        child: Text(
-                                          '교환',
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.bold
-                                          ),
-                                          ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(13, 0, 0, 0),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    width: 100,
-                                    height: 55,
-                                    color: const Color.fromARGB(255, 243, 243, 243),
-                                  child: Center(
-                                    child: Text(
-                                      '$refundStatus',
-                                      style: const TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold
-                                      ),
-                                      ),
-                                  ),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.fromLTRB(3, 0, 0, 0),
-                                    child: Container(
-                                      width: 100,
-                                      height: 55,
-                                      color: const Color.fromARGB(255, 243, 243, 243),
-                                      child: Center(
-                                        child: Text(
-                                          '$returnStatus',
-                                          style: const TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold
-                                          ),
-                                          ),
-                                      ),
-                                    ),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.fromLTRB(3, 0, 0, 0),
-                                    child: Container(
-                                      width: 100,
-                                      height: 55,
-                                      color: const Color.fromARGB(255, 243, 243, 243),
-                                      child: Center(
-                                        child: Text(
-                                          '$exchangeStatus',
-                                          style: const TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold
-                                          ),
-                                          ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(0, 30, 0, 10),

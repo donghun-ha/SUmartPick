@@ -1,7 +1,8 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' as toget;
+import 'package:responsive_framework/responsive_framework.dart';
 import 'package:sumatpick_web/view/Userpage.dart';
 
 import 'Dashboard.dart';
@@ -71,328 +72,330 @@ class _OrderpageState extends State<Orderpage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xffF9FAFB),
-      body: Padding(
-        padding: const EdgeInsets.fromLTRB(30, 10, 30, 30),
-        child: Column(
-          children: [
-            // 위의 탭 부분
-            Row(
-              children: [
-                // 대시보드
-                InkWell(
-                  onTap: () {
-                    Get.to(const Dashboard());
-                  },
-                  child: Container(
-                      width: 80,
-                      height: 30,
-                      alignment: Alignment.center,
-                      color: const Color(0xffF9FAFB),
-                      child: const Text(
-                        '대시보드',
-                      )),
-                ),
-                // 회원관리
-                InkWell(
-                  onTap: () {
-                    Get.to(const Userpage());
-                  },
-                  child: Container(
-                      width: 80,
-                      height: 30,
-                      alignment: Alignment.center,
-                      color: const Color(0xffF9FAFB),
-                      child: const Text(
-                        '회원관리',
-                      )),
-                ),
-                //상품관리
-                InkWell(
-                  onTap: () {
-                    Get.to(const Productspage());
-                  },
-                  child: Container(
-                      width: 80,
-                      height: 30,
-                      alignment: Alignment.center,
-                      color: const Color(0xffF9FAFB),
-                      child: const Text(
-                        '상품관리',
-                      )),
-                ),
-                //주문관리
-                Container(
-                    width: 80,
-                    height: 30,
-                    alignment: Alignment.center,
-                    color: const Color(0xffD9D9D9),
-                    child: const Text(
-                      '주문관리',
-                    )),
-                // 재고관리
-                InkWell(
-                  onTap: () {
-                    Get.to(const Inventorypage());
-                  },
-                  child: Container(
-                      width: 80,
-                      height: 30,
-                      alignment: Alignment.center,
-                      color: const Color(0xffF9FAFB),
-                      child: const Text(
-                        '재고관리',
-                      )),
-                ),
-              ],
-            ),
-            const Divider(
-              height: 1,
-              thickness: 2,
-              color: Color(0xffD9D9D9),
-            ),
-            const Padding(
-              padding: EdgeInsets.fromLTRB(0, 50, 0, 0),
-              child: Row(
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(30, 10, 30, 30),
+          child: Column(
+            children: [
+              // 위의 탭 부분
+              Row(
                 children: [
-                  Text(
-                    '주문리스트(전체)',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  // 대시보드
+                  InkWell(
+                    onTap: () {
+                      toget.Get.to(const Dashboard());
+                    },
+                    child: Container(
+                        width: 80,
+                        height: 30,
+                        alignment: Alignment.center,
+                        color: const Color(0xffF9FAFB),
+                        child: const Text(
+                          '대시보드',
+                        )),
+                  ),
+                  // 회원관리
+                  InkWell(
+                    onTap: () {
+                      toget.Get.to(const Userpage());
+                    },
+                    child: Container(
+                        width: 80,
+                        height: 30,
+                        alignment: Alignment.center,
+                        color: const Color(0xffF9FAFB),
+                        child: const Text(
+                          '회원관리',
+                        )),
+                  ),
+                  //상품관리
+                  InkWell(
+                    onTap: () {
+                      toget.Get.to(const Productspage());
+                    },
+                    child: Container(
+                        width: 80,
+                        height: 30,
+                        alignment: Alignment.center,
+                        color: const Color(0xffF9FAFB),
+                        child: const Text(
+                          '상품관리',
+                        )),
+                  ),
+                  //주문관리
+                  Container(
+                      width: 80,
+                      height: 30,
+                      alignment: Alignment.center,
+                      color: const Color(0xffD9D9D9),
+                      child: const Text(
+                        '주문관리',
+                      )),
+                  // 재고관리
+                  InkWell(
+                    onTap: () {
+                      toget.Get.to(const Inventorypage());
+                    },
+                    child: Container(
+                        width: 80,
+                        height: 30,
+                        alignment: Alignment.center,
+                        color: const Color(0xffF9FAFB),
+                        child: const Text(
+                          '재고관리',
+                        )),
                   ),
                 ],
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(0, 30, 0, 0),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(10),
-                  // 검색창 밑 그림자 설정
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.3),
-                      blurRadius: 10,
-                      offset: const Offset(0, 5),
-                    ),
-                  ],
-                ),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              const Divider(
+                height: 1,
+                thickness: 2,
+                color: Color(0xffD9D9D9),
+              ),
+              const Padding(
+                padding: EdgeInsets.fromLTRB(0, 50, 0, 0),
                 child: Row(
                   children: [
-                    // 드롭다운 버튼
-                    DropdownButtonHideUnderline(
-                      child: DropdownButton<String>(
-                        dropdownColor: Colors.white,
-                        value: selectedFilter, // 현재 선택된 값
-                        items: ['주문번호', '주문ID', '배송상태']
-                            .map((String option) => DropdownMenuItem<String>(
-                                  value: option,
-                                  child: Text(option),
-                                ))
-                            .toList(),
-                        onChanged: (String? value) {
-                          setState(() {
-                            selectedFilter = value!; // 선택된 값 업데이트
-                          });
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    // 검색 입력 창
-                    Expanded(
-                      child: TextField(
-                        controller: searchController,
-                        decoration: const InputDecoration(
-                          hintText: "검색어를 입력하세요",
-                          border: InputBorder.none,
-                        ),
-                        onSubmitted: (value) {
-                          filterorders();
-                        },
-                      ),
-                    ),
-                    // 검색 버튼
-                    ElevatedButton.icon(
-                      onPressed: filterorders,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.black,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(5),
-                        ),
-                      ),
-                      icon: const Icon(Icons.search, color: Colors.white),
-                      label: const Text(
-                        "검색",
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(15, 0, 0, 0),
-                      child: TextButton(
-                        onPressed: resetFilter,
-                        child: const Text(
-                          '초기화',
-                          style: TextStyle(color: Colors.black),
-                        ),
-                      ),
+                    Text(
+                      '주문리스트(전체)',
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(0, 50, 0, 0),
-              child: Container(
-                height: 80,
-                decoration: BoxDecoration(
+              Padding(
+                padding: const EdgeInsets.fromLTRB(0, 30, 0, 0),
+                child: Container(
+                  decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(15)),
-                child: Center(
+                    borderRadius: BorderRadius.circular(10),
+                    // 검색창 밑 그림자 설정
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.3),
+                        blurRadius: 10,
+                        offset: const Offset(0, 5),
+                      ),
+                    ],
+                  ),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
+                      // 드롭다운 버튼
+                      DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          dropdownColor: Colors.white,
+                          value: selectedFilter, // 현재 선택된 값
+                          items: ['주문번호', '주문ID', '배송상태']
+                              .map((String option) => DropdownMenuItem<String>(
+                                    value: option,
+                                    child: Text(option),
+                                  ))
+                              .toList(),
+                          onChanged: (String? value) {
+                            setState(() {
+                              selectedFilter = value!; // 선택된 값 업데이트
+                            });
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      // 검색 입력 창
+                      Expanded(
+                        child: TextField(
+                          controller: searchController,
+                          decoration: const InputDecoration(
+                            hintText: "검색어를 입력하세요",
+                            border: InputBorder.none,
+                          ),
+                          onSubmitted: (value) {
+                            filterorders();
+                          },
+                        ),
+                      ),
+                      // 검색 버튼
+                      ElevatedButton.icon(
+                        onPressed: filterorders,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.black,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                        ),
+                        icon: const Icon(Icons.search, color: Colors.white),
+                        label: const Text(
+                          "검색",
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
                       Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 0, 0, 0),
-                        child: Text(
-                          "총 주문 수 : ${filteredOrders.length}건",
-                          style: const TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 17),
+                        padding: const EdgeInsets.fromLTRB(15, 0, 0, 0),
+                        child: TextButton(
+                          onPressed: resetFilter,
+                          child: const Text(
+                            '초기화',
+                            style: TextStyle(color: Colors.black),
+                          ),
                         ),
                       ),
                     ],
                   ),
                 ),
               ),
-            ),
-            const Padding(
-              padding: EdgeInsets.fromLTRB(0, 20, 0, 0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Text(
-                      '주문번호',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      textAlign: TextAlign.center,
+              Padding(
+                padding: const EdgeInsets.fromLTRB(0, 50, 0, 0),
+                child: Container(
+                  height: 80,
+                  decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(15)),
+                  child: Center(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 0, 0, 0),
+                          child: Text(
+                            "총 주문 수 : ${filteredOrders.length}건",
+                            style: const TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 17),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  Expanded(
-                    child: Text(
-                      '주문상세번호',
-                      style:
-                          TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  Expanded(
-                    child: Text(
-                      '주문ID',
-                      style:
-                          TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  Expanded(
-                    child: Text(
-                      '상품명',
-                      style:
-                          TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  Expanded(
-                    child: Text(
-                      '상품금액',
-                      style:
-                          TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  Expanded(
-                    child: Text(
-                      '주문일시',
-                      style:
-                          TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  Expanded(
-                    child: Text(
-                      '배송주소',
-                      style:
-                          TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  Expanded(
-                    child: Text(
-                      '환불요청시간',
-                      style:
-                          TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  Expanded(
-                    child: Text(
-                      '환불시간',
-                      style:
-                          TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  Expanded(
-                    child: Text(
-                      '결제방법',
-                      style:
-                          TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  Expanded(
-                    child: Text(
-                      '배송도착시간',
-                      style:
-                          TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  Expanded(
-                    child: Text(
-                      '배송상태',
-                      style:
-                          TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  Expanded(
-                    child: Text(
-                      ' ',
-                      style:
-                          TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ],
+                ),
               ),
-            ),
-            // 유저 관리 리스트
-            Expanded(
-                child: Padding(
-              padding: const EdgeInsets.fromLTRB(0, 15, 0, 0),
-              child: Container(
-                decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(15)),
-                child: ListView.builder(
-                  itemCount: filteredOrders.length,
-                  itemBuilder: (context, index) {
-                    final product = filteredOrders[index]; // 검색결과 product에 저장
-                    return Padding(
-                      padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
+              const Padding(
+                padding: EdgeInsets.fromLTRB(0, 20, 0, 0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        '주문번호',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    Expanded(
+                      child: Text(
+                        '주문상세번호',
+                        style:
+                            TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    Expanded(
+                      child: Text(
+                        '주문ID',
+                        style:
+                            TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    Expanded(
+                      child: Text(
+                        '상품명',
+                        style:
+                            TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    Expanded(
+                      child: Text(
+                        '상품금액',
+                        style:
+                            TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    Expanded(
+                      child: Text(
+                        '주문일시',
+                        style:
+                            TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    Expanded(
+                      child: Text(
+                        '배송주소',
+                        style:
+                            TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    Expanded(
+                      child: Text(
+                        '환불요청시간',
+                        style:
+                            TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    Expanded(
+                      child: Text(
+                        '환불시간',
+                        style:
+                            TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    Expanded(
+                      child: Text(
+                        '결제방법',
+                        style:
+                            TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    Expanded(
+                      child: Text(
+                        '배송도착시간',
+                        style:
+                            TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    Expanded(
+                      child: Text(
+                        '배송상태',
+                        style:
+                            TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    Expanded(
+                      child: Text(
+                        ' ',
+                        style:
+                            TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // 유저 관리 리스트
+              Padding(
+                            padding: const EdgeInsets.fromLTRB(0, 15, 0, 0),
+                            child: Container(
+                              height: 600,
+              decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(15)),
+              child: ListView.builder(
+                itemCount: filteredOrders.length,
+                itemBuilder: (context, index) {
+                  final product = filteredOrders[index]; // 검색결과 product에 저장
+                  return Padding(
+                    padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
+                    child: SingleChildScrollView(
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -472,13 +475,35 @@ class _OrderpageState extends State<Orderpage> {
                           Expanded(
                             child: Row(
                               children: [
-                                const SizedBox(
+                                SizedBox(
                                   width: 47,
                                   height: 20,
                                 ),
                                 SizedBox(
-                                  width: 70,
-                                  height: 20,
+                                  width: ResponsiveValue(
+                                    defaultValue: 70.0,
+                                    context, 
+                                    conditionalValues: [
+                                      const Condition.smallerThan(
+                                        value: 40.0, name: MOBILE
+                                      ),
+                                      const Condition.largerThan(
+                                        value: 70.0, name: TABLET
+                                      )
+                                    ]
+                                    ).value,
+                                  height: ResponsiveValue(
+                                    defaultValue: 20.0,
+                                    context, 
+                                    conditionalValues: [
+                                      const Condition.smallerThan(
+                                        value: 10.0, name: MOBILE
+                                      ),
+                                      const Condition.largerThan(
+                                        value: 20.0, name: TABLET
+                                      )
+                                    ]
+                                    ).value,
                                   child: ElevatedButton(
                                       onPressed: () {
                                         //
@@ -502,12 +527,14 @@ class _OrderpageState extends State<Orderpage> {
                           // 상품 삭제 버튼
                         ],
                       ),
-                    );
-                  },
-                ),
+                    ),
+                  );
+                },
               ),
-            )),
-          ],
+                            ),
+                          ),
+            ],
+          ),
         ),
       ),
     );

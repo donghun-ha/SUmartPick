@@ -22,6 +22,9 @@ class _InventorypageState extends State<Inventorypage> {
   late List totaldata;
   late TextEditingController searchController;
   late String selectedHubFilter;
+  late List<String> hubList;
+  late List<int> hubId;
+  late int selectHubId;
   late List<String> summationKeys;
   late List<String> mainKeys;
   // 임시 데이터 선언
@@ -36,6 +39,9 @@ class _InventorypageState extends State<Inventorypage> {
     super.initState();
     data = [];
     totaldata = [];
+    selectHubId = 1;
+    hubList = ['Central Hub_1', 'North Hub_2', 'South Hub_3'];
+    hubId = [1, 2, 3];
     summationKeys = ['상품코드', '상품명', '상품재고'];
     mainKeys = ['변동시간', '상품코드', '상품명', '재고량', '재고이동'];
     filteredInventorys = [];
@@ -48,65 +54,68 @@ class _InventorypageState extends State<Inventorypage> {
     getJSONTotalData();
     getJSONData();
   }
+
   getJSONTotalData() async {
-  var url = Uri.parse('http://127.0.0.1:8000/inventories/inventory_total_1_select');
-  var response = await http.get(url);
+    var url =
+        Uri.parse('http://127.0.0.1:8000/inventories/inventory_total_${selectHubId}_select');
+    var response = await http.get(url);
 
-  // 데이터를 클리어
-  totaldata.clear();
+    // 데이터를 클리어
+    totaldata.clear();
 
-  // JSON 데이터를 디코딩
-  var dataConvertedJSON = json.decode(utf8.decode(response.bodyBytes));
-  List result = dataConvertedJSON['results'];
-  totaldata.addAll(result);
+    // JSON 데이터를 디코딩
+    var dataConvertedJSON = json.decode(utf8.decode(response.bodyBytes));
+    List result = dataConvertedJSON['results'];
+    totaldata.addAll(result);
 
-  // null 값을 빈 문자열로 변환하며 map 형식으로 변환
-  totalInventorys = totaldata.map((entry) {
-    return Map.fromIterables(
-      summationKeys,
-      entry.map((value) => value ?? ''), // null 값을 빈 문자열로 변환
-    );
-  }).toList();
+    // null 값을 빈 문자열로 변환하며 map 형식으로 변환
+    totalInventorys = totaldata.map((entry) {
+      return Map.fromIterables(
+        summationKeys,
+        entry.map((value) => value ?? ''), // null 값을 빈 문자열로 변환
+      );
+    }).toList();
 
-  // 변환한 데이터를 화면에 보여줄 변수에 저장
-  filteredtotalInventorys = totalInventorys;
+    // 변환한 데이터를 화면에 보여줄 변수에 저장
+    filteredtotalInventorys = totalInventorys;
 
-  if (mounted) {
-    setState(() {
-      // 상태 업데이트
-    });
+    if (mounted) {
+      setState(() {
+        // 상태 업데이트
+      });
+    }
   }
-}
 
-getJSONData() async {
-  var url = Uri.parse('http://127.0.0.1:8000/inventories/inventory_1_select');
-  var response = await http.get(url);
+  getJSONData() async {
+    var url = Uri.parse('http://127.0.0.1:8000/inventories/inventory_${selectHubId}_select');
+    var response = await http.get(url);
 
-  // 데이터를 클리어
-  data.clear();
+    // 데이터를 클리어
+    data.clear();
 
-  // JSON 데이터를 디코딩
-  var dataConvertedJSON = json.decode(utf8.decode(response.bodyBytes));
-  List result = dataConvertedJSON['results'];
-  data.addAll(result);
+    // JSON 데이터를 디코딩
+    var dataConvertedJSON = json.decode(utf8.decode(response.bodyBytes));
+    List result = dataConvertedJSON['results'];
+    data.addAll(result);
 
-  // null 값을 빈 문자열로 변환하며 map 형식으로 변환
-  inventorys = data.map((entry) {
-    return Map.fromIterables(
-      mainKeys,
-      entry.map((value) => value ?? ''), // null 값을 빈 문자열로 변환
-    );
-  }).toList();
+    // null 값을 빈 문자열로 변환하며 map 형식으로 변환
+    inventorys = data.map((entry) {
+      return Map.fromIterables(
+        mainKeys,
+        entry.map((value) => value ?? ''), // null 값을 빈 문자열로 변환
+      );
+    }).toList();
 
-  // 변환한 데이터를 화면에 보여줄 변수에 저장
-  filteredInventorys = inventorys;
+    // 변환한 데이터를 화면에 보여줄 변수에 저장
+    filteredInventorys = inventorys;
 
-  if (mounted) {
-    setState(() {
-      // 상태 업데이트
-    });
+    if (mounted) {
+      setState(() {
+        // 상태 업데이트
+      });
+    }
   }
-}
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -197,7 +206,8 @@ getJSONData() async {
                   children: [
                     Text(
                       '재고관리',
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      style:
+                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),
@@ -224,8 +234,9 @@ getJSONData() async {
                       // 드롭다운 버튼
                       DropdownButtonHideUnderline(
                         child: DropdownButton<String>(
+                          dropdownColor: Colors.white,
                           value: selectedFilter, // 현재 선택된 값
-                          items: ['상품코드', '상품명']
+                          items: ['상품코드', '상품명', '재고이동']
                               .map((String option) => DropdownMenuItem<String>(
                                     value: option,
                                     child: Text(option),
@@ -292,37 +303,37 @@ getJSONData() async {
                         Padding(
                           padding: const EdgeInsets.fromLTRB(30, 0, 0, 0),
                           child: DropdownButtonHideUnderline(
-                          child: DropdownButton<String>(
-                            dropdownColor: Colors.white,
-                            value: selectedHubFilter, // 현재 선택된 값
-                            items: ['Central Hub_1', 'North Hub_2', 'South Hub_3']
-                                .map((String option) => DropdownMenuItem<String>(
-                                      value: option,
-                                      child: Text(option),
-                                    ))
-                                .toList(),
-                            onChanged: (String? value) {
-                              setState(() {
-                                selectedHubFilter = value!; // 선택된 값 업데이트
-                              });
-                            },
+                            child: DropdownButton<String>(
+                              dropdownColor: Colors.white,
+                              value: selectedHubFilter, // 현재 선택된 값
+                              items: hubList
+                                  .map((String option) =>
+                                      DropdownMenuItem<String>(
+                                        value: option,
+                                        child: Text(option),
+                                      ))
+                                  .toList(),
+                              onChanged: (String? value) {
+                                setState(() {
+                                  selectedHubFilter = value!; // 선택된 값 업데이트
+                                  selectHubId = hubId[hubList.indexOf(value)];
+                                  reloadData();
+                                });
+                              },
+                            ),
                           ),
-                                              ),
                         ),
                         Padding(
                           padding: const EdgeInsets.fromLTRB(0, 0, 30, 0),
                           child: TextButton(
-                            onPressed: () {
-                              //
-                            }, 
-                            child: const Text(
-                              '재고등록',
-                              style: TextStyle(
-                                color: Colors.black,
-                                fontSize: 16
-                              ),
-                              )
-                            ),
+                              onPressed: () {
+                                //
+                              },
+                              child: const Text(
+                                '재고등록',
+                                style: TextStyle(
+                                    color: Colors.black, fontSize: 16),
+                              )),
                         )
                       ],
                     ),
@@ -348,16 +359,16 @@ getJSONData() async {
                     Expanded(
                       child: Text(
                         '상품명',
-                        style:
-                            TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                            fontSize: 15, fontWeight: FontWeight.bold),
                         textAlign: TextAlign.center,
                       ),
                     ),
                     Expanded(
                       child: Text(
                         '상품재고',
-                        style:
-                            TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                            fontSize: 15, fontWeight: FontWeight.bold),
                         textAlign: TextAlign.center,
                       ),
                     ),
@@ -374,158 +385,214 @@ getJSONData() async {
                     borderRadius: BorderRadius.circular(15),
                   ),
                   child: ListView.builder(
-                itemCount: filteredtotalInventorys.length,
-                itemBuilder: (context, index) {
-                  final product = filteredtotalInventorys[index]; // 검색결과 product에 저장
-                  return Padding(
-                    padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            "${product['상품코드']}",
-                            textAlign: TextAlign.center,
-                          ),
+                    itemCount: filteredtotalInventorys.length,
+                    itemBuilder: (context, index) {
+                      final product =
+                          filteredtotalInventorys[index]; // 검색결과 product에 저장
+                      return Padding(
+                        padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                "${product['상품코드']}",
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                            Expanded(
+                              child: Text(
+                                "${product['상품명']}",
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                            Expanded(
+                              child: Text(
+                                "${product['상품재고']}",
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ],
                         ),
-                        Expanded(
-                          child: Text(
-                            "${product['상품명']}",
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                        Expanded(
-                          child: Text(
-                            "${product['상품재고']}",
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
+                      );
+                    },
+                  ),
                 ),
               ),
               const Padding(
                 padding: EdgeInsets.fromLTRB(0, 20, 0, 0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        '변동시간',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: SizedBox(
+                    width: 1650,
+                    child: Row(
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.fromLTRB(85, 0, 0, 0),
+                          child: SizedBox(
+                            width: 100,
+                            child: Text(
+                              '변동시간',
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
                         ),
-                        textAlign: TextAlign.center,
-                      ),
+                        Padding(
+                          padding: EdgeInsets.fromLTRB(175, 0, 0, 0),
+                          child: SizedBox(
+                            width: 100,
+                            child: Text(
+                              '상품코드',
+                              style: TextStyle(
+                                  fontSize: 15, fontWeight: FontWeight.bold),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: EdgeInsets.fromLTRB(175, 0, 0, 0),
+                          child: SizedBox(
+                            width: 100,
+                            child: Text(
+                              '상품명',
+                              style: TextStyle(
+                                  fontSize: 15, fontWeight: FontWeight.bold),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: EdgeInsets.fromLTRB(175, 0, 0, 0),
+                          child: SizedBox(
+                            width: 100,
+                            child: Text(
+                              '재고량',
+                              style: TextStyle(
+                                  fontSize: 15, fontWeight: FontWeight.bold),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: EdgeInsets.fromLTRB(175, 0, 0, 0),
+                          child: SizedBox(
+                            width: 100,
+                            child: Text(
+                              '재고이동',
+                              style: TextStyle(
+                                  fontSize: 15, fontWeight: FontWeight.bold),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
+                        // Expanded(
+                        //   child: Text(
+                        //     ' ', // 관리 버튼 칸
+                        //     style: TextStyle(
+                        //         fontSize: 15, fontWeight: FontWeight.bold),
+                        //     textAlign: TextAlign.center,
+                        //   ),
+                        // ),
+                      ],
                     ),
-                    Expanded(
-                      child: Text(
-                        '상품코드',
-                        style:
-                            TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                    Expanded(
-                      child: Text(
-                        '상품명',
-                        style:
-                            TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                    Expanded(
-                      child: Text(
-                        '재고량',
-                        style:
-                            TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                    Expanded(
-                      child: Text(
-                        '재고이동',
-                        style:
-                            TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                    Expanded(
-                      child: Text(
-                        ' ', // 관리 버튼 칸
-                        style:
-                            TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ),
               // 유저 관리 리스트
               Padding(
-                            padding: const EdgeInsets.fromLTRB(0, 15, 0, 0),
-                            child: Container(
-                              height: 500,
-              decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(15)),
-              child: ListView.builder(
-                itemCount: filteredInventorys.length,
-                itemBuilder: (context, index) {
-                  final product = filteredInventorys[index]; // 검색결과 product에 저장
-                  return Padding(
-                    padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            "${product['변동시간']}",
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                        Expanded(
-                          child: Text(
-                            "${product['상품코드']}",
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                        Expanded(
-                          child: Text(
-                            "${product['상품명']}",
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                        Expanded(
-                          child: Text(
-                            "${product['재고량']}",
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                        Expanded(
-                          child: Text(
-                            "${product['재고이동']}",
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                        // 상품 수정 버튼
-                        Expanded(
+                padding: const EdgeInsets.fromLTRB(0, 15, 0, 0),
+                child: Container(
+                  width: 1650,
+                  height: 500, // 높이 지정
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  child: ListView.builder(
+                    itemCount: filteredInventorys.length,
+                    itemBuilder: (context, index) {
+                      final product =
+                          filteredInventorys[index]; // 검색결과 product에 저장
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 10), // 적절한 간격 추가
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
                           child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: [
-                              const SizedBox(
-                                width: 128,
-                                height: 20,
+                              // 변동시간
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(85, 0, 0, 0),
+                                child: SizedBox(
+                                  width: 100, // 고정된 너비 설정
+                                  child: Text(
+                                    "${product['변동시간']}",
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
                               ),
-                              SizedBox(
-                                width: 70,
-                                height: 20,
-                                child: ElevatedButton(
+                              // 상품코드
+                              Padding(
+                                padding:
+                                    const EdgeInsets.fromLTRB(175, 0, 0, 0),
+                                child: SizedBox(
+                                  width: 100, // 고정된 너비 설정
+                                  child: Text(
+                                    "${product['상품코드']}",
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ),
+                              // 상품명
+                              Padding(
+                                padding:
+                                    const EdgeInsets.fromLTRB(150, 0, 0, 0),
+                                child: SizedBox(
+                                  width: 150, // 고정된 너비 설정
+                                  child: Text(
+                                    "${product['상품명']}",
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ),
+                              // 재고량
+                              Padding(
+                                padding:
+                                    const EdgeInsets.fromLTRB(150, 0, 0, 0),
+                                child: SizedBox(
+                                  width: 100, // 고정된 너비 설정
+                                  child: Text(
+                                    "${product['재고량']}",
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ),
+                              // 재고이동
+                              Padding(
+                                padding:
+                                    const EdgeInsets.fromLTRB(175, 0, 0, 0),
+                                child: SizedBox(
+                                  width: 100, // 고정된 너비 설정
+                                  child: Text(
+                                    "${product['재고이동']}",
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ),
+                              // 관리 버튼
+                              Padding(
+                                padding:
+                                    const EdgeInsets.fromLTRB(150, 0, 0, 0),
+                                child: SizedBox(
+                                  width: 70,
+                                  child: ElevatedButton(
                                     onPressed: () {
-                                      //
+                                      // 버튼 동작 추가
                                     },
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: Colors.black,
@@ -538,18 +605,18 @@ getJSONData() async {
                                     child: const Text(
                                       '관리',
                                       style: TextStyle(fontSize: 11),
-                                    )),
+                                    ),
+                                  ),
+                                ),
                               ),
                             ],
                           ),
                         ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-                            ),
-                          ),
+                      );
+                    },
+                  ),
+                ),
+              )
             ],
           ),
         ),
@@ -578,5 +645,9 @@ getJSONData() async {
         inventorys; // 지금은 초기화 하면 임시데이터를 넣지만 DB가 있을땐 초기 DB데이터를 넣어야 함
     setState(() {});
   }
-  
+
+  reloadData(){
+    getJSONTotalData();
+    getJSONData();
+  }
 }
