@@ -10,7 +10,7 @@ import SwiftUI
 struct HomeView: View {
     @State private var selectedProductID: Int? = nil
     @State private var isNavigatingToDetail = false
-    
+
     var body: some View {
         NavigationStack {
             VStack {
@@ -39,7 +39,7 @@ struct HomeView: View {
                         .padding(.trailing)
                 }
                 .padding(.bottom)
-                
+
                 // 버튼 추가
                 Button(action: {
                     selectedProductID = 1 // 예: productID 1 설정
@@ -59,24 +59,12 @@ struct HomeView: View {
                 Text("추천 상품")
                     .font(.headline)
                     .padding(.bottom)
-                
-                // NavigationLink를 통해 DetailView로 이동
-                NavigationLink(
-                    destination: {
-                        if let productID = selectedProductID {
-                            DetailView(productID: productID)
-                        } else {
-                            EmptyView()
-                        }
-                    },
-                    isActive: $isNavigatingToDetail,
-                    label: { EmptyView() }
-                )
-                .hidden()
-
-                Spacer()
+                    // NavigationLink를 통해 DetailView로 이동
+                    .navigationDestination(isPresented: $isNavigatingToDetail) {
+                        DetailView(productID: selectedProductID ?? 1)
+                    }
+                    .toolbar(.hidden, for: .navigationBar)
             }
-            .toolbar(.hidden, for: .navigationBar)
         }
     }
 }
