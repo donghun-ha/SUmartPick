@@ -13,7 +13,7 @@ class ReviewsViewModel: ObservableObject {
     @Published var errorMessage: String = ""
     @Published var showErrorAlert = false
 
-    let baseURL = Config.baseURL
+    let baseURL = SUmartPickConfig.baseURL
 
     func fetchReviews(for userID: String) async {
         guard let url = URL(string: "\(baseURL)/reviews/\(userID)") else { return }

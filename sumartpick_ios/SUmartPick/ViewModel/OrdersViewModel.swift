@@ -15,7 +15,7 @@ class OrdersViewModel: ObservableObject {
     @Published var searchText: String = ""
 
     // 기본 서버 URL
-    let baseURL = "\(Config.baseURL)"
+    let baseURL = "\(SUmartPickConfig.baseURL)"
 
     // 서버로부터 특정 사용자(User_ID)의 주문 목록을 가져옴
     func fetchOrders(for userID: String) async {

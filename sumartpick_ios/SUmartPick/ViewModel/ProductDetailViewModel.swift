@@ -16,12 +16,12 @@ class ProductDetailViewModel: ObservableObject {
         isLoading = true
         errorMessage = nil
 
-        let url = URL(string: "https://sumartpick.shop")!   // Fastapi 주소로 변경
-        
+        let url = URL(string: "https://sumartpick.shop")! // Fastapi 주소로 변경
+
         URLSession.shared.dataTask(with: url) { data, response, error in
             DispatchQueue.main.async {
                 self.isLoading = false
-                
+
                 if let error = error {
                     self.errorMessage = "Failed to load product: \(error.localizedDescription)"
                     return
