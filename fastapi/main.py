@@ -8,6 +8,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from user import router as user_router
 from product import router as product_router
+from orders import router as orders_router
+from inventories import router as inventories_router
+from dashboard import router as dashboard_router
 
 app = FastAPI()
 
@@ -35,8 +38,11 @@ async def health_check():
         "uptime": "100%"  # Example additional info
     }
 
-app.include_router(user_router, tags=["User Login"])
+app.include_router(user_router, tags=["Users"])
 app.include_router(product_router, tags=["Products"])
+app.include_router(orders_router, prefix="/orders", tags=["orders"])
+app.include_router(inventories_router, prefix="/inventories", tags=["inventories"])
+app.include_router(dashboard_router, prefix="/dashboard", tags=["dashboard"])
 
 if __name__ == "__main__":
     import uvicorn
