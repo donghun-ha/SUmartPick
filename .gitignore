@@ -454,4 +454,7 @@ $RECYCLE.BIN/
 /*.gcno
 **/xcshareddata/WorkspaceSettings.xcsettings
 
+
+# FireBase API KEY
+*sumartpick-firebase-adminsdk-v701f-ad1da0148c.json
 # End of https://www.toptal.com/developers/gitignore/api/xcode,windows,macos,flutter,dart,swift,swiftpackagemanager,python,jupyternotebooks,visualstudiocode
