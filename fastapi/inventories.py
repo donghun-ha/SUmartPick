@@ -23,7 +23,7 @@ async def select():
     conn = hosts.connect_to_mysql()
     curs = conn.cursor()
     # 결과값을 딕셔너리로 변환할때 쓰이는 SQL문장
-    sql = "SELECT S.Product_ID, P.name, sum(S.QTY)as Total FROM stocktransfer as S, products as P where S.Hub_ID = 1  and S.Product_ID = P.Product_ID group by S.Product_ID order by S.Product_ID"
+    sql = "SELECT S.Product_ID, P.name, sum(S.QTY) as Total FROM stocktransfer as S, products as P where S.Hub_ID = 1  and S.Product_ID = P.Product_ID group by S.Product_ID order by S.Product_ID"
     curs.execute(sql)
     rows = curs.fetchall()
     conn.close()
@@ -50,7 +50,7 @@ async def select():
     conn = hosts.connect_to_mysql()
     curs = conn.cursor()
     # 결과값을 딕셔너리로 변환할때 쓰이는 SQL문장
-    sql = "SELECT S.Product_ID, P.name, sum(S.QTY)as Total FROM stocktransfer as S, products as P where S.Hub_ID = 2  and S.Product_ID = P.Product_ID group by S.Product_ID order by S.Product_ID"
+    sql = "SELECT S.Product_ID, P.name, sum(S.QTY) as Total FROM stocktransfer as S, products as P where S.Hub_ID = 2  and S.Product_ID = P.Product_ID group by S.Product_ID order by S.Product_ID"
     curs.execute(sql)
     rows = curs.fetchall()
     conn.close()
@@ -77,7 +77,7 @@ async def select():
     conn = hosts.connect_to_mysql()
     curs = conn.cursor()
     # 결과값을 딕셔너리로 변환할때 쓰이는 SQL문장
-    sql = "SELECT S.Product_ID, P.name, sum(S.QTY)as Total FROM stocktransfer as S, products as P where S.Hub_ID = 3  and S.Product_ID = P.Product_ID group by S.Product_ID order by S.Product_ID"
+    sql = "SELECT S.Product_ID, P.name, sum(S.QTY) as Total FROM stocktransfer as S, products as P where S.Hub_ID = 3  and S.Product_ID = P.Product_ID group by S.Product_ID order by S.Product_ID"
     curs.execute(sql)
     rows = curs.fetchall()
     conn.close()
