@@ -40,7 +40,6 @@ class ReviewsViewModel: ObservableObject {
         }
     }
 
-    // 리뷰 등록/수정/삭제 예시도 추가 가능
     func addReview(userID: String, productID: Int, content: String, star: Int) async {
         guard let url = URL(string: "\(baseURL)/reviews") else { return }
         var request = URLRequest(url: url)
@@ -69,6 +68,4 @@ class ReviewsViewModel: ObservableObject {
             self.showErrorAlert = true
         }
     }
-
-    // 수정과 삭제도 같은 패턴으로 구현
 }

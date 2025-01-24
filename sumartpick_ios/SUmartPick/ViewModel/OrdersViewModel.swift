@@ -24,18 +24,17 @@ class OrdersViewModel: ObservableObject {
         do {
             let (data, response) = try await URLSession.shared.data(from: url)
 
-            // 1) 먼저 서버에서 받은 raw JSON을 출력해보기
             if let rawJSON = String(data: data, encoding: .utf8) {
                 print("서버 응답 raw JSON:\n\(rawJSON)")
             }
 
             guard let httpResponse = response as? HTTPURLResponse,
-                  httpResponse.statusCode == 200 else {
+                  httpResponse.statusCode == 200
+            else {
                 print("Server error or invalid response.")
                 return
             }
 
-            // 2) 여기서부터 DateFormatter & 디코딩
             let dateFormatter = DateFormatter()
             dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
             dateFormatter.timeZone = TimeZone(abbreviation: "UTC")
@@ -44,7 +43,7 @@ class OrdersViewModel: ObservableObject {
             decoder.dateDecodingStrategy = .formatted(dateFormatter)
 
             let fetchedOrders = try decoder.decode([OrderItem].self, from: data)
-            self.orders = fetchedOrders
+            orders = fetchedOrders
 
         } catch {
             print("Failed to fetch orders:", error.localizedDescription)
@@ -62,7 +61,6 @@ class OrdersViewModel: ObservableObject {
         }
     }
 
-    // (옵션) 날짜별 그룹핑: 섹션용으로 그룹화
     var groupedByDate: [String: [OrderItem]] {
         // 예: "yyyy. M. d" 형식으로 문자열 변환
         let formatter = DateFormatter()
@@ -81,7 +79,8 @@ class OrdersViewModel: ObservableObject {
                 let formatter = DateFormatter()
                 formatter.dateFormat = "yyyy. M. d"
                 guard let date1 = formatter.date(from: $0),
-                      let date2 = formatter.date(from: $1) else {
+                      let date2 = formatter.date(from: $1)
+                else {
                     return false
                 }
                 // 최신 날짜가 먼저 오도록 내림차순

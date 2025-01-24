@@ -56,12 +56,12 @@ class RefundExchangeViewModel: ObservableObject {
         }
     }
 
-    // 날짜별 그룹핑 (주문일 or 도착일 중 어떤 걸로 grouping할지는 상황에 맞게)
+    // 날짜별 그룹핑
     var groupedByDate: [String: [OrderItem]] {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy. M. d"
 
-        // 여기서는 orderDate 기준으로 그룹핑
+        // orderDate 기준으로 그룹핑
         return Dictionary(grouping: filteredOrders, by: { order in
             formatter.string(from: order.orderDate)
         })
