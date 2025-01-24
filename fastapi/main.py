@@ -14,29 +14,18 @@ from dashboard import router as dashboard_router
 
 app = FastAPI()
 
+# CORS 설정
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # 허용할 도메인 리스트
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-class HealthCheckResponse(BaseModel):
-    status: str
-    message: str
-    uptime: str
-
-@app.get("/health", response_model=HealthCheckResponse)
+@app.get("/health")
 async def health_check():
-    """
-    Health check endpoint
-    """
-    return {
-        "status": "healthy",
-        "message": "The server is running fine!",
-        "uptime": "100%"  # Example additional info
-    }
+    return {"status": "healthy", "message": "The server is running fine!", "uptime": "100%"}
 
 app.include_router(user_router, tags=["Users"])
 app.include_router(product_router, tags=["Products"])
@@ -46,4 +35,4 @@ app.include_router(dashboard_router, prefix="/dashboard", tags=["dashboard"])
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host = "0.0.0.0", port = 8000)
+    uvicorn.run(app, host="0.0.0.0", port=8000)

@@ -8,6 +8,9 @@
 import SwiftUI
 
 struct HomeView: View {
+    @State private var selectedProductID: Int? = nil
+    @State private var isNavigatingToDetail = false
+    
     var body: some View {
         NavigationStack {
             VStack {
@@ -36,12 +39,40 @@ struct HomeView: View {
                         .padding(.trailing)
                 }
                 .padding(.bottom)
+                
+                // 버튼 추가
+                Button(action: {
+                    selectedProductID = 1 // 예: productID 1 설정
+                    isNavigatingToDetail = true
+                }) {
+                    Text("DetailView로 이동")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .padding()
+                        .background(Color.blue)
+                        .cornerRadius(8)
+                }
+                .padding()
 
                 // 추천 상품
                 Spacer()
                 Text("추천 상품")
                     .font(.headline)
                     .padding(.bottom)
+                
+                // NavigationLink를 통해 DetailView로 이동
+                NavigationLink(
+                    destination: {
+                        if let productID = selectedProductID {
+                            DetailView(productID: productID)
+                        } else {
+                            EmptyView()
+                        }
+                    },
+                    isActive: $isNavigatingToDetail,
+                    label: { EmptyView() }
+                )
+                .hidden()
 
                 Spacer()
             }
