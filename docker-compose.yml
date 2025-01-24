@@ -3,7 +3,6 @@ version: '3.8'
 services:
   web:
     build: .
-    dockerfile: Dockerfile
     image: 664418991926.dkr.ecr.ap-northeast-2.amazonaws.com/sumartpick:${DOCKER_IMAGE_TAG:-latest}
     container_name: ${DOCKER_IMAGE_TAG} # 동적 이름
     volumes:
