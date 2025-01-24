@@ -32,7 +32,7 @@ router = APIRouter()
 
 
 # Firebase Admin SDK 초기화
-cred = credentials.Certificate("sumartpick-firebase-adminsdk-v701f-ad1da0148c.json")  # Firebase 서비스 계정 키 경로
+cred = credentials.Certificate("../sumartpick-firebase-adminsdk-v701f-ad1da0148c.json")  # Firebase 서비스 계정 키 경로
 firebase_admin.initialize_app(cred, {
     'storageBucket': 'sumartpick.firebasestorage.app'  # Firebase Storage 버킷 이름
 })
