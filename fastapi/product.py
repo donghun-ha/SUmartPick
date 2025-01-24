@@ -4,7 +4,7 @@ Date : 2025-01-24
 Description : 
 이 모듈은 FastAPI를 사용하여 상품 검색 및 등록 API를 제공합니다.
 - /products_query: MySQL 데이터베이스에서 상품 이름으로 검색하는 API
-- /products/: 상품 데이터를 MySQL에 등록하는 API
+- /insert_products/: 상품 데이터를 Firebase_Storage에 저장 후 URL과 나머지 정보를 MySQL에 등록하는 API
 
 Usage:
 1. /products_query:
@@ -12,20 +12,30 @@ Usage:
    - Request: {"name": "상품명"}
    - Response: 상품 목록 리스트
 
-2. /products/:
+2. /insert_products/:
    - 상품 등록 요청
    - Request: {"Category_ID": 1, "name": "상품명", "preview_image": "URL", "price": 1000, "detail": "상세 설명", "manufacturer": "제조사"}
    - Response: {"message": "Product registered successfully"}
 """
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, File, UploadFile
 from pydantic import BaseModel
 from typing import List
 from hosts import connect_to_mysql
 import pymysql
+from firebase_admin import credentials, storage # firebase
+import firebase_admin
+import base64
 
 # FastAPI 라우터 생성
 router = APIRouter()
+
+
+# Firebase Admin SDK 초기화
+cred = credentials.Certificate("sumartpick-firebase-adminsdk-v701f-ad1da0148c.json")  # Firebase 서비스 계정 키 경로
+firebase_admin.initialize_app(cred, {
+    'storageBucket': 'sumartpick.firebasestorage.app'  # Firebase Storage 버킷 이름
+})
 
 # 요청 데이터 모델
 class ProductQuery(BaseModel):
@@ -99,41 +109,59 @@ async def products_query(query: ProductQuery):
         cursor.close()
         mysql_conn.close()
 
-@router.post("/products/")
+@router.post("/insert_products/")
 async def create_product(product: ProductCreateRequest):
     """
-    상품 등록 요청 처리:
-    1. 입력받은 상품 데이터를 MySQL에 저장
-    2. 성공 메시지 반환
-
-    Parameters:
-    - product (ProductCreateRequest): 상품 데이터
-
-    Returns:
-    - dict: 성공 메시지
+    상품 등록:
+    1. Base64 이미지를 Firebase Storage에 업로드
+    2. Firebase URL과 함께 상품 정보를 MySQL에 저장
     """
-    # MySQL 연결
-    mysql_conn = connect_to_mysql()
-    cursor = mysql_conn.cursor()
-
-    # MySQL 데이터베이스 삽입
     try:
+        # 카테고리 매핑
+        category_map = {
+            4: "가구",
+            5: "기타",
+            6: "도서",
+            7: "미디어",
+            8: "뷰티",
+            9: "스포츠",
+            10: "식품_음료",
+            11: "유아_애완",
+            12: "전자제품",
+            13: "패션"
+        }
+
+        # 카테고리 이름 가져오기
+        category_name = category_map.get(product.Category_ID)
+        if not category_name:
+            raise HTTPException(status_code=400, detail="유효하지 않은 카테고리 ID입니다.")
+
+        # Base64 이미지를 디코딩하여 Firebase Storage에 저장
+        bucket = storage.bucket()
+        image_data = base64.b64decode(product.base64_image)
+        blob = bucket.blob(f"{category_name}/{product.name}.jpg")  # 카테고리 이름 사용
+        blob.upload_from_string(image_data, content_type="image/jpeg")
+        blob.make_public()
+        image_url = blob.public_url
+
+        # MySQL에 상품 데이터 저장
+        mysql_conn = connect_to_mysql()
+        cursor = mysql_conn.cursor()
         cursor.execute(
             """
             INSERT INTO products (Category_ID, name, preview_image, price, detail, manufacturer, created)
             VALUES (%s, %s, %s, %s, %s, %s, NOW())
             """,
-            (product.Category_ID, product.name, product.preview_image, product.price, product.detail, product.manufacturer)
+            (product.Category_ID, product.name, image_url, product.price, product.detail, product.manufacturer)
         )
         mysql_conn.commit()
-        return {"message": "Product registered successfully"}
+
+        return {"message": "Product registered successfully", "image_url": image_url}
 
     except Exception as e:
-        # 에러 처리
-        print(f"MySQL 쿼리 실패: {e}")
-        raise HTTPException(status_code=500, detail=f"MySQL 작업 실패: {str(e)}")
+        print(f"Error: {e}")
+        raise HTTPException(status_code=500, detail=f"상품 등록 실패: {str(e)}")
 
     finally:
-        # MySQL 연결 닫기
         cursor.close()
         mysql_conn.close()
