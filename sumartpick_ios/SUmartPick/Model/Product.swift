@@ -17,8 +17,3 @@ struct Product: Codable , Identifiable{
     
     var id: Int { Product_ID } // Identifiable을 위한 프로퍼티
 }
-
-struct Category: Codable {
-    let categoryID: Int
-    let name: String
-}

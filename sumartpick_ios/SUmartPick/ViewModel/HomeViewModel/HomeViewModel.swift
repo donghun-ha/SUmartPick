@@ -13,79 +13,70 @@
 
 import SwiftUI
 
-// API 응답을 올바르게 매핑하기 위한 구조체 추가
+// API 응답을 올바르게 매핑하기 위한 구조체
 struct ProductResponse: Codable {
     let results: [Product] // "results" 키를 매핑하여 상품 배열을 가져옴
 }
 
+@MainActor
 class HomeViewModel: ObservableObject {
     @Published var products: [Product] = [] // 홈 화면에 표시할 상품 목록
     @Published var searchResults: [Product] = [] // 검색 결과 목록
     private let baseURL = "https://fastapi.sumartpick.shop" // API 기본 URL
     
     init() {
-        fetchHomeProducts() // 뷰모델 초기화 시 API 호출
+        Task {
+            await fetchHomeProducts() // 뷰모델 초기화 시 API 호출
+        }
     }
     
     /// 홈 화면에 표시할 상품 목록을 불러오는 함수
-    /// - API: `/product_select_all`
+    /// - API: `/get_all_products`
     /// - 최대 10개의 상품을 가져와 `products`에 저장
-    func fetchHomeProducts() {
-        guard let url = URL(string: "\(baseURL)/product_select_all") else {
+    func fetchHomeProducts() async {
+        guard let url = URL(string: "\(baseURL)/get_all_products") else {
             print("❌ URL 생성 실패")
             return
         }
         
-        URLSession.shared.dataTask(with: url) { data, response, error in
-            if let error = error {
-                print("❌ 네트워크 요청 실패: \(error.localizedDescription)")
-                return
-            }
-            
-            if let data = data {
-                do {
-                    // ProductResponse로 디코딩하여 "results" 키의 배열을 가져옴
-                    let decodedResponse = try JSONDecoder().decode(ProductResponse.self, from: data)
-                    
-                    DispatchQueue.main.async {
-                        self.products = Array(decodedResponse.results.prefix(10)) // 10개만 저장
-                        print("✅ 상품 목록 로드 성공: \(self.products.count)개")
-                    }
-                } catch {
-                    print("❌ JSON 디코딩 실패: \(error)")
-                }
-            }
-        }.resume()
+        do {
+            let decodedResponse: ProductResponse = try await requestData(from: url)
+            products = Array(decodedResponse.results.prefix(10)) // 10개만 저장
+            print("✅ 상품 목록 로드 성공: \(products.count)개")
+        } catch {
+            print("❌ 상품 목록 로딩 실패: \(error)")
+        }
     }
     
     /// 검색 기능을 수행하는 함수
     /// - Parameter query: 검색할 상품의 키워드
-    /// - API: `/products_query?name={query}`
+    /// - API: `/search_products?name={query}`
     /// - 검색 결과를 `searchResults`에 저장
-    func fetchSearchResults(query: String) {
-        guard let url = URL(string: "\(baseURL)/products_query?name=\(query)") else {
+    func fetchSearchResults(query: String) async {
+        guard let url = URL(string: "\(baseURL)/search_products?name=\(query)") else {
             print("❌ 검색 URL 생성 실패")
             return
         }
         
-        URLSession.shared.dataTask(with: url) { data, response, error in
-            if let error = error {
-                print("❌ 검색 요청 실패: \(error.localizedDescription)")
-                return
-            }
-            
-            if let data = data {
-                do {
-                    let decodedResponse = try JSONDecoder().decode(ProductResponse.self, from: data)
-                    
-                    DispatchQueue.main.async {
-                        self.searchResults = decodedResponse.results // 검색 결과 업데이트
-                        print("✅ 검색 성공: \(self.searchResults.count)개 결과")
-                    }
-                } catch {
-                    print("❌ 검색 JSON 디코딩 실패: \(error)")
-                }
-            }
-        }.resume()
+        do {
+            let decodedResponse: ProductResponse = try await requestData(from: url)
+            searchResults = decodedResponse.results
+            print("✅ 검색 성공: \(searchResults.count)개 결과")
+        } catch {
+            print("❌ 검색 실패: \(error)")
+        }
+    }
+    
+    /// 공통 API 요청 및 JSON 디코딩 함수 (`async/await` 적용)
+    /// - Parameter url: 요청할 API의 URL
+    /// - Returns: 디코딩된 `ProductResponse`
+    private func requestData<T: Decodable>(from url: URL) async throws -> T {
+        let (data, response) = try await URLSession.shared.data(from: url)
+        
+        if let httpResponse = response as? HTTPURLResponse {
+            print("ℹ️ 서버 응답 코드: \(httpResponse.statusCode)")
+        }
+        
+        return try JSONDecoder().decode(T.self, from: data)
     }
 }

@@ -19,7 +19,7 @@ struct HomeView: View {
     @State private var selectedProductID: Int? = nil
     @State private var isNavigatingToDetail = false
     @State private var searchText: String = ""
-    
+
     let categories = [
         "가구", "도서", "미디어", "뷰티", "스포츠",
         "식품", "유아/애완", "전자제품", "패션", "기타"
@@ -28,20 +28,34 @@ struct HomeView: View {
         "bed.double", "book", "tv", "paintbrush", "sportscourt",
         "cart", "pawprint", "desktopcomputer", "tshirt", "ellipsis"
     ]
-
+    
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack {
+                VStack(alignment: .leading) { // 전체 VStack 왼쪽 정렬
                     headerView
                     searchView
                     CategoryGridView(categories: Array(zip(categories, categoryIcons)))
+
+                    // 섹션 구분을 위한 Divider 추가
+                    Divider()
+                        .padding(.vertical, 10)
+
                     Text("🛒 이 상품을 놓치지 마세요!")
                         .font(.headline)
-                        .padding(.top, 10)
-                    ProductGridView(products: viewModel.products, selectedProductID: $selectedProductID, isNavigatingToDetail: $isNavigatingToDetail)
-                    topButton
+                        .frame(maxWidth: .infinity, alignment: .leading) // 왼쪽 정렬
+                        .padding(.leading, 10) // 좌측 여백 추가
+
+                    ProductGridView(
+                        products: viewModel.products,
+                        selectedProductID: $selectedProductID,
+                        isNavigatingToDetail: $isNavigatingToDetail
+                    )
+
+                    Spacer()
+                        .frame(height: 50) // 하단 공간 확보 (탭바와 겹치지 않도록)
                 }
+                .padding(.horizontal)
             }
             .toolbar(.hidden, for: .navigationBar)
             .navigationDestination(isPresented: $isNavigatingToDetail) {
@@ -83,19 +97,24 @@ struct HomeView: View {
         var body: some View {
             LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: 20) {
                 ForEach(products) { product in
-                    VStack {
+                    VStack(alignment: .leading) { // 🔹 왼쪽 정렬
                         AsyncImage(url: URL(string: product.preview_image)) { image in
                             image.resizable().scaledToFit()
                         } placeholder: {
                             ProgressView()
                         }
                         .frame(width: 100, height: 100)
-                        
+
                         Text(product.name)
                             .font(.caption)
-                        Text("₩\(Int(product.price))")
+                            .frame(maxWidth: .infinity, alignment: .leading) // 왼쪽 정렬
+                            .padding(.leading, 5) // 패딩 추가
+
+                        Text("\(Int(product.price)) 원")
                             .font(.subheadline)
                             .foregroundColor(.gray)
+                            .frame(maxWidth: .infinity, alignment: .leading) // 왼쪽 정렬
+                            .padding(.leading, 5) // 패딩 추가
                     }
                     .onTapGesture {
                         selectedProductID = product.Product_ID
@@ -125,7 +144,9 @@ struct HomeView: View {
     private var searchView: some View {
         HStack {
             TextField("상품 검색", text: $searchText, onCommit: {
-                viewModel.fetchSearchResults(query: searchText)
+                Task {
+                    await viewModel.fetchSearchResults(query: searchText)
+                }
             })
             .padding(10)
             .background(Color(.systemGray6))
@@ -135,20 +156,5 @@ struct HomeView: View {
                 .padding(.trailing)
         }
         .padding(.bottom)
-    }
-
-    private var topButton: some View {
-        Button(action: {
-            withAnimation {
-                UIScrollView.appearance().scrollsToTop = true
-            }
-        }) {
-            Image(systemName: "arrow.up")
-                .padding()
-                .background(Color.blue.opacity(0.8))
-                .clipShape(Circle())
-                .foregroundColor(.white)
-        }
-        .padding(.top, 20)
     }
 }
