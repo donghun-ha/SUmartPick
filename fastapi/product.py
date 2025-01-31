@@ -21,6 +21,8 @@ Usage:
 from fastapi import APIRouter, HTTPException, Request, File, UploadFile
 from pydantic import BaseModel
 from typing import List
+
+import pymysql.cursors
 from hosts import connect_to_mysql
 import pymysql
 from firebase_admin import credentials, storage # firebase
@@ -170,7 +172,7 @@ async def create_product(product: ProductCreateRequest):
 @router.get("/product_select_all")
 async def select():
     conn = connect_to_mysql()
-    curs = conn.cursor()
+    curs = conn.cursor(pymysql.cursors.DictCursor)
     """
     상품 전체 불러오기 router endpoint
     결과값을 딕셔너리로 변환할때 쓰이는 SQL문장

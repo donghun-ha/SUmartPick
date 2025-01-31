@@ -12,3 +12,4 @@ class EasyLoginAccount: Object {
     @Persisted var email: String
     @Persisted var fullName: String
 }
+s
