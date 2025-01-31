@@ -172,7 +172,7 @@ async def create_product(product: ProductCreateRequest):
 @router.get("/product_select_all")
 async def select():
     conn = connect_to_mysql()
-    curs = conn.cursor(pymysql.cursors.DictCursor)
+    curs = conn.cursor()
     """
     상품 전체 불러오기 router endpoint
     결과값을 딕셔너리로 변환할때 쓰이는 SQL문장
@@ -200,3 +200,46 @@ async def update(Product_ID: int, Category_ID: int, name: str, price: float):
         conn.close()
         print("Error :", e)
         return {'results' : 'Error'}
+
+
+@router.get("/get_all_products")
+async def get_all_products():
+    """
+    📌 상품 전체 불러오기 API
+    - `products` 테이블과 `category` 테이블을 조인하여 `category` 필드를 명확하게 반환
+    - `detail` 필드가 포함되지 않아 발생하는 JSON 디코딩 오류를 해결
+    - `P.Product_ID >= 430` 조건으로 특정 ID 이상만 조회 (필요시 수정 가능)
+    
+    Returns:
+    - `results`: 상품 목록 (JSON)
+    """
+    conn = connect_to_mysql()
+    curs = conn.cursor(pymysql.cursors.DictCursor)  # ✅ DictCursor 사용 (딕셔너리 변환)
+
+    try:
+        sql = """
+        SELECT 
+            P.Product_ID, 
+            P.name, 
+            P.preview_image, 
+            P.price, 
+            P.detail, 
+            C.name AS category,
+            P.created
+        FROM products AS P
+        INNER JOIN category AS C ON C.Category_ID = P.Category_ID
+        WHERE P.Product_ID >= 430
+        """
+        
+        curs.execute(sql)
+        rows = curs.fetchall()
+
+        return {"results": rows}  # ✅ JSON 응답 구조 유지
+
+    except Exception as e:
+        print(f"❌ 상품 조회 실패: {e}")
+        raise HTTPException(status_code=500, detail="상품 정보를 불러오는 중 오류 발생")
+
+    finally:
+        curs.close()
+        conn.close()  # ✅ DB 연결 종료 보장

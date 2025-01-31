@@ -28,97 +28,19 @@ struct HomeView: View {
         "bed.double", "book", "tv", "paintbrush", "sportscourt",
         "cart", "pawprint", "desktopcomputer", "tshirt", "ellipsis"
     ]
-    
+
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack {
-                    // 상단 바
-                    HStack {
-                        Text("SUmartPick")
-                            .font(.title)
-                            .fontWeight(.bold)
-                            .padding(.leading)
-                        Spacer()
-                        Image(systemName: "cart")
-                            .resizable()
-                            .frame(width: 24, height: 24)
-                            .padding(.trailing)
-                    }
-                    .padding(.top)
-                    
-                    // 검색창
-                    HStack {
-                        TextField("상품 검색", text: $searchText, onCommit: {
-                            viewModel.fetchSearchResults(query: searchText)
-                        })
-                        .padding(10)
-                        .background(Color(.systemGray6))
-                        .cornerRadius(8)
-                        .padding(.horizontal)
-                        Image(systemName: "magnifyingglass")
-                            .padding(.trailing)
-                    }
-                    .padding(.bottom)
-                    
-                    // 카테고리 2줄 5컬럼
-                    LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 5), spacing: 20) {
-                        ForEach(0..<categories.count, id: \..self) { index in
-                            VStack {
-                                Image(systemName: categoryIcons[index])
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: 40, height: 40)
-                                Text(categories[index])
-                                    .font(.caption)
-                            }
-                        }
-                    }
-                    .padding(.horizontal)
-                    .padding(.bottom, 20)
-                    
-                    // "이 상품을 놓치지 마세요!" 타이틀
+                    headerView
+                    searchView
+                    CategoryGridView(categories: Array(zip(categories, categoryIcons)))
                     Text("🛒 이 상품을 놓치지 마세요!")
                         .font(.headline)
                         .padding(.top, 10)
-                    
-                    // 상품 리스트 5줄 2컬럼
-                    LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: 20) {
-                        ForEach(viewModel.products) { product in
-                            VStack {
-                                AsyncImage(url: URL(string: product.previewImage)) { image in
-                                    image.resizable().scaledToFit()
-                                } placeholder: {
-                                    ProgressView()
-                                }
-                                .frame(width: 100, height: 100)
-                                Text(product.name)
-                                    .font(.caption)
-                                Text("₩\(Int(product.price))")
-                                    .font(.subheadline)
-                                    .foregroundColor(.gray)
-                            }
-                            .onTapGesture {
-                                selectedProductID = product.productID
-                                isNavigatingToDetail = true
-                            }
-                        }
-                    }
-                    .padding(.horizontal)
-                    
-                    // 맨 위로 이동 버튼
-                    Button(action: {
-                        withAnimation {
-                            UIScrollView.appearance().scrollsToTop = true
-                        }
-                    }) {
-                        Image(systemName: "arrow.up")
-                            .padding()
-                            .background(Color.blue.opacity(0.8))
-                            .clipShape(Circle())
-                            .foregroundColor(.white)
-                    }
-                    .padding(.top, 20)
+                    ProductGridView(products: viewModel.products, selectedProductID: $selectedProductID, isNavigatingToDetail: $isNavigatingToDetail)
+                    topButton
                 }
             }
             .toolbar(.hidden, for: .navigationBar)
@@ -129,10 +51,104 @@ struct HomeView: View {
             }
         }
     }
-}
+    
+    /// 카테고리 그리드 뷰
+    struct CategoryGridView: View {
+        let categories: [(String, String)] // (카테고리명, 아이콘)
 
-struct HomeView_Previews: PreviewProvider {
-    static var previews: some View {
-        HomeView()
+        var body: some View {
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 5), spacing: 20) {
+                ForEach(categories, id: \.0) { category, icon in
+                    VStack {
+                        Image(systemName: icon)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 40, height: 40)
+                        Text(category)
+                            .font(.caption)
+                    }
+                }
+            }
+            .padding(.horizontal)
+            .padding(.bottom, 20)
+        }
+    }
+
+    /// 상품 그리드 뷰
+    struct ProductGridView: View {
+        let products: [Product] // 상품 배열
+        @Binding var selectedProductID: Int?
+        @Binding var isNavigatingToDetail: Bool
+
+        var body: some View {
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: 20) {
+                ForEach(products) { product in
+                    VStack {
+                        AsyncImage(url: URL(string: product.preview_image)) { image in
+                            image.resizable().scaledToFit()
+                        } placeholder: {
+                            ProgressView()
+                        }
+                        .frame(width: 100, height: 100)
+                        
+                        Text(product.name)
+                            .font(.caption)
+                        Text("₩\(Int(product.price))")
+                            .font(.subheadline)
+                            .foregroundColor(.gray)
+                    }
+                    .onTapGesture {
+                        selectedProductID = product.Product_ID
+                        isNavigatingToDetail = true
+                    }
+                }
+            }
+            .padding(.horizontal)
+        }
+    }
+    
+    private var headerView: some View {
+        HStack {
+            Text("SUmartPick")
+                .font(.title)
+                .fontWeight(.bold)
+                .padding(.leading)
+            Spacer()
+            Image(systemName: "cart")
+                .resizable()
+                .frame(width: 24, height: 24)
+                .padding(.trailing)
+        }
+        .padding(.top)
+    }
+    
+    private var searchView: some View {
+        HStack {
+            TextField("상품 검색", text: $searchText, onCommit: {
+                viewModel.fetchSearchResults(query: searchText)
+            })
+            .padding(10)
+            .background(Color(.systemGray6))
+            .cornerRadius(8)
+            .padding(.horizontal)
+            Image(systemName: "magnifyingglass")
+                .padding(.trailing)
+        }
+        .padding(.bottom)
+    }
+
+    private var topButton: some View {
+        Button(action: {
+            withAnimation {
+                UIScrollView.appearance().scrollsToTop = true
+            }
+        }) {
+            Image(systemName: "arrow.up")
+                .padding()
+                .background(Color.blue.opacity(0.8))
+                .clipShape(Circle())
+                .foregroundColor(.white)
+        }
+        .padding(.top, 20)
     }
 }

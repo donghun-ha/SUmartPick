@@ -13,6 +13,11 @@
 
 import SwiftUI
 
+// API 응답을 올바르게 매핑하기 위한 구조체 추가
+struct ProductResponse: Codable {
+    let results: [Product] // "results" 키를 매핑하여 상품 배열을 가져옴
+}
+
 class HomeViewModel: ObservableObject {
     @Published var products: [Product] = [] // 홈 화면에 표시할 상품 목록
     @Published var searchResults: [Product] = [] // 검색 결과 목록
@@ -23,7 +28,7 @@ class HomeViewModel: ObservableObject {
     }
     
     /// 홈 화면에 표시할 상품 목록을 불러오는 함수
-    /// - API: `/products_select_all`
+    /// - API: `/product_select_all`
     /// - 최대 10개의 상품을 가져와 `products`에 저장
     func fetchHomeProducts() {
         guard let url = URL(string: "\(baseURL)/product_select_all") else {
@@ -39,11 +44,13 @@ class HomeViewModel: ObservableObject {
             
             if let data = data {
                 do {
-                    let productList = try JSONDecoder().decode([Product].self, from: data)
-                        DispatchQueue.main.async {
-                            self.products = Array(productList.prefix(10)) // 10개만 저장
-                            print("✅ 상품 목록 로드 성공: \(self.products.count)개")
-                        }
+                    // ProductResponse로 디코딩하여 "results" 키의 배열을 가져옴
+                    let decodedResponse = try JSONDecoder().decode(ProductResponse.self, from: data)
+                    
+                    DispatchQueue.main.async {
+                        self.products = Array(decodedResponse.results.prefix(10)) // 10개만 저장
+                        print("✅ 상품 목록 로드 성공: \(self.products.count)개")
+                    }
                 } catch {
                     print("❌ JSON 디코딩 실패: \(error)")
                 }
@@ -69,10 +76,11 @@ class HomeViewModel: ObservableObject {
             
             if let data = data {
                 do {
-                    let searchList = try JSONDecoder().decode([Product].self, from: data)
-                        DispatchQueue.main.async {
-                            self.searchResults = searchList // 검색 결과 업데이트
-                            print("✅ 검색 성공: \(self.searchResults.count)개 결과")
+                    let decodedResponse = try JSONDecoder().decode(ProductResponse.self, from: data)
+                    
+                    DispatchQueue.main.async {
+                        self.searchResults = decodedResponse.results // 검색 결과 업데이트
+                        print("✅ 검색 성공: \(self.searchResults.count)개 결과")
                     }
                 } catch {
                     print("❌ 검색 JSON 디코딩 실패: \(error)")

@@ -8,14 +8,14 @@
 import Foundation
 
 struct Product: Codable , Identifiable{
-    let id: Int // Identifiable을 준수하기 위해 'id' 필드 추가
+    let Product_ID: Int
     let name: String
-    let previewImage: String
+    let preview_image: String
     let price: Double
-    let detail: String
-    let category: Category
+    let detail: String? // 필수 값 옵셔널로 변경
+    let category: String
     
-    var productID: Int {id} // 기존 코드 호환성을 유지하기 위해 추가
+    var id: Int { Product_ID } // Identifiable을 위한 프로퍼티
 }
 
 struct Category: Codable {
