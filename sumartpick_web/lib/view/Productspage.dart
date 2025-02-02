@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:sumatpick_web/view/Userpage.dart';
+import 'package:sumatpick_web/view/product_insert_page.dart';
 import 'package:sumatpick_web/view/product_update_page.dart';
 
 import 'Dashboard.dart';
@@ -52,9 +53,9 @@ class _ProductspageState extends State<Productspage> {
   // 변환한 데이터를 화면에 보여줄 변수에 저장
   filteredProducts = products;
 
-    if (mounted) {
+  if (mounted) {
   setState(() {
-    // 상태 업데이트
+    filteredProducts = products;
   });
 }
   }
@@ -260,7 +261,7 @@ class _ProductspageState extends State<Productspage> {
                                     height: 40,
                                     child: ElevatedButton(
                                         onPressed: () {
-                                          //
+                                          Get.to(const ProductInsertPage())!.then((value) => reloadData(),);
                                         },
                                         style: ElevatedButton.styleFrom(
                                           backgroundColor: Colors.black,

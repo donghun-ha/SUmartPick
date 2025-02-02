@@ -42,7 +42,7 @@ class _TestState extends State<Test> {
         _imageBytes = result.files.first.bytes;
         _base64Image = base64Encode(_imageBytes!);
       });
-      print("📷 Base64 Image: $_base64Image");
+      // print("📷 Base64 Image: $_base64Image");
     }
   }
 
@@ -74,7 +74,7 @@ class _TestState extends State<Test> {
       "manufacturer": _manufacturerController.text
     };
 
-    print("📤 Sending Product Data: ${jsonEncode(productData)}");
+    // print("📤 Sending Product Data: ${jsonEncode(productData)}");
 
     final response = await http.post(
       Uri.parse("https://fastapi.sumartpick.shop/insert_products"),
@@ -82,8 +82,8 @@ class _TestState extends State<Test> {
       body: jsonEncode(productData),
     );
 
-    print("📥 Response status: ${response.statusCode}");
-    print("📥 Response body: ${response.body}");
+    // print("📥 Response status: ${response.statusCode}");
+    // print("📥 Response body: ${response.body}");
 
     if (response.statusCode == 200) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("상품이 성공적으로 등록되었습니다.")));
