@@ -59,7 +59,7 @@ class ProductResponse(BaseModel):
 class ProductCreateRequest(BaseModel):
     Category_ID: int  # 카테고리 ID
     name: str         # 상품 이름
-    preview_image: str  # Firebase 이미지 URL
+    base64_image: str  # Firebase 이미지 URL
     price: float
     detail: str
     manufacturer: str
@@ -120,6 +120,8 @@ async def create_product(product: ProductCreateRequest):
     2. Firebase URL과 함께 상품 정보를 MySQL에 저장
     """
     try:
+        mysql_conn = connect_to_mysql()
+        cursor = mysql_conn.cursor()
         # 카테고리 매핑
         category_map = {
             4: "가구",
@@ -148,8 +150,7 @@ async def create_product(product: ProductCreateRequest):
         image_url = blob.public_url
 
         # MySQL에 상품 데이터 저장
-        mysql_conn = connect_to_mysql()
-        cursor = mysql_conn.cursor()
+
         cursor.execute(
             """
             INSERT INTO products (Category_ID, name, preview_image, price, detail, manufacturer, created)
