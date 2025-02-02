@@ -164,8 +164,10 @@ async def create_product(product: ProductCreateRequest):
         raise HTTPException(status_code=500, detail=f"상품 등록 실패: {str(e)}")
 
     finally:
-        cursor.close()
-        mysql_conn.close()
+        if cursor:  # ✅ `None` 체크 후 close()
+            cursor.close()
+        if mysql_conn:  # ✅ `None` 체크 후 close()
+            mysql_conn.close()
 
 @router.get("/product_select_all")
 async def select():

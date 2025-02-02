@@ -38,7 +38,7 @@ class _ProductspageState extends State<Productspage> {
     getJSONData();
   }
     getJSONData() async{
-    var url = Uri.parse('http://127.0.0.1:8000/products/product_select');
+    var url = Uri.parse('https://fastapi.sumartpick.shop/product_select_all');
     var response = await http.get(url);
     // print(response.body);
     data.clear();

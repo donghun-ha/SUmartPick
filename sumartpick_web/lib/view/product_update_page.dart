@@ -157,7 +157,7 @@ class _ProductUpdatePageState extends State<ProductUpdatePage> {
   updateJSONData() async{
     // "update Products set Category_ID = %s, name = %s, price = %s where Product_ID = %s"
     var url = Uri.parse(
-      "http://127.0.0.1:8000/products/product_update?Category_ID=$selectedCategoryId&name=${nameController.text}&price=${double.parse(priceController.text)}&Product_ID=${value[0]}");
+      "https://fastapi.sumartpick.shop/products/product_update?Category_ID=$selectedCategoryId&name=${nameController.text}&price=${double.parse(priceController.text)}&Product_ID=${value[0]}");
     var response = await http.get(url);
     var dataConvertedJSON = json.decode(utf8.decode(response.bodyBytes));
     var result = dataConvertedJSON['results'];
