@@ -68,7 +68,7 @@ class _TestState extends State<Test> {
     };
 
     final response = await http.post(
-      Uri.parse("https://fastapi.sumartpick.shop/insert_products/"),
+      Uri.parse("https://fastapi.sumartpick.shop/insert_products"),
       headers: {"Content-Type": "application/json"},
       body: jsonEncode(productData),
     );

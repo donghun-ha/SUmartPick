@@ -112,7 +112,7 @@ async def products_query(query: ProductQuery):
         cursor.close()
         mysql_conn.close()
 
-@router.post("/insert_products/")
+@router.post("/insert_products")
 async def create_product(product: ProductCreateRequest):
     """
     상품 등록:
