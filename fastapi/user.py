@@ -10,6 +10,14 @@ Usage: 로그인 시 캐싱을 통한 반환 및 MySQL Insert 처리
 from fastapi import APIRouter, HTTPException, Request
 from hosts import get_redis_connection, connect_to_mysql
 import json
+from pydantic import BaseModel
+import pymysql
+
+class User(BaseModel):
+    User_ID: str
+    auth_provider: str
+    name: str
+    email: str
 
 # FastAPI 라우터 생성
 router = APIRouter()
@@ -106,3 +114,48 @@ async def select():
     print(rows)
     # 데이터가 많을때 쓰는 방법
     return {'results' : rows}
+
+@router.post("/users")
+async def add_user(user: User):
+    # 유저 추가
+    print(f"Received request: {user.dict()}")
+    conn = connect_to_mysql()
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute("SELECT * FROM users WHERE User_ID = %s", (user.User_ID,))
+        existing_user = cursor.fetchone()
+
+        if existing_user:
+            return {"message": "User already exists."}
+
+        sql = "INSERT INTO users (User_ID, auth_provider, name, email) VALUES (%s, %s, %s, %s)"
+        cursor.execute(sql, (user.User_ID, user.auth_provider, user.name, user.email))
+        conn.commit()
+        return {"message": "User successfully added."}
+    except pymysql.MySQLError as ex:
+        print("Database error:", ex)
+        raise HTTPException(status_code=500, detail="Database error occurred.")
+    finally:
+        conn.close()
+
+
+@router.get("/users/{user_id}")
+async def get_user(user_id: str):
+    # 유저 정보 조회
+    conn = connect_to_mysql()
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute("SELECT * FROM users WHERE User_ID = %s", (user_id,))
+        user = cursor.fetchone()
+
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found.")
+
+        return user
+    except pymysql.MySQLError as ex:
+        print("Error:", ex)
+        raise HTTPException(status_code=500, detail="Database error occurred.")
+    finally:
+        conn.close()
