@@ -436,7 +436,7 @@ class _ProductspageState extends State<Productspage> {
                                   height: 20,
                                   child: ElevatedButton(
                                       onPressed: () {
-                                        Get.to(const ProductUpdatePage(), arguments: [product['상품코드'], product['상품명'], product['판매가']])!.then((value) => reloadData(),);
+                                        Get.to(const ProductUpdatePage(), arguments: [product['이미지'], product['상품코드'], product['카테고리'], product['상품명'], product['판매가']])!.then((value) => reloadData(),);
                                       },
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: Colors.black,

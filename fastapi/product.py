@@ -64,6 +64,13 @@ class ProductCreateRequest(BaseModel):
     detail: str
     manufacturer: str
 
+class ProductUpdateRequest(BaseModel):
+    Product_ID: int # 상품 ID
+    Category_ID: int  # 카테고리 ID
+    name: str         # 상품 이름
+    base64_image: str  # Firebase 이미지 URL
+    price: float
+
 
 @router.post("/products_query", response_model=List[ProductResponse])
 async def products_query(query: ProductQuery):
@@ -188,6 +195,7 @@ async def select():
     # 데이터가 많을때 쓰는 방법
     return {'results' : rows}
 
+# 상품 update 기능
 @router.get("/product_update")
 async def update(Product_ID: int, Category_ID: int, name: str, price: float):
     conn = connect_to_mysql()
@@ -263,3 +271,64 @@ async def update(Product_ID: int=None):
         conn.close()
         print("Error :", e)
         return {'results' : 'Error'}
+
+
+# 상품 전체 업데이트 기능
+@router.post("/update_all_products")
+async def create_product(product: ProductUpdateRequest):
+    """
+    상품 등록(수정):
+    1. Base64 이미지를 Firebase Storage에 업로드
+    2. Firebase URL과 함께 상품 정보를 MySQL에 저장
+    """
+    try:
+        mysql_conn = connect_to_mysql()
+        cursor = mysql_conn.cursor()
+        # 카테고리 매핑
+        category_map = {
+            4: "가구",
+            5: "기타",
+            6: "도서",
+            7: "미디어",
+            8: "뷰티",
+            9: "스포츠",
+            10: "식품_음료",
+            11: "유아_애완",
+            12: "전자제품",
+            13: "패션"
+        }
+
+        # 카테고리 이름 가져오기
+        category_name = category_map.get(product.Category_ID)
+        if not category_name:
+            raise HTTPException(status_code=400, detail="유효하지 않은 카테고리 ID입니다.")
+
+        # Base64 이미지를 디코딩하여 Firebase Storage에 저장
+        bucket = storage.bucket()
+        image_data = base64.b64decode(product.base64_image)
+        blob = bucket.blob(f"{category_name}/{product.name}.jpg")  # 카테고리 이름 사용
+        blob.upload_from_string(image_data, content_type="image/jpeg")
+        blob.make_public()
+        image_url = blob.public_url
+
+        # MySQL에 상품 데이터 저장
+
+        cursor.execute(
+            """
+            update products set Category_ID = %s, name = %s, preview_image = %s, price = %s where Product_ID = %s
+            """,
+            (product.Category_ID, product.name, image_url, product.price, product.Product_ID)
+        )
+        mysql_conn.commit()
+
+        return {"message": "Product registered successfully", "image_url": image_url}
+
+    except Exception as e:
+        print(f"Error: {e}")
+        raise HTTPException(status_code=500, detail=f"상품 등록 실패: {str(e)}")
+
+    finally:
+        if cursor:  # ✅ `None` 체크 후 close()
+            cursor.close()
+        if mysql_conn:  # ✅ `None` 체크 후 close()
+            mysql_conn.close()

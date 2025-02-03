@@ -49,13 +49,13 @@ class _ProductInsertPageState extends State<ProductInsertPage> {
   Future<void> _uploadProduct() async {
     if (selectedCategory == null) {
       ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text("카테고리를 선택하세요.")));
+          .showSnackBar(const SnackBar(content: Text("카테고리를 선택하세요.")));
       return;
     }
 
     if (base64Image == null || base64Image!.isEmpty) {
       ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text("이미지를 선택하세요.")));
+          .showSnackBar(const SnackBar(content: Text("이미지를 선택하세요.")));
       return;
     }
 
@@ -64,7 +64,7 @@ class _ProductInsertPageState extends State<ProductInsertPage> {
         detailController.text.isEmpty ||
         manufacturerController.text.isEmpty) {
       ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text("모든 필드를 입력해주세요.")));
+          .showSnackBar(const SnackBar(content: Text("모든 필드를 입력해주세요.")));
       return;
     }
 
@@ -90,7 +90,7 @@ class _ProductInsertPageState extends State<ProductInsertPage> {
     if (mounted) {
           if (response.statusCode == 200) {
       ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text("상품이 성공적으로 등록되었습니다.")));
+          .showSnackBar(const SnackBar(content: Text("상품이 성공적으로 등록되었습니다.")));
     } else {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text("상품 등록 실패: ${response.body}")));
@@ -141,7 +141,7 @@ class _ProductInsertPageState extends State<ProductInsertPage> {
               DropdownButtonFormField<int>(
                 dropdownColor: Colors.white,
               value: selectedCategory ?? 4,
-              hint: Text("카테고리 선택"),
+              hint: const Text("카테고리 선택"),
               items: categoryMap.entries.map((entry) {
                 return DropdownMenuItem<int>(
                   value: entry.key,
@@ -164,8 +164,8 @@ class _ProductInsertPageState extends State<ProductInsertPage> {
                         width: 450,
                         child: Column(
                           children: [
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(0, 0, 380, 20),
+                            const Padding(
+                              padding: EdgeInsets.fromLTRB(0, 0, 380, 20),
                               child: Text(
                                 '상품이름',
                                 style: TextStyle(
@@ -187,8 +187,8 @@ class _ProductInsertPageState extends State<ProductInsertPage> {
                         padding: const EdgeInsets.fromLTRB(150, 0, 0, 0),
                         child: Column(
                           children: [
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(0, 0, 380, 20),
+                            const Padding(
+                              padding: EdgeInsets.fromLTRB(0, 0, 380, 20),
                               child: Text(
                                 '가격입력',
                                 style: TextStyle(
@@ -220,8 +220,8 @@ class _ProductInsertPageState extends State<ProductInsertPage> {
                     children: [
                       Column(
                         children: [
-                          Padding(
-                              padding: const EdgeInsets.fromLTRB(0, 0, 380, 20),
+                          const Padding(
+                              padding: EdgeInsets.fromLTRB(0, 0, 380, 20),
                               child: Text(
                                 '상세정보',
                                 style: TextStyle(
@@ -245,8 +245,8 @@ class _ProductInsertPageState extends State<ProductInsertPage> {
                         padding: const EdgeInsets.fromLTRB(150, 0, 0, 0),
                         child: Column(
                           children: [
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(0, 0, 380, 20),
+                            const Padding(
+                              padding: EdgeInsets.fromLTRB(0, 0, 380, 20),
                               child: Text(
                                 '제조사명',
                                 style: TextStyle(
@@ -270,9 +270,9 @@ class _ProductInsertPageState extends State<ProductInsertPage> {
                   ),
                 ),
               ),
-                          SizedBox(height: 10),
-            imageBytes == null ? Padding(
-              padding: const EdgeInsets.fromLTRB(0, 30, 0, 0),
+                          const SizedBox(height: 10),
+            imageBytes == null ? const Padding(
+              padding: EdgeInsets.fromLTRB(0, 30, 0, 0),
               child: Text("이미지를 선택하세요"),
             )
             : Padding(
@@ -295,7 +295,7 @@ class _ProductInsertPageState extends State<ProductInsertPage> {
                     borderRadius: BorderRadius.circular(5)
                   )
                 ),
-                child: Text(
+                child: const Text(
                   "이미지 선택"
                   )),
             ),
@@ -313,7 +313,7 @@ class _ProductInsertPageState extends State<ProductInsertPage> {
                     borderRadius: BorderRadius.circular(5)
                   )
                 ),
-                child: Text("상품 등록")),
+                child: const Text("상품 등록")),
             ),
             ],
           ),
