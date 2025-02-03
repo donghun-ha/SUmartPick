@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart' as toget;
 import 'package:responsive_framework/responsive_framework.dart';
+import 'package:sumatpick_web/view/Order_update.dart';
 import 'package:sumatpick_web/view/Userpage.dart';
 
 import 'Dashboard.dart';
@@ -506,7 +507,14 @@ class _OrderpageState extends State<Orderpage> {
                                     ).value,
                                   child: ElevatedButton(
                                       onPressed: () {
-                                        //
+                                        toget.Get.to(const OrderUpdate(), arguments: [
+                                          product['주문번호'],
+                                          product['주문상세번호'],
+                                          product['환불요청시간'],
+                                          product['배송도착시간'],
+                                          product['배송상태']
+                                          ]
+                                          )!.then((value) => reloadData,);
                                       },
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: Colors.black,
@@ -561,5 +569,7 @@ class _OrderpageState extends State<Orderpage> {
         orders; // 지금은 초기화 하면 임시데이터를 넣지만 DB가 있을땐 초기 DB데이터를 넣어야 함
     setState(() {});
   }
-  
+  reloadData(){
+    getJSONData();
+  }
 }
