@@ -8,6 +8,7 @@ import Foundation
 
 class ProductDetailViewModel: ObservableObject {
     @Published var product: Product?
+    @Published var reviews: [ReviewItem] = []
     @Published var isLoading: Bool = false
     @Published var errorMessage: String? = nil
 
@@ -30,19 +31,6 @@ class ProductDetailViewModel: ObservableObject {
 
                 if let error = error {
                     self.errorMessage = "Failed to load product: \(error.localizedDescription)"
-                    print("❌ Error: \(error.localizedDescription)")
-                    return
-                }
-
-                guard let httpResponse = response as? HTTPURLResponse else {
-                    self.errorMessage = "Invalid response"
-                    return
-                }
-
-                print("📡 Status Code: \(httpResponse.statusCode)")
-
-                guard (200...299).contains(httpResponse.statusCode) else {
-                    self.errorMessage = "Server error: \(httpResponse.statusCode)"
                     return
                 }
 
@@ -51,27 +39,52 @@ class ProductDetailViewModel: ObservableObject {
                     return
                 }
 
-                if let jsonString = String(data: data, encoding: .utf8) {
-                    print("📦 Response Data: \(jsonString)")
+                do {
+                    let decoder = JSONDecoder()
+                    if let jsonObject = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+                       let resultData = jsonObject["result"] {
+                        let resultJSON = try JSONSerialization.data(withJSONObject: resultData)
+                        self.product = try decoder.decode(Product.self, from: resultJSON)
+                        
+                        self.fetchReviews(productID: productID) // ✅ 리뷰 데이터 불러오기
+                    }
+                } catch {
+                    self.errorMessage = "Failed to decode product: \(error.localizedDescription)"
+                }
+            }
+        }.resume()
+    }
+
+    // ✅ 리뷰 API 호출 및 디코딩 오류 수정
+    func fetchReviews(productID: Int) {
+        guard let url = URL(string: "https://fastapi.sumartpick.shop/get_reviews/\(productID)") else {
+            print("Invalid Review URL")
+            return
+        }
+
+        URLSession.shared.dataTask(with: url) { data, response, error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    print("Failed to load reviews: \(error.localizedDescription)")
+                    return
+                }
+
+                guard let data = data else {
+                    print("No review data received")
+                    return
                 }
 
                 do {
                     let decoder = JSONDecoder()
-//                    decoder.keyDecodingStrategy = .convertFromSnakeCase
+                    
+                    // ✅ JSON 최상위 키를 맞춰서 디코딩
+                    let response = try decoder.decode([String: [ReviewItem]].self, from: data)
+                    self.reviews = response["reviews"] ?? []
 
-                    if let jsonObject = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-                       let resultData = jsonObject["result"] {
-                        
-                        let resultJSON = try JSONSerialization.data(withJSONObject: resultData)
-                        self.product = try decoder.decode(Product.self, from: resultJSON)
-
-                    } else {
-                        self.errorMessage = "Invalid response format"
-                    }
+                    print("✅ Reviews Decoded: \(self.reviews.count)개")
 
                 } catch {
-                    self.errorMessage = "Failed to decode product: \(error.localizedDescription)"
-                    print("❗️Decoding Error: \(error)")
+                    print("❌ Failed to decode reviews: \(error.localizedDescription)")
                 }
             }
         }.resume()

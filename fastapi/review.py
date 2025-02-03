@@ -9,7 +9,7 @@ async def get_reviews(product_id: int):
     """
     📋 특정 상품 리뷰 조회 API
     - `product_id`를 기반으로 해당 상품의 리뷰 목록을 가져옵니다.
-    - `reviews` 테이블에서 사용자 ID, 리뷰 내용, 별점 정보를 반환합니다.
+    - `reviews` 테이블과 `products` 테이블을 조인하여 `product_name`을 반환합니다.
 
     🔍 Parameters:
     - product_id (int): 조회할 상품 ID
@@ -18,16 +18,21 @@ async def get_reviews(product_id: int):
     - `reviews`: 리뷰 목록 (JSON)
     """
     conn = connect_to_mysql()
-    curs = conn.cursor(pymysql.cursors.DictCursor) 
+    curs = conn.cursor(pymysql.cursors.DictCursor)
 
     try:
+        # ✅ products 테이블과 조인하여 product_name을 가져오기
         sql = """
         SELECT 
-            User_ID,
-            Review_Content,
-            Star
-        FROM reviews
-        WHERE Product_ID = %s
+            r.ReviewSeq,
+            r.User_ID,
+            r.Product_ID,
+            r.Review_Content,
+            r.Star,
+            p.name AS product_name
+        FROM reviews AS r
+        INNER JOIN products AS p ON r.Product_ID = p.Product_ID
+        WHERE r.Product_ID = %s
         """
 
         curs.execute(sql, (product_id,))
