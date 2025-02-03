@@ -17,6 +17,7 @@ import SwiftUI
 struct HomeView: View {
     @StateObject private var viewModel = HomeViewModel()
     @State private var selectedProductID: Int? = nil
+    @State private var selectedCategoryID: Int? = nil
     @State private var isNavigatingToDetail = false
     @State private var searchText: String = ""
 
@@ -35,7 +36,7 @@ struct HomeView: View {
                 VStack(alignment: .leading) { // 전체 VStack 왼쪽 정렬
                     headerView
                     searchView
-                    CategoryGridView(categories: Array(zip(categories, categoryIcons)))
+                    CategoryGridView(categories: categories, viewModel: viewModel, selectedCategoryID: $selectedCategoryID)
 
                     // 섹션 구분을 위한 Divider 추가
                     Divider()
@@ -68,7 +69,9 @@ struct HomeView: View {
     
     /// 카테고리 그리드 뷰
     struct CategoryGridView: View {
-        let categories: [(String, String)] // (카테고리명, 아이콘)
+        let categories: [(id: Int ,name: String, icon: String)] // (카테고리명, 아이콘)
+        @ObservedObject var viewModel: HomeViewModel
+        @Binding var selectedCategoryID: Int? // 선택된 category ID
 
         var body: some View {
             LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 5), spacing: 20) {
@@ -78,8 +81,17 @@ struct HomeView: View {
                             .resizable()
                             .scaledToFit()
                             .frame(width: 40, height: 40)
-                        Text(category)
+                            .foregroundColor(selectedCategoryID == category.id ? .blue : .black)
                             .font(.caption)
+                        Text(category.name)
+                            .font(.caption)
+                            .foregroundColor(selectedCategoryID == category.id ? .blue : .black)
+                    }
+                    .onTapGesture {
+                        Task {
+                            selectedCategoryID = category.id
+                            await viewModel.fetchProductsByCategory(categoryID: category.id)
+                        }
                     }
                 }
             }
