@@ -1,5 +1,7 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
@@ -14,10 +16,11 @@ class ProductUpdatePage extends StatefulWidget {
 class _ProductUpdatePageState extends State<ProductUpdatePage> {
   late TextEditingController nameController;
   late TextEditingController priceController;
-  late String selectedDropdown;
-  late int selectedCategoryId;
-  late List<String> categoryList;
-  late List<int> categoryId;
+  late int? selectedCategory;
+  Uint8List? imageBytes;
+  String? base64Image;
+  // arguments: [product['이미지'], product['상품코드'], product['카테고리'], product['상품명'], product['판매가']
+
   var value = Get.arguments ?? "__";
 
   final Map<String, int> reversedCategoryMap = {
@@ -110,12 +113,18 @@ class _ProductUpdatePageState extends State<ProductUpdatePage> {
   @override
   void initState() {
     super.initState();
-    selectedCategoryId = 4;
-    nameController = TextEditingController(text: value[1]);
-    priceController = TextEditingController(text: value[2].toString());
-    selectedDropdown = '가구';
-    categoryList = ['가구', '기타', '도서', '미디어', '뷰티', '스포츠', '식품_음료', '유아_애완', '전자제품', '패션'];
-    categoryId = [4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
+    selectedCategory = reversedCategoryMap[value[2]];
+    nameController = TextEditingController(text: value[3]);
+    priceController = TextEditingController(text: value[4].toString());
+    print(selectedCategory);
+    
+  }
+
+  @override
+  void dispose() {
+    nameController.dispose();
+    priceController.dispose();
+    super.dispose();
   }
   @override
   Widget build(BuildContext context) {
@@ -127,102 +136,121 @@ class _ProductUpdatePageState extends State<ProductUpdatePage> {
           child: Column(
             children: [
               const Padding(
-              padding: EdgeInsets.fromLTRB(0, 50, 0, 0),
-              child: Row(
-                children: [
-                  Text(
-                    '상품 수정',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                ],
+                padding: EdgeInsets.fromLTRB(0, 50, 0, 0),
+                child: Row(
+                  children: [
+                    Text(
+                      '상품 추가',
+                      style:
+                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
               ),
+              DropdownButtonFormField<int>(
+                dropdownColor: Colors.white,
+              value: selectedCategory ?? 4,
+              hint: const Text("카테고리 선택"),
+              items: categoryMap.entries.map((entry) {
+                return DropdownMenuItem<int>(
+                  value: entry.key,
+                  child: Text(entry.value)
+                );
+              }).toList(),
+              onChanged: (value) {
+                setState(() {
+                  selectedCategory = value;
+                });
+              },
             ),
-            Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(175, 30, 0, 0),
-                  child: DropdownButtonHideUnderline(
-                          child: DropdownButton<String>(
-                            dropdownColor: Colors.white,
-                            value: selectedDropdown, // 현재 선택된 값
-                            items: ['가구', '기타', '도서', '미디어', '뷰티', '스포츠', '식품_음료', '유아_애완', '전자제품', '패션']
-                                .map((String option) => DropdownMenuItem<String>(
-                                      value: option,
-                                      child: Text(option),
-                                    ))
-                                .toList(),
-                            onChanged: (String? value) {
-                              setState(() {
-                                selectedDropdown = value!; // 선택된 값 업데이트
-                                selectedCategoryId = categoryId[categoryList.indexOf(value)];
-                                // print(selectedCategoryId);
-                              });
-                            },
-                          ),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(0, 50, 0, 0),
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: 450,
+                        child: Column(
+                          children: [
+                            const Padding(
+                              padding: EdgeInsets.fromLTRB(0, 0, 380, 20),
+                              child: Text(
+                                '상품이름',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 17
+                                ),
+                                ),
+                            ),
+                            TextField(
+                              controller: nameController,
+                              decoration: const InputDecoration(
+                                  hintText: '상품 이름을 입력하세요',
+                                  border: OutlineInputBorder()),
+                            ),
+                          ],
                         ),
-                ),
-              ],
-            ),
-            Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(175, 40, 0, 0),
-                  child: SizedBox(
-                    width: 600,
-                    child: Text(
-                      '상품명',
-                      style: TextStyle(
-                        fontSize: 20,
                       ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(150, 0, 0, 0),
+                        child: Column(
+                          children: [
+                            const Padding(
+                              padding: EdgeInsets.fromLTRB(0, 0, 380, 20),
+                              child: Text(
+                                '가격입력',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 17
+                                ),
+                                ),
+                            ),
+                            SizedBox(
+                              width: 450,
+                              child: TextField(
+                                controller: priceController,
+                                decoration: const InputDecoration(
+                                    hintText: '가격을 입력하세요', border: OutlineInputBorder()),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
+                    ],
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(100, 40, 0, 0),
-                  child: SizedBox(
-                    width: 600,
-                    child: Text(
-                      '상품 가격',
-                      style: TextStyle(
-                        fontSize: 20,
-                      ),
-                      ),
-                  ),
+              ),
+                          const SizedBox(height: 10),
+            imageBytes == null ? Padding(
+              padding: const EdgeInsets.fromLTRB(0, 30, 0, 0),
+              child: Image.network(
+                              Uri.decodeFull(value[0]), // URL 디코딩
+                              height: 100,
+                              errorBuilder: (context, error, stackTrace) {
+                                return const Icon(Icons.error, color: Colors.red, size: 50);
+                              },
+                              loadingBuilder: (context, child, loadingProgress) {
+                                if (loadingProgress == null) {
+                                  return child;
+                                }
+                                return const Center(
+                                  child: CircularProgressIndicator(),
+                                );
+                              },
+                            ),
+            )
+            : Padding(
+              padding: const EdgeInsets.fromLTRB(0, 30, 0, 0),
+              child: Container(
+                decoration: BoxDecoration(
+                border: Border.all(color: Colors.black, width: 2.0), // 검은색 테두리, 두께 2
                 ),
-              ],
-            ),
-            Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(175, 40, 0, 0),
-                  child: SizedBox(
-                    width: 600,
-                    child: TextField(
-                      controller: nameController,
-                      decoration: const InputDecoration(
-                        hintText: '상품명을 입력하세요',
-                        border: OutlineInputBorder()
-                      ),
-                    ),
-                  ),
+                child: Image.memory(imageBytes!, height: 100)
                 ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(100, 40, 0, 0),
-                  child: SizedBox(
-                    width: 600,
-                    child: TextField(
-                      controller: priceController,
-                      decoration: const InputDecoration(
-                        hintText: '상품 가격을 입력하세요',
-                        border: OutlineInputBorder()
-                      ),
-                    ),
-                  ),
-                ),
-              ],
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(0, 50, 0, 0),
+              padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
               child: ElevatedButton(
                 onPressed: _pickImage, 
                 style: ElevatedButton.styleFrom(
@@ -247,11 +275,13 @@ class _ProductUpdatePageState extends State<ProductUpdatePage> {
                 }, 
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.black,
-                  foregroundColor: Colors.white
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(5)
+                  )
                 ),
-                child: const Text('수정')
-                ),
-            )
+                child: const Text("상품 등록")),
+            ),
             ],
           ),
         ),
