@@ -17,17 +17,17 @@ class Dashboard extends StatefulWidget {
 
 class _DashboardState extends State<Dashboard> {
   // 전체 주문현황
-  late int totalOrders; // 총 주문건수
-  late int totalsales; // 총 주문액
+  late List totalOrders; // 총 주문건수
+  late List totalsales; // 총 주문액
   // 주문상태 현황
-  late int completedPayment; // 결제완료
-  late int readyDelivery; // 배송준비
-  late int inDelivery; // 배송중
-  late int completedDelivery; // 배송완료
+  late List completedPayment; // 결제완료
+  late List readyDelivery; // 배송준비
+  late List inDelivery; // 배송중
+  late List completedDelivery; // 배송완료
   // 클래임 현황
-  late int refundStatus; // 환불
-  late int returnStatus; // 반품
-  late int exchangeStatus; // 교환
+  late List refundStatus; // 환불
+  late List returnStatus; // 반품
+  late List exchangeStatus; // 교환
   // 최근 주문내역
   late List<dynamic> recentOrders; // 최근 주문내역 리스트
   // 최근 회원가입
@@ -38,18 +38,24 @@ class _DashboardState extends State<Dashboard> {
   @override
   void initState() {
     super.initState();
+
     // 전체 주문현황
-    totalOrders = 0;
-    totalsales = 0;
+    totalOrders = [];
+    totalsales = [];
+
     // 주문상태 현황
-    completedPayment = 0;
-    readyDelivery = 0;
-    inDelivery = 0;
-    completedDelivery = 0;
+    completedPayment = [];
+    readyDelivery = [];
+    inDelivery = [];
+    completedDelivery = [];
+
     // 클래임 현황
-    refundStatus = 0;
-    returnStatus = 0;
-    exchangeStatus = 0;
+    refundStatus = [];
+
+    // 클레임 현황 미적용 부분
+    returnStatus = [0];
+    exchangeStatus = [0];
+
     // 최근 주문내역(예시데이터)
     recentOrders = [
   // ["25010716241290", "관리자", "관리자", "010-0000-0000", "무통장", "89,000", "2025-01-07 16:25 (화)"],
@@ -63,9 +69,74 @@ class _DashboardState extends State<Dashboard> {
   // ["두글만", "test2", "일반회원", "판교", "2020-10-04 18:05 (일)"],
   // ["한글만", "test1", "가맹점", "인천", "2020-10-04 18:04 (일)"],
 ];
+getJSONDashboardData();
 getJSONUserData();
 getJSONOrderData();
   }
+  Future getJSONDashboardData() async {
+    Map<String, dynamic> apiEndpoints = {
+      'https://fastapi.sumartpick.shop/dashboard/total_orders': (List result) {
+        totalOrders.clear();
+        totalOrders.addAll(result);
+      },
+      'https://fastapi.sumartpick.shop/dashboard/total_orders_amount': (List result) {
+        totalsales.clear();
+        totalsales.addAll(result);
+      },
+      'https://fastapi.sumartpick.shop/dashboard/order_payment_completed': (List result) {
+        completedPayment.clear();
+        completedPayment.addAll(result);
+      },
+      'https://fastapi.sumartpick.shop/dashboard/order_preparing_for_delivery': (List result) {
+        readyDelivery.clear();
+        readyDelivery.addAll(result);
+      },
+      'https://fastapi.sumartpick.shop/dashboard/order_in_delivery': (List result) {
+        inDelivery.clear();
+        inDelivery.addAll(result);
+      },
+      'https://fastapi.sumartpick.shop/dashboard/order_delivered': (List result) {
+        completedDelivery.clear();
+        completedDelivery.addAll(result);
+      },
+      'https://fastapi.sumartpick.shop/dashboard/order_refund': (List result) {
+        refundStatus.clear();
+        refundStatus.addAll(result);
+      },
+    };
+
+    for (var entry in apiEndpoints.entries) {
+      var url = Uri.parse(entry.key);
+      var response = await http.get(url);
+      var dataConvertedJSON = json.decode(utf8.decode(response.bodyBytes));
+      List result = dataConvertedJSON['results'];
+
+      entry.value(result); // 해당 변수에 데이터 추가
+    }
+
+    setState(() {}); // UI 업데이트
+  }
+  // getJSONTotalordersData() async{
+  //   var url = Uri.parse('https://fastapi.sumartpick.shop/dashboard/total_orders');
+  //   var response = await http.get(url);
+  //   // print(response.body);
+  //   totalOrders.clear();
+  //   var dataConvertedJSON = json.decode(utf8.decode(response.bodyBytes));
+  //   List result = dataConvertedJSON['results'];
+  //   totalOrders.addAll(result);
+  //   setState(() {});
+  // }
+  // getJSONTotalamountData() async{
+  //   var url = Uri.parse('https://fastapi.sumartpick.shop/dashboard/total_orders_amount');
+  //   var response = await http.get(url);
+  //   // print(response.body);
+  //   totalsales.clear();
+  //   var dataConvertedJSON = json.decode(utf8.decode(response.bodyBytes));
+  //   List result = dataConvertedJSON['results'];
+  //   totalsales.addAll(result);
+  //   setState(() {});
+  // }
+  // 최근 회원가입 유저
   getJSONUserData() async{
     var url = Uri.parse('https://fastapi.sumartpick.shop/dashboard/user_recent_select');
     var response = await http.get(url);
@@ -76,6 +147,7 @@ getJSONOrderData();
     recentlyRegistered.addAll(result);
     setState(() {});
   }
+  // 최근 주문내역
   getJSONOrderData() async{
     var url = Uri.parse('https://fastapi.sumartpick.shop/dashboard/order_recent_select');
     var response = await http.get(url);
@@ -299,7 +371,7 @@ getJSONOrderData();
                                     color: const Color.fromARGB(255, 243, 243, 243),
                                   child: Center(
                                     child: Text(
-                                      '$totalOrders',
+                                      totalOrders.isNotEmpty ? '${totalOrders[0][0]}' : '0',
                                       style: const TextStyle(
                                         fontSize: 18,
                                         fontWeight: FontWeight.bold
@@ -315,7 +387,7 @@ getJSONOrderData();
                                       color: const Color.fromARGB(255, 243, 243, 243),
                                       child: Center(
                                         child: Text(
-                                          '$totalsales',
+                                          totalsales.isNotEmpty ? '${totalsales[0][0]}' : '0',
                                           style: const TextStyle(
                                             fontSize: 18,
                                             fontWeight: FontWeight.bold
@@ -439,7 +511,7 @@ getJSONOrderData();
                                       color: const Color.fromARGB(255, 243, 243, 243),
                                     child: Center(
                                       child: Text(
-                                        '$completedPayment',
+                                        completedPayment.isNotEmpty ? '${completedPayment[0][0]}' : '0',
                                         style: const TextStyle(
                                           fontSize: 18,
                                           fontWeight: FontWeight.bold
@@ -455,7 +527,7 @@ getJSONOrderData();
                                         color: const Color.fromARGB(255, 243, 243, 243),
                                         child: Center(
                                           child: Text(
-                                            '$readyDelivery',
+                                            readyDelivery.isNotEmpty ? '${readyDelivery[0][0]}' : '0',
                                             style: const TextStyle(
                                               fontSize: 18,
                                               fontWeight: FontWeight.bold
@@ -472,7 +544,7 @@ getJSONOrderData();
                                         color: const Color.fromARGB(255, 243, 243, 243),
                                         child: Center(
                                           child: Text(
-                                            '$inDelivery',
+                                            inDelivery.isNotEmpty ? '${inDelivery[0][0]}' : '0',
                                             style: const TextStyle(
                                               fontSize: 18,
                                               fontWeight: FontWeight.bold
@@ -489,7 +561,7 @@ getJSONOrderData();
                                         color: const Color.fromARGB(255, 243, 243, 243),
                                         child: Center(
                                           child: Text(
-                                            '$completedDelivery',
+                                            completedDelivery.isNotEmpty ? '${completedDelivery[0][0]}' : '0',
                                             style: const TextStyle(
                                               fontSize: 18,
                                               fontWeight: FontWeight.bold
@@ -597,7 +669,7 @@ getJSONOrderData();
                                       color: const Color.fromARGB(255, 243, 243, 243),
                                     child: Center(
                                       child: Text(
-                                        '$refundStatus',
+                                        refundStatus.isNotEmpty ? '${refundStatus[0][0]}' : '0',
                                         style: const TextStyle(
                                           fontSize: 18,
                                           fontWeight: FontWeight.bold
@@ -613,7 +685,7 @@ getJSONOrderData();
                                         color: const Color.fromARGB(255, 243, 243, 243),
                                         child: Center(
                                           child: Text(
-                                            '$returnStatus',
+                                            '${returnStatus[0]}',
                                             style: const TextStyle(
                                               fontSize: 18,
                                               fontWeight: FontWeight.bold
@@ -630,7 +702,7 @@ getJSONOrderData();
                                         color: const Color.fromARGB(255, 243, 243, 243),
                                         child: Center(
                                           child: Text(
-                                            '$exchangeStatus',
+                                            '${exchangeStatus[0]}',
                                             style: const TextStyle(
                                               fontSize: 18,
                                               fontWeight: FontWeight.bold
@@ -711,7 +783,6 @@ getJSONOrderData();
                     DataColumn(label: Text('배송상태')),
                   ], 
                   rows: recentOrders.map((row) {
-                    print(row.length);  // 디버깅용: 각 row의 길이를 출력
                             return DataRow(
                               cells: row.map<DataCell>((cell) {  // ✅ `map<DataCell>`을 명시적으로 사용
                 return DataCell(
