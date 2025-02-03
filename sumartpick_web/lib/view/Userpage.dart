@@ -41,7 +41,7 @@ class _UserpageState extends State<Userpage> {
   }
 
   getJSONData() async{
-    var url = Uri.parse('https://fastapi.sumartpick.shop/user_select');
+    var url = Uri.parse('http://127.0.0.1:8000/users/user_select');
     var response = await http.get(url);
     // print(response.body);
     data.clear();

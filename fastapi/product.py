@@ -59,17 +59,10 @@ class ProductResponse(BaseModel):
 class ProductCreateRequest(BaseModel):
     Category_ID: int  # 카테고리 ID
     name: str         # 상품 이름
-    base64_image: str  # Firebase 이미지 URL
+    preview_image: str  # Firebase 이미지 URL
     price: float
     detail: str
     manufacturer: str
-
-class ProductUpdateRequest(BaseModel):
-    Product_ID: int # 상품 ID
-    Category_ID: int  # 카테고리 ID
-    name: str         # 상품 이름
-    base64_image: str  # Firebase 이미지 URL
-    price: float
 
 
 @router.post("/products_query", response_model=List[ProductResponse])
@@ -119,7 +112,7 @@ async def products_query(query: ProductQuery):
         cursor.close()
         mysql_conn.close()
 
-@router.post("/insert_products")
+@router.post("/insert_products/")
 async def create_product(product: ProductCreateRequest):
     """
     상품 등록:
@@ -127,8 +120,6 @@ async def create_product(product: ProductCreateRequest):
     2. Firebase URL과 함께 상품 정보를 MySQL에 저장
     """
     try:
-        mysql_conn = connect_to_mysql()
-        cursor = mysql_conn.cursor()
         # 카테고리 매핑
         category_map = {
             4: "가구",
@@ -157,7 +148,8 @@ async def create_product(product: ProductCreateRequest):
         image_url = blob.public_url
 
         # MySQL에 상품 데이터 저장
-
+        mysql_conn = connect_to_mysql()
+        cursor = mysql_conn.cursor()
         cursor.execute(
             """
             INSERT INTO products (Category_ID, name, preview_image, price, detail, manufacturer, created)
@@ -174,10 +166,8 @@ async def create_product(product: ProductCreateRequest):
         raise HTTPException(status_code=500, detail=f"상품 등록 실패: {str(e)}")
 
     finally:
-        if cursor:  # ✅ `None` 체크 후 close()
-            cursor.close()
-        if mysql_conn:  # ✅ `None` 체크 후 close()
-            mysql_conn.close()
+        cursor.close()
+        mysql_conn.close()
 
 @router.get("/product_select_all")
 async def select():
@@ -195,7 +185,6 @@ async def select():
     # 데이터가 많을때 쓰는 방법
     return {'results' : rows}
 
-# 상품 update 기능
 @router.get("/product_update")
 async def update(Product_ID: int, Category_ID: int, name: str, price: float):
     conn = connect_to_mysql()
@@ -255,80 +244,47 @@ async def get_all_products():
         curs.close()
         conn.close()  # ✅ DB 연결 종료 보장
 
-# 관리자 페이지 상품 삭제 기능
-@router.get("/delete")
-async def update(Product_ID: int=None):
+@router.get("/get_products_by_category")
+async def get_products_by_category(category_id: int):
+    """
+    특정 가테고리에 속하는 상품 조회 API
+    - 'category' 파라미터를 기반으로 해당 카테고리의 상품 목록을 반환
+    - 'products' 테이블과 'category' 테이블을 조인하여 'category' 필드를 명확하게 반환
+
+    Parameters:
+    - 'category' (int): 조회할 카테고리 이름 (예: 4 = '가구', 5 = '도서' 등)
+
+    Returns:
+    - 'results' : 해당 카테고리의 상품 목록 (JSON)
+    """
     conn = connect_to_mysql()
-    curs = conn.cursor()
+    curs = conn.cursor(pymysql.cursors.DictCursor) # DictCursor 사용
 
     try:
-        sql = "delete from products where Product_ID = %s"
-        curs.execute(sql, (Product_ID))
-        conn.commit()
-        conn.close()
-        return {'results' : 'OK'}
-    except Exception as e:
-        conn.close()
-        print("Error :", e)
-        return {'results' : 'Error'}
+        sql = """
+        SELECT
+            P.Product_ID,
+            P.name,
+            P.preview_image,
+            P.price,
+            P.detail,
+            C.Category_ID,
+            C.name AS category,
+            P.created
+        FROM products AS P
+        INNER JOIN category AS C ON C.Category_ID = P.Category_ID
+        WHERE C.Category_ID = %s
+        """
 
+        curs.execute(sql, (category_id,))
+        rows = curs.fetchall()
 
-# 상품 전체 업데이트 기능
-@router.post("/update_all_products")
-async def create_product(product: ProductUpdateRequest):
-    """
-    상품 등록(수정):
-    1. Base64 이미지를 Firebase Storage에 업로드
-    2. Firebase URL과 함께 상품 정보를 MySQL에 저장
-    """
-    try:
-        mysql_conn = connect_to_mysql()
-        cursor = mysql_conn.cursor()
-        # 카테고리 매핑
-        category_map = {
-            4: "가구",
-            5: "기타",
-            6: "도서",
-            7: "미디어",
-            8: "뷰티",
-            9: "스포츠",
-            10: "식품_음료",
-            11: "유아_애완",
-            12: "전자제품",
-            13: "패션"
-        }
-
-        # 카테고리 이름 가져오기
-        category_name = category_map.get(product.Category_ID)
-        if not category_name:
-            raise HTTPException(status_code=400, detail="유효하지 않은 카테고리 ID입니다.")
-
-        # Base64 이미지를 디코딩하여 Firebase Storage에 저장
-        bucket = storage.bucket()
-        image_data = base64.b64decode(product.base64_image)
-        blob = bucket.blob(f"{category_name}/{product.name}.jpg")  # 카테고리 이름 사용
-        blob.upload_from_string(image_data, content_type="image/jpeg")
-        blob.make_public()
-        image_url = blob.public_url
-
-        # MySQL에 상품 데이터 저장
-
-        cursor.execute(
-            """
-            update products set Category_ID = %s, name = %s, preview_image = %s, price = %s where Product_ID = %s
-            """,
-            (product.Category_ID, product.name, image_url, product.price, product.Product_ID)
-        )
-        mysql_conn.commit()
-
-        return {"message": "Product registered successfully", "image_url": image_url}
+        return {"results" : rows}
 
     except Exception as e:
-        print(f"Error: {e}")
-        raise HTTPException(status_code=500, detail=f"상품 등록 실패: {str(e)}")
-
+        print(f"카테고리별 상품 조회 실패: {e}")
+        raise HTTPException(status_code=500, detail="카테고리별 상품을 불러오는데 실패했습니다.")
+    
     finally:
-        if cursor:  # ✅ `None` 체크 후 close()
-            cursor.close()
-        if mysql_conn:  # ✅ `None` 체크 후 close()
-            mysql_conn.close()
+        curs.close()
+        conn.close()

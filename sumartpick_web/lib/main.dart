@@ -11,7 +11,6 @@ import 'package:sumatpick_web/view/Productspage.dart';
 import 'package:sumatpick_web/view/Userpage.dart';
 import 'package:sumatpick_web/view/product_insert_page.dart';
 import 'package:sumatpick_web/view/product_update_page.dart';
-import 'package:sumatpick_web/view/test.dart';
 
 void main() async{
   WidgetsFlutterBinding.ensureInitialized();
@@ -40,7 +39,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const Productspage(),
+      home: const Inventorypage(),
       debugShowCheckedModeBanner: false,
     );
   }

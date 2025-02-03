@@ -67,6 +67,24 @@ class HomeViewModel: ObservableObject {
         }
     }
     
+    // 특정 카테고리에 해당하는 상품을 불러오는 함수
+    // - Parameters categoryID: 선택한 카테고리의 ID
+    // - API: 'get_products_by_category?category_id={category_id}
+    func fetchProductsByCategory(categoryID: Int) async {
+        guard let url = URL(string: "\(baseURL)/get_products_by_category?category_id=\(categoryID)") else {
+            print("카테고리 URL 생성 실패")
+            return
+        }
+        
+        do {
+            let decodedResponse: ProductResponse = try await requestData(from: url)
+            products = decodedResponse.results // 해당 카테고리의 상품만 업데이트
+            print("카테고리 ID\(categoryID) 로드 성공")
+        } catch {
+            print("카테고리 매핑 상품 로드 실패")
+        }
+    }
+    
     /// 공통 API 요청 및 JSON 디코딩 함수 (`async/await` 적용)
     /// - Parameter url: 요청할 API의 URL
     /// - Returns: 디코딩된 `ProductResponse`

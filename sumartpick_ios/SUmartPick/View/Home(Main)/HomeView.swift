@@ -21,21 +21,25 @@ struct HomeView: View {
     @State private var searchText: String = ""
 
     let categories = [
-        "가구", "도서", "미디어", "뷰티", "스포츠",
-        "식품", "유아/애완", "전자제품", "패션", "기타"
+        (id: 4, name: "가구", icon: "bed.double"),
+        (id: 6, name: "도서", icon: "book"),
+        (id: 7, name: "미디어", icon: "tv"),
+        (id: 8, name: "뷰티", icon: "paintbrush"),
+        (id: 9, name: "스포츠", icon: "sportscourt"),
+        (id: 10, name: "식품", icon: "cart"),
+        (id: 11, name: "유아/애완", icon: "pawprint"),
+        (id: 12, name: "전자제품", icon: "desktopcomputer"),
+        (id: 13, name: "패션", icon: "tshirt"),
+        (id: 5, name: "기타", icon: "ellipsis")
     ]
-    let categoryIcons = [
-        "bed.double", "book", "tv", "paintbrush", "sportscourt",
-        "cart", "pawprint", "desktopcomputer", "tshirt", "ellipsis"
-    ]
-    
+
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading) { // 전체 VStack 왼쪽 정렬
                     headerView
                     searchView
-                    CategoryGridView(categories: Array(zip(categories, categoryIcons)))
+                    CategoryGridView(categories: categories, viewModel: viewModel)
 
                     // 섹션 구분을 위한 Divider 추가
                     Divider()
@@ -68,18 +72,24 @@ struct HomeView: View {
     
     /// 카테고리 그리드 뷰
     struct CategoryGridView: View {
-        let categories: [(String, String)] // (카테고리명, 아이콘)
+        let categories: [(id: Int ,name: String, icon: String)] // (카테고리명, 아이콘)
+        @ObservedObject var viewModel: HomeViewModel
 
         var body: some View {
             LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 5), spacing: 20) {
-                ForEach(categories, id: \.0) { category, icon in
+                ForEach(categories, id: \.id) { category in
                     VStack {
-                        Image(systemName: icon)
+                        Image(systemName: category.icon)
                             .resizable()
                             .scaledToFit()
                             .frame(width: 40, height: 40)
-                        Text(category)
+                        Text(category.name)
                             .font(.caption)
+                    }
+                    .onTapGesture {
+                        Task {
+                            await viewModel.fetchProductsByCategory(categoryID: category.id)
+                        }
                     }
                 }
             }
