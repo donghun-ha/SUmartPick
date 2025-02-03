@@ -332,3 +332,95 @@ async def create_product(product: ProductUpdateRequest):
             cursor.close()
         if mysql_conn:  # ✅ `None` 체크 후 close()
             mysql_conn.close()
+
+@router.get("/get_products_by_category")
+async def get_products_by_category(category_id: int):
+    """
+    📌 특정 카테고리에 속하는 상품 조회 API
+    - `category_id`를 기반으로 해당 카테고리의 상품 목록을 반환
+    - `products` 테이블과 `category` 테이블을 조인하여 `category` 필드를 명확하게 반환
+
+    Parameters:
+    - `category_id` (int): 조회할 카테고리 ID (예: 4 = "가구", 6 = "도서" 등)
+
+    Returns:
+    - `results`: 해당 카테고리의 상품 목록 (JSON)
+    """
+    conn = connect_to_mysql()
+    curs = conn.cursor(pymysql.cursors.DictCursor)  # ✅ DictCursor 사용 (딕셔너리 변환)
+
+    try:
+        sql = """
+        SELECT 
+            P.Product_ID, 
+            P.name, 
+            P.preview_image, 
+            P.price, 
+            P.detail, 
+            C.Category_ID,
+            C.name AS category,
+            P.created
+        FROM products AS P
+        INNER JOIN category AS C ON C.Category_ID = P.Category_ID
+        WHERE C.Category_ID = %s
+        """
+
+        curs.execute(sql, (category_id,))
+        rows = curs.fetchall()
+
+        return {"results": rows}  # ✅ JSON 응답 구조 유지
+
+    except Exception as e:
+        print(f"❌ 카테고리별 상품 조회 실패: {e}")
+        raise HTTPException(status_code=500, detail="카테고리별 상품을 불러오는 중 오류 발생")
+
+    finally:
+        curs.close()
+        conn.close()  # ✅ DB 연결 종료 보장
+
+@router.get("/get_product/{product_id}")
+async def get_product(product_id: int):
+    """
+    📌 특정 상품 조회 API
+    - `product_id`를 기반으로 상품 정보를 가져옵니다.
+    - `products` 테이블과 `category` 테이블을 조인하여 카테고리 이름을 반환합니다.
+
+    Parameters:
+    - product_id (int): 조회할 상품 ID
+
+    Returns:
+    - `result`: 상품 정보 (JSON)
+    """
+    conn = connect_to_mysql()
+    curs = conn.cursor(pymysql.cursors.DictCursor)  # ✅ DictCursor 사용 (딕셔너리 변환)
+
+    try:
+        sql = """
+        SELECT 
+            P.Product_ID, 
+            P.name, 
+            P.preview_image, 
+            P.price, 
+            P.detail, 
+            C.name AS category,
+            P.created
+        FROM products AS P
+        INNER JOIN category AS C ON C.Category_ID = P.Category_ID
+        WHERE P.Product_ID = %s
+        """
+        
+        curs.execute(sql, (product_id,))
+        product = curs.fetchone()  # ✅ 단일 결과만 가져오기
+
+        if not product:
+            raise HTTPException(status_code=404, detail="상품을 찾을 수 없습니다.")
+
+        return {"result": product}  # ✅ JSON 응답
+
+    except Exception as e:
+        print(f"❌ 상품 조회 실패: {e}")
+        raise HTTPException(status_code=500, detail="상품 정보를 불러오는 중 오류 발생")
+
+    finally:
+        curs.close()
+        conn.close()  # ✅ DB 연결 종료
