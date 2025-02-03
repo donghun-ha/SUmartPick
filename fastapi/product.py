@@ -246,3 +246,20 @@ async def get_all_products():
     finally:
         curs.close()
         conn.close()  # ✅ DB 연결 종료 보장
+
+# 관리자 페이지 상품 삭제 기능
+@router.get("/delete")
+async def update(Product_ID: int=None):
+    conn = connect_to_mysql()
+    curs = conn.cursor()
+
+    try:
+        sql = "delete from products where Product_ID = %s"
+        curs.execute(sql, (Product_ID))
+        conn.commit()
+        conn.close()
+        return {'results' : 'OK'}
+    except Exception as e:
+        conn.close()
+        print("Error :", e)
+        return {'results' : 'Error'}

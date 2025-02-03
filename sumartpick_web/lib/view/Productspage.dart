@@ -467,7 +467,7 @@ class _ProductspageState extends State<Productspage> {
                                   height: 20,
                                   child: ElevatedButton(
                                       onPressed: () {
-                                        //
+                                        deleteDialog();
                                       },
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: Colors.red,
@@ -522,5 +522,49 @@ class _ProductspageState extends State<Productspage> {
   
   reloadData(){
     getJSONData();
+  }
+
+  deleteDialog(){
+    Get.defaultDialog(
+      title: '삭제',
+      middleText: '정말로 해당 상품을 삭제하시겠습니까?',
+      backgroundColor: Colors.white,
+      barrierDismissible: false,
+      actions: [
+        ElevatedButton(
+          onPressed: () {
+            
+          }, 
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color.fromARGB(255, 244, 107, 97),
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(5)
+            )
+          ),
+          child: const Text(
+            '삭제'
+            )
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(10, 0, 0, 0),
+            child: ElevatedButton(
+            onPressed: () {
+              Get.back();
+            }, 
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color.fromARGB(255, 32, 32, 32),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(5)
+              )
+            ),
+            child: const Text(
+              '아니오'
+              )
+            ),
+          ),
+      ]
+    );
   }
 }
