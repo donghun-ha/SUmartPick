@@ -78,7 +78,7 @@ class HomeViewModel: ObservableObject {
         
         do {
             let decodedResponse: ProductResponse = try await requestData(from: url)
-            products = decodedResponse.results // 해당 카테고리의 상품만 업데이트
+            products = Array(decodedResponse.results.prefix(10)) // 해당 카테고리의 상품만 업데이트
             print("카테고리 ID\(categoryID) 로드 성공")
         } catch {
             print("카테고리 매핑 상품 로드 실패")

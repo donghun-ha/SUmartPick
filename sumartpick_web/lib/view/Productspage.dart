@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:sumatpick_web/view/Userpage.dart';
+import 'package:sumatpick_web/view/product_insert_page.dart';
 import 'package:sumatpick_web/view/product_update_page.dart';
 
 import 'Dashboard.dart';
@@ -38,7 +39,7 @@ class _ProductspageState extends State<Productspage> {
     getJSONData();
   }
     getJSONData() async{
-    var url = Uri.parse('http://127.0.0.1:8000/products/product_select');
+    var url = Uri.parse('https://fastapi.sumartpick.shop/product_select_all');
     var response = await http.get(url);
     // print(response.body);
     data.clear();
@@ -52,9 +53,9 @@ class _ProductspageState extends State<Productspage> {
   // 변환한 데이터를 화면에 보여줄 변수에 저장
   filteredProducts = products;
 
-    if (mounted) {
+  if (mounted) {
   setState(() {
-    // 상태 업데이트
+    filteredProducts = products;
   });
 }
   }
@@ -95,7 +96,7 @@ class _ProductspageState extends State<Productspage> {
                       alignment: Alignment.center,
                       color: const Color(0xffF9FAFB),
                       child: const Text(
-                        '회원관리',
+                        '회원검색',
                       )),
                 ),
                 //상품관리
@@ -260,7 +261,7 @@ class _ProductspageState extends State<Productspage> {
                                     height: 40,
                                     child: ElevatedButton(
                                         onPressed: () {
-                                          //
+                                          Get.to(const ProductInsertPage())!.then((value) => reloadData(),);
                                         },
                                         style: ElevatedButton.styleFrom(
                                           backgroundColor: Colors.black,
@@ -435,7 +436,7 @@ class _ProductspageState extends State<Productspage> {
                                   height: 20,
                                   child: ElevatedButton(
                                       onPressed: () {
-                                        Get.to(const ProductUpdatePage(), arguments: [product['상품코드'], product['상품명'], product['판매가']])!.then((value) => reloadData(),);
+                                        Get.to(const ProductUpdatePage(), arguments: [product['이미지'], product['상품코드'], product['카테고리'], product['상품명'], product['판매가']])!.then((value) => reloadData(),);
                                       },
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: Colors.black,
@@ -466,7 +467,8 @@ class _ProductspageState extends State<Productspage> {
                                   height: 20,
                                   child: ElevatedButton(
                                       onPressed: () {
-                                        //
+                                        deleteDialog(product['상품코드']);
+                                        
                                       },
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: Colors.red,
@@ -521,5 +523,62 @@ class _ProductspageState extends State<Productspage> {
   
   reloadData(){
     getJSONData();
+  }
+
+  deleteDialog(proID){
+    Get.defaultDialog(
+      title: '삭제',
+      middleText: '정말로 해당 상품을 삭제하시겠습니까?',
+      backgroundColor: Colors.white,
+      barrierDismissible: false,
+      actions: [
+        ElevatedButton(
+          onPressed: () {
+            productDelete(proID);
+          }, 
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color.fromARGB(255, 244, 107, 97),
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(5)
+            )
+          ),
+          child: const Text(
+            '삭제'
+            )
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(10, 0, 0, 0),
+            child: ElevatedButton(
+            onPressed: () {
+              Get.back();
+            }, 
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color.fromARGB(255, 32, 32, 32),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(5)
+              )
+            ),
+            child: const Text(
+              '아니오'
+              )
+            ),
+          ),
+      ]
+    );
+  }
+  // SQL에서 상품 삭제 기능
+  productDelete(proID) async{
+    var url = Uri.parse(
+      "https://fastapi.sumartpick.shop/delete?Product_ID=$proID");
+    var response = await http.get(url);
+    var dataConvertedJSON = json.decode(utf8.decode(response.bodyBytes));
+    var result = dataConvertedJSON['results'];
+
+    setState(() {});
+    searchController.text = '';
+    reloadData();
+    Get.back();
   }
 }

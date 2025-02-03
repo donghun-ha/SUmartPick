@@ -49,6 +49,9 @@ dependencies:
   # responsive framework
   responsive_framework: ^1.5.1
 
+  # File picker
+  file_picker: ^8.3.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

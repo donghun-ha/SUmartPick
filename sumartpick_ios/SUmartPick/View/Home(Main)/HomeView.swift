@@ -17,6 +17,7 @@ import SwiftUI
 struct HomeView: View {
     @StateObject private var viewModel = HomeViewModel()
     @State private var selectedProductID: Int? = nil
+    @State private var selectedCategoryID: Int? = nil
     @State private var isNavigatingToDetail = false
     @State private var searchText: String = ""
 
@@ -32,14 +33,14 @@ struct HomeView: View {
         (id: 13, name: "패션", icon: "tshirt"),
         (id: 5, name: "기타", icon: "ellipsis")
     ]
-
+    
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading) { // 전체 VStack 왼쪽 정렬
                     headerView
                     searchView
-                    CategoryGridView(categories: categories, viewModel: viewModel)
+                    CategoryGridView(categories: categories, viewModel: viewModel, selectedCategoryID: $selectedCategoryID)
 
                     // 섹션 구분을 위한 Divider 추가
                     Divider()
@@ -74,20 +75,25 @@ struct HomeView: View {
     struct CategoryGridView: View {
         let categories: [(id: Int ,name: String, icon: String)] // (카테고리명, 아이콘)
         @ObservedObject var viewModel: HomeViewModel
+        @Binding var selectedCategoryID: Int? // 선택된 category ID
 
         var body: some View {
             LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 5), spacing: 20) {
-                ForEach(categories, id: \.id) { category in
+                ForEach(categories, id: \.0) { category in
                     VStack {
                         Image(systemName: category.icon)
                             .resizable()
                             .scaledToFit()
                             .frame(width: 40, height: 40)
+                            .foregroundColor(selectedCategoryID == category.id ? .blue : .black)
+                            .font(.caption)
                         Text(category.name)
                             .font(.caption)
+                            .foregroundColor(selectedCategoryID == category.id ? .blue : .black)
                     }
                     .onTapGesture {
                         Task {
+                            selectedCategoryID = category.id
                             await viewModel.fetchProductsByCategory(categoryID: category.id)
                         }
                     }
