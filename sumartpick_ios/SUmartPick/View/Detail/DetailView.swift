@@ -87,17 +87,7 @@ struct DetailView: View {
                             }
                         }
                         .padding(.horizontal)
-
-                        // 상품 상세 설명
-                        Text(product.detail ?? "상세 설명이 없습니다.")
-                            .font(.body)
-                            .foregroundColor(.gray)
-                            .padding(.horizontal)
-
-                        // 구분선
-                        Divider()
-                            .padding(.horizontal)
-
+                        
                         /// 🔹 장바구니 & 바로구매 버튼
                         HStack(spacing: 16) {
                             Button(action: {
@@ -127,6 +117,11 @@ struct DetailView: View {
                             }
                         }
                         .padding(.horizontal)
+
+                        // 구분선
+                        Divider()
+                            .padding(.horizontal)
+
                     }
                 }
             } else {
