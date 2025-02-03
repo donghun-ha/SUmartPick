@@ -93,7 +93,7 @@ class _DashboardState extends State<Dashboard> {
                     alignment: Alignment.center,
                     color: const Color(0xffF9FAFB),
                     child: const Text(
-                      '회원관리',
+                      '회원검색',
                       )
                     ),
                     ),
@@ -739,7 +739,7 @@ class _DashboardState extends State<Dashboard> {
                         ),
                         
                         child: const Text(
-                          '회원관리 바로가기',
+                          '회원검색 바로가기',
                           style: TextStyle(
                             fontSize: 12,
                             

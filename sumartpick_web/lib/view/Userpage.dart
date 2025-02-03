@@ -93,7 +93,7 @@ class _UserpageState extends State<Userpage> {
                       alignment: Alignment.center,
                       color: const Color(0xffD9D9D9),
                       child: const Text(
-                        '회원관리',
+                        '회원검색',
                       )),
                   //상품관리
                   InkWell(
@@ -149,7 +149,7 @@ class _UserpageState extends State<Userpage> {
                 child: Row(
                   children: [
                     Text(
-                      '회원 정보관리',
+                      '회원 정보검색',
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold

@@ -105,7 +105,7 @@ class _OrderpageState extends State<Orderpage> {
                         alignment: Alignment.center,
                         color: const Color(0xffF9FAFB),
                         child: const Text(
-                          '회원관리',
+                          '회원검색',
                         )),
                   ),
                   //상품관리
