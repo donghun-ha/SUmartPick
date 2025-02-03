@@ -203,43 +203,140 @@ async def update(Product_ID: int, Category_ID: int, name: str, price: float):
 
 
 @router.get("/get_all_products")
-async def get_all_products():
+async def get_all_products(id :str = "x"):
+
+    import random
+    import pandas as pd
+
+    corr_matrix = pd.read_csv('../analysis/model/category.csv')
+
     """
-    📌 상품 전체 불러오기 API
-    - `products` 테이블과 `category` 테이블을 조인하여 `category` 필드를 명확하게 반환
-    - `detail` 필드가 포함되지 않아 발생하는 JSON 디코딩 오류를 해결
-    - `P.Product_ID >= 430` 조건으로 특정 ID 이상만 조회 (필요시 수정 가능)
-    
+    📌 추천상품 불러오기 api
+    - 유저의 활동 내역을 기반으로(없으면 전체 주문을 기반으로) 자동으로 상품을 추천해줌
+    - 먼저 id를 통해 이전 구매중 가장 많이 구매한 Category를 가져오고 (1번 sql)
+    - 머신러닝을 통해 가져온 corr_matrix에서 관련있는 카테고리 총 10개를 가져옴(2번 과정, 카테고리는 중복 가능)
+    - 관련 카테고리들 중에서 리뷰 많은 순으로 10개를 랜덤으로 가져옴(3번 과정)
     Returns:
     - `results`: 상품 목록 (JSON)
     """
     conn = connect_to_mysql()
     curs = conn.cursor(pymysql.cursors.DictCursor)  # ✅ DictCursor 사용 (딕셔너리 변환)
 
+    # id = 'apple-987654321' ### 시험용
+
+    #### 2번과정에 쓸 카테고리 랜덤추출용 함수
+    def recommend_maker(input_category):
+        column = input_category
+        positive_columns =  corr_matrix[(corr_matrix[column] > 0) & (corr_matrix[column] !=1.0) ][column]
+        positive_columns =  corr_matrix[(corr_matrix[column] > 0)][column]
+        category_cumsum =  (positive_columns/positive_columns.sum()).sort_values().cumsum()
+
+        num = random.random()
+        for idx, value in enumerate(category_cumsum):
+            if num < value:
+                output_category = category_cumsum.index[idx]
+                break
+
+        return output_category
+
+    ### 1번 과정 : ifnull을 통해서 내가, 혹은 남들이 가장 많이 산 카테고리를 가져옴
     try:
-        sql = """
-        SELECT 
+        sql = f"""
+        SELECT IFNULL(
+            (SELECT P.Category_ID
+            FROM orders AS O
+            INNER JOIN products AS P ON P.Product_ID = O.Product_ID
+            WHERE User_id = "{id}"
+            ORDER BY O.Order_date DESC
+            LIMIT 1),
+            
+            (WITH CategoryCounts AS (
+                SELECT P.Category_ID, COUNT(*) AS count
+                FROM orders AS O
+                INNER JOIN products AS P ON P.Product_ID = O.Product_ID
+                GROUP BY P.Category_ID
+            )
+            SELECT Category_ID
+            FROM CategoryCounts
+            WHERE count = (SELECT MAX(count) FROM CategoryCounts)
+            LIMIT 1)  -- 여러 개일 경우 하나만 반환
+        ) AS Category_ID
+        """
+        
+        curs.execute(sql)
+        my_category = curs.fetchall()[0]['Category_ID']
+
+        
+
+    except Exception as e:
+        print(f"❌ 카테고리 가져오기 실패: {e}")
+
+    finally:
+        curs.close()
+        conn.close() 
+
+    #### 2번과정 : 머신러닝을 통해 얻은 상관관계도를 통해서 관련있는 카테고리 10개 임의추출
+    recommend_dict = {}
+
+    for i in range(10):
+        my_column = str(my_category)
+        column = recommend_maker(my_column)
+        if column not in recommend_dict.keys():
+            recommend_dict[column] = 1
+        else:
+            recommend_dict[column] +=1
+
+    # value를 기준으로 내림차순 정렬
+    sorted_keys = sorted(recommend_dict, key=recommend_dict.get, reverse=True)
+
+
+    #### 3번과정 : 2번을 통해 얻은 카테고리만큼의 갯수의 랜덤상품을 리뷰 많은 순으로 정리
+    sqls = []
+    for key in sorted_keys:
+        temp_sql = f"""
+        (SELECT 
             P.Product_ID, 
             P.name, 
             P.preview_image, 
             P.price, 
             P.detail, 
             C.name AS category,
-            P.created
+            P.created,
+            COUNT(R.Product_ID) AS review_count
         FROM products AS P
         INNER JOIN category AS C ON C.Category_ID = P.Category_ID
-        WHERE P.Product_ID >= 430
+        INNER JOIN reviews AS R ON R.Product_ID = P.Product_ID
+        WHERE P.Category_ID = {key}
+        GROUP BY P.Product_ID
+        ORDER BY COUNT(R.Product_ID) DESC, RAND()
+        LIMIT {recommend_dict[key]})
         """
+        sqls.append(temp_sql)
+
+
+    sql1 = """
+        SELECT * FROM (\n"""
+    sql2 =  '\nUNION ALL\n'.join(sqls)
+    sql3 = ") AS CombinedResults\nORDER BY review_count DESC, RAND()"
+
+    sql = sql1 + sql2 + sql3 
+
+
+    conn = connect_to_mysql()
+    curs = conn.cursor(pymysql.cursors.DictCursor)  # ✅ DictCursor 사용 (딕셔너리 변환)
+    try:
         
         curs.execute(sql)
         rows = curs.fetchall()
-
-        return {"results": rows}  # ✅ JSON 응답 구조 유지
+        return {'results' : rows}
 
     except Exception as e:
         print(f"❌ 상품 조회 실패: {e}")
-        raise HTTPException(status_code=500, detail="상품 정보를 불러오는 중 오류 발생")
 
     finally:
         curs.close()
-        conn.close()  # ✅ DB 연결 종료 보장
+        conn.close()
+
+
+
+
