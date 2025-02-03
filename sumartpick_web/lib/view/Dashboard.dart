@@ -1,9 +1,12 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:sumatpick_web/view/Inventorypage.dart';
 import 'package:sumatpick_web/view/Orderpage.dart';
 import 'package:sumatpick_web/view/Productspage.dart';
 import 'package:sumatpick_web/view/Userpage.dart';
+import 'package:http/http.dart' as http;
 
 class Dashboard extends StatefulWidget {
   const Dashboard({super.key});
@@ -26,9 +29,9 @@ class _DashboardState extends State<Dashboard> {
   late int returnStatus; // 반품
   late int exchangeStatus; // 교환
   // 최근 주문내역
-  late List<List<dynamic>> recentOrders; // 최근 주문내역 리스트
+  late List<dynamic> recentOrders; // 최근 주문내역 리스트
   // 최근 회원가입
-  late List<List<dynamic>> recentlyRegistered; // 최근 회원가입 리스트
+  late List<dynamic> recentlyRegistered; // 최근 회원가입 리스트
 
 
 
@@ -49,25 +52,47 @@ class _DashboardState extends State<Dashboard> {
     exchangeStatus = 0;
     // 최근 주문내역(예시데이터)
     recentOrders = [
-  ["25010716241290", "관리자", "관리자", "010-0000-0000", "무통장", "89,000", "2025-01-07 16:25 (화)"],
-  ["24122316544816", "관리자", "관리자", "010-0000-0000", "무통장", "89,000", "2024-12-23 16:57 (월)"],
-  ["24120419364235", "세글만", "세글만", "010-3333-3333", "무통장", "615,600", "2024-12-04 19:36 (수)"],
+  // ["25010716241290", "관리자", "관리자", "010-0000-0000", "무통장", "89,000", "2025-01-07 16:25 (화)"],
+  // ["24122316544816", "관리자", "관리자", "010-0000-0000", "무통장", "89,000", "2024-12-23 16:57 (월)"],
+  // ["24120419364235", "세글만", "세글만", "010-3333-3333", "무통장", "615,600", "2024-12-04 19:36 (수)"],
 ];
     // 최근 회원가입(예시데이터)
     recentlyRegistered = [
-  ["가맹점몰", "submall", "가맹점", "서울", "2024-12-16 06:14 (월)"],
-  ["세글만", "test3", "일반회원", "충주", "2020-10-04 18:05 (일)"],
-  ["두글만", "test2", "일반회원", "판교", "2020-10-04 18:05 (일)"],
-  ["한글만", "test1", "가맹점", "인천", "2020-10-04 18:04 (일)"],
+  // ["가맹점몰", "submall", "가맹점", "서울", "2024-12-16 06:14 (월)"],
+  // ["세글만", "test3", "일반회원", "충주", "2020-10-04 18:05 (일)"],
+  // ["두글만", "test2", "일반회원", "판교", "2020-10-04 18:05 (일)"],
+  // ["한글만", "test1", "가맹점", "인천", "2020-10-04 18:04 (일)"],
 ];
+getJSONUserData();
+getJSONOrderData();
+  }
+  getJSONUserData() async{
+    var url = Uri.parse('https://fastapi.sumartpick.shop/dashboard/user_recent_select');
+    var response = await http.get(url);
+    // print(response.body);
+    recentlyRegistered.clear();
+    var dataConvertedJSON = json.decode(utf8.decode(response.bodyBytes));
+    List result = dataConvertedJSON['results'];
+    recentlyRegistered.addAll(result);
+    setState(() {});
+  }
+  getJSONOrderData() async{
+    var url = Uri.parse('https://fastapi.sumartpick.shop/dashboard/order_recent_select');
+    var response = await http.get(url);
+    // print(response.body);
+    recentOrders.clear();
+    var dataConvertedJSON = json.decode(utf8.decode(response.bodyBytes));
+    List result = dataConvertedJSON['results'];
+    recentOrders.addAll(result);
+    setState(() {});
   }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xffF9FAFB),
-      body: Padding(
-        padding: const EdgeInsets.fromLTRB(30, 10, 30, 30),
-        child: SingleChildScrollView(
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(30, 10, 30, 30),
           child: Column(
             children: [
               // 위의 탭 부분
@@ -678,28 +703,28 @@ class _DashboardState extends State<Dashboard> {
                   columnSpacing: 200,
                   columns: const [
                     DataColumn(label: Text('주문번호')),
-                    DataColumn(label: Text('주문자명')),
+                    DataColumn(label: Text('상세번호')),
                     DataColumn(label: Text('수령자명')),
-                    DataColumn(label: Text('전화번호')),
-                    DataColumn(label: Text('결제방법')),
-                    DataColumn(label: Text('총주문액')),
+                    DataColumn(label: Text('주문가격')),
                     DataColumn(label: Text('주문일시')),
+                    DataColumn(label: Text('결제방법')),
+                    DataColumn(label: Text('배송상태')),
                   ], 
                   rows: recentOrders.map((row) {
-                  return DataRow(
-                    cells: row.map((cell) {
-                      return DataCell(
-                        SizedBox(
-                          width: 150,
-                          child: Text(
-                            cell.toString(),
-                            softWrap: false,
-                            ),
-                        )
-                        );
-                    }).toList(),
-                  );
-                }).toList(),
+            return DataRow(
+              cells: row.map<DataCell>((cell) {  // ✅ `map<DataCell>`을 명시적으로 사용
+                return DataCell(
+                  SizedBox(
+          width: 150,
+          child: Text(
+            cell.toString(),
+            softWrap: false,
+          ),
+                  ),
+                );
+              }).toList(),
+            );
+          }).toList(),
                   ),
               ),
               Padding(
@@ -754,27 +779,27 @@ class _DashboardState extends State<Dashboard> {
                 child: DataTable(
                   columnSpacing: 200,
                   columns: const [
-                    DataColumn(label: Text('이름')),
                     DataColumn(label: Text('아이디')),
-                    DataColumn(label: Text('회원유형')),
-                    DataColumn(label: Text('주소')),
+                    DataColumn(label: Text('가입유형')),
+                    DataColumn(label: Text('이름')),
+                    DataColumn(label: Text('이메일')),
                     DataColumn(label: Text('가입일시')),
                   ], 
                   rows: recentlyRegistered.map((row) {
-                  return DataRow(
-                    cells: row.map((cell) {
-                      return DataCell(
-                        SizedBox(
-                          width: 150,
-                          child: Text(
-                            cell.toString(),
-                            softWrap: false,
-                            ),
-                        )
-                        );
-                    }).toList(),
-                  );
-                }).toList(),
+            return DataRow(
+              cells: row.map<DataCell>((cell) {  // ✅ `map<DataCell>`을 명시적으로 사용
+                return DataCell(
+                  SizedBox(
+          width: 150,
+          child: Text(
+            cell.toString(),
+            softWrap: false,
+          ),
+                  ),
+                );
+              }).toList(),
+            );
+          }).toList(),
                   ),
               ),
             ],
