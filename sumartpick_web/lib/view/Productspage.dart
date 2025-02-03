@@ -467,7 +467,8 @@ class _ProductspageState extends State<Productspage> {
                                   height: 20,
                                   child: ElevatedButton(
                                       onPressed: () {
-                                        deleteDialog();
+                                        deleteDialog(product['상품코드']);
+                                        
                                       },
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: Colors.red,
@@ -524,7 +525,7 @@ class _ProductspageState extends State<Productspage> {
     getJSONData();
   }
 
-  deleteDialog(){
+  deleteDialog(proID){
     Get.defaultDialog(
       title: '삭제',
       middleText: '정말로 해당 상품을 삭제하시겠습니까?',
@@ -533,7 +534,7 @@ class _ProductspageState extends State<Productspage> {
       actions: [
         ElevatedButton(
           onPressed: () {
-            
+            productDelete(proID);
           }, 
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color.fromARGB(255, 244, 107, 97),
@@ -566,5 +567,18 @@ class _ProductspageState extends State<Productspage> {
           ),
       ]
     );
+  }
+  // SQL에서 상품 삭제 기능
+  productDelete(proID) async{
+    var url = Uri.parse(
+      "https://fastapi.sumartpick.shop/delete?Product_ID=$proID");
+    var response = await http.get(url);
+    var dataConvertedJSON = json.decode(utf8.decode(response.bodyBytes));
+    var result = dataConvertedJSON['results'];
+
+    setState(() {});
+    searchController.text = '';
+    reloadData();
+    Get.back();
   }
 }
