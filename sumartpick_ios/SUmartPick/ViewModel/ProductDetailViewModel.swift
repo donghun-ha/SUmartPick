@@ -15,29 +15,34 @@ class ProductDetailViewModel: ObservableObject {
         isLoading = true
         errorMessage = nil
 
-        // ✅ 정확한 API 엔드포인트로 수정
-        guard let url = URL(string: "https://fastapi.sumartpick.shop/users/\(productID)") else {
+        guard let url = URL(string: "https://fastapi.sumartpick.shop/get_product/\(productID)") else {
             self.errorMessage = "Invalid URL"
             return
         }
 
-        // ✅ URLRequest 생성
         var request = URLRequest(url: url)
-        request.httpMethod = "GET" // ✅ GET 요청으로 변경
+        request.httpMethod = "GET"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
-        // ✅ API 호출
         URLSession.shared.dataTask(with: request) { data, response, error in
             DispatchQueue.main.async {
                 self.isLoading = false
 
                 if let error = error {
                     self.errorMessage = "Failed to load product: \(error.localizedDescription)"
+                    print("❌ Error: \(error.localizedDescription)")
                     return
                 }
 
-                guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) else {
-                    self.errorMessage = "Server error"
+                guard let httpResponse = response as? HTTPURLResponse else {
+                    self.errorMessage = "Invalid response"
+                    return
+                }
+
+                print("📡 Status Code: \(httpResponse.statusCode)")
+
+                guard (200...299).contains(httpResponse.statusCode) else {
+                    self.errorMessage = "Server error: \(httpResponse.statusCode)"
                     return
                 }
 
@@ -46,13 +51,27 @@ class ProductDetailViewModel: ObservableObject {
                     return
                 }
 
+                if let jsonString = String(data: data, encoding: .utf8) {
+                    print("📦 Response Data: \(jsonString)")
+                }
+
                 do {
-                    // ✅ 응답 데이터를 Product 모델로 디코딩
                     let decoder = JSONDecoder()
-                    decoder.keyDecodingStrategy = .convertFromSnakeCase
-                    self.product = try decoder.decode(Product.self, from: data)
+//                    decoder.keyDecodingStrategy = .convertFromSnakeCase
+
+                    if let jsonObject = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+                       let resultData = jsonObject["result"] {
+                        
+                        let resultJSON = try JSONSerialization.data(withJSONObject: resultData)
+                        self.product = try decoder.decode(Product.self, from: resultJSON)
+
+                    } else {
+                        self.errorMessage = "Invalid response format"
+                    }
+
                 } catch {
                     self.errorMessage = "Failed to decode product: \(error.localizedDescription)"
+                    print("❗️Decoding Error: \(error)")
                 }
             }
         }.resume()
