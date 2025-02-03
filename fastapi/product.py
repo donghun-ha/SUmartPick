@@ -244,6 +244,52 @@ async def get_all_products():
         curs.close()
         conn.close()  # ✅ DB 연결 종료 보장
 
+@router.get("/get_products_by_category")
+async def get_products_by_category(category_id: int):
+    """
+    특정 가테고리에 속하는 상품 조회 API
+    - 'category' 파라미터를 기반으로 해당 카테고리의 상품 목록을 반환
+    - 'products' 테이블과 'category' 테이블을 조인하여 'category' 필드를 명확하게 반환
+
+    Parameters:
+    - 'category' (int): 조회할 카테고리 이름 (예: 4 = '가구', 5 = '도서' 등)
+
+    Returns:
+    - 'results' : 해당 카테고리의 상품 목록 (JSON)
+    """
+    conn = connect_to_mysql()
+    curs = conn.cursor(pymysql.cursors.DictCursor) # DictCursor 사용
+
+    try:
+        sql = """
+        SELECT
+            P.Product_ID,
+            P.name,
+            P.preview_image,
+            P.price,
+            P.detail,
+            C.Category_ID,
+            C.name AS category,
+            P.created
+        FROM products AS P
+        INNER JOIN category AS C ON C.Category_ID = P.Category_ID
+        WHERE C.Category_ID = %s
+        """
+
+        curs.execute(sql, (category_id,))
+        rows = curs.fetchall()
+
+        return {"results" : rows}
+
+    except Exception as e:
+        print(f"카테고리별 상품 조회 실패: {e}")
+        raise HTTPException(status_code=500, detail="카테고리별 상품을 불러오는데 실패했습니다.")
+    
+    finally:
+        curs.close()
+        conn.close()
+
+
 @router.get("/get_product/{product_id}")
 async def get_product(product_id: int):
     """
