@@ -89,4 +89,12 @@ class ProductDetailViewModel: ObservableObject {
             }
         }.resume()
     }
+    
+    // ✅ 평균 별점 계산 함수
+    var averageRating: Double {
+        let totalStars = reviews.compactMap { $0.star }.reduce(0, +)
+        return reviews.isEmpty ? 0 : Double(totalStars) / Double(reviews.count)
+    }
 }
+
+

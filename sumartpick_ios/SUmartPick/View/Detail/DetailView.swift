@@ -37,11 +37,25 @@ struct DetailView: View {
                         .frame(height: 300)
                         .padding(.horizontal)
 
-                        // 카테고리명
-                        Text(product.category)
-                            .font(.subheadline)
-                            .foregroundColor(.gray)
-                            .padding(.horizontal)
+                        // ✅ 카테고리명 + 별점 + 리뷰 개수
+                        HStack {
+                            Text(product.category)
+                                .font(.subheadline)
+                                .foregroundColor(.gray)
+
+                            Spacer()
+
+                            HStack(spacing: 4) {
+                                StarRatingView(rating: Int(viewModel.averageRating))
+                                Text(String(format: "%.1f", viewModel.averageRating))
+                                    .font(.subheadline)
+                                    .foregroundColor(.gray)
+                                Text("(\(viewModel.reviews.count))")
+                                    .font(.subheadline)
+                                    .foregroundColor(.gray)
+                            }
+                        }
+                        .padding(.horizontal)
 
                         // 상품 이름
                         Text(product.name)
@@ -106,11 +120,19 @@ struct DetailView: View {
 
                         // ✅ 리뷰 섹션
                         VStack(alignment: .leading, spacing: 15) {
-                            Text("리뷰 (\(viewModel.reviews.count))")
-                                .font(.headline)
-                                .padding(.horizontal)
+                            HStack {
+                                Text("리뷰 (\(viewModel.reviews.count))")
+                                    .font(.headline)
+                                Spacer()
+                                NavigationLink(destination: ReviewListView(reviews: viewModel.reviews)) {
+                                    Text("리뷰 전체보기 >")
+                                        .foregroundColor(.blue)
+                                        .font(.subheadline)
+                                }
+                            }
+                            .padding(.horizontal)
 
-                            ForEach(viewModel.reviews) { review in
+                            ForEach(viewModel.reviews.prefix(3)) { review in
                                 VStack(alignment: .leading, spacing: 5) {
                                     HStack {
                                         Text(maskUserID(review.userId))
@@ -122,6 +144,7 @@ struct DetailView: View {
                                     if let content = review.reviewContent {
                                         Text(content)
                                             .font(.body)
+                                            .lineLimit(2)
                                     }
                                 }
                                 .padding()
@@ -132,9 +155,6 @@ struct DetailView: View {
                         }
                     }
                 }
-            } else {
-                Text("상품 정보를 불러올 수 없습니다.")
-                    .foregroundColor(.gray)
             }
         }
         .onAppear {
@@ -142,7 +162,7 @@ struct DetailView: View {
         }
     }
 
-    // ✅ 사용자 ID 마스킹 처리 함수
+    // ✅ 사용자 ID 마스킹 처리
     func maskUserID(_ userID: String) -> String {
         let prefix = userID.prefix(2)
         let suffix = userID.suffix(2)
@@ -150,4 +170,3 @@ struct DetailView: View {
         return "\(prefix)\(masked)\(suffix)"
     }
 }
-
