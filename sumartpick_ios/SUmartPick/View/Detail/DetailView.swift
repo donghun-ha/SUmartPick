@@ -26,26 +26,34 @@ struct DetailView: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 20) {
                         // 상품 이미지
-                        HStack {
-                            AsyncImage(url: URL(string: product.previewImage)) { image in
-                                image
-                                    .resizable()
-                                    .scaledToFit()
-                                    .cornerRadius(12)
-                            } placeholder: {
-                                ProgressView()
-                            }
-                            .frame(height: 300)
-                            .padding(.horizontal)
+                        AsyncImage(url: URL(string: product.previewImage)) { image in
+                            image
+                                .resizable()
+                                .scaledToFit()
+                                .cornerRadius(12)
+                        } placeholder: {
+                            ProgressView()
                         }
-                        .frame(maxWidth: .infinity) // ✅ 이미지 가운데 정렬
-                        
-                        // 🔹 카테고리명 > 별점(리뷰)
+                        .frame(height: 300)
+                        .padding(.horizontal)
+
+                        // ✅ 카테고리명 + 별점 + 리뷰 개수
                         HStack {
                             Text(product.category)
                                 .font(.subheadline)
                                 .foregroundColor(.gray)
-                                .frame(maxWidth: .infinity, alignment: .leading)
+
+                            Spacer()
+
+                            HStack(spacing: 4) {
+                                StarRatingView(rating: Int(viewModel.averageRating))
+                                Text(String(format: "%.1f", viewModel.averageRating))
+                                    .font(.subheadline)
+                                    .foregroundColor(.gray)
+                                Text("(\(viewModel.reviews.count))")
+                                    .font(.subheadline)
+                                    .foregroundColor(.gray)
+                            }
                         }
                         .padding(.horizontal)
 
@@ -55,7 +63,7 @@ struct DetailView: View {
                             .fontWeight(.bold)
                             .padding(.horizontal)
 
-                        // 상품 가격
+                        // 상품 가격 & 수량 조절
                         HStack {
                             Text("\(Int(product.price) * quantity)원")
                                 .font(.title)
@@ -64,11 +72,7 @@ struct DetailView: View {
                             Spacer()
 
                             HStack(spacing: 10) {
-                                Button(action: {
-                                    if quantity > 1 {
-                                        quantity -= 1
-                                    }
-                                }) {
+                                Button(action: { if quantity > 1 { quantity -= 1 } }) {
                                     Image(systemName: "minus.circle")
                                         .foregroundColor(.blue)
                                         .font(.title2)
@@ -77,9 +81,7 @@ struct DetailView: View {
                                 Text("\(quantity)")
                                     .font(.title3)
 
-                                Button(action: {
-                                    quantity += 1
-                                }) {
+                                Button(action: { quantity += 1 }) {
                                     Image(systemName: "plus.circle")
                                         .foregroundColor(.blue)
                                         .font(.title2)
@@ -87,50 +89,84 @@ struct DetailView: View {
                             }
                         }
                         .padding(.horizontal)
-                        
-                        /// 🔹 장바구니 & 바로구매 버튼
-                        HStack(spacing: 16) {
-                            Button(action: {
-                                print("장바구니 버튼 클릭")
-                            }) {
-                                Text("장바구니 담기")
-                                    .font(.headline)
-                                    .foregroundColor(.blue)
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 10)
-                                            .stroke(Color.blue, lineWidth: 2)
-                                    )
-                            }
 
-                            Button(action: {
-                                print("바로구매 버튼 클릭")
-                            }) {
-                                Text("바로구매")
-                                    .font(.headline)
-                                    .foregroundColor(.white)
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background(Color.blue)
-                                    .cornerRadius(10)
+                        // 장바구니 & 바로구매 버튼
+                        HStack(spacing: 16) {
+                            Button("장바구니 담기") {
+                                print("장바구니 버튼 클릭")
                             }
+                            .font(.headline)
+                            .foregroundColor(.blue)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .stroke(Color.blue, lineWidth: 2)
+                            )
+
+                            Button("바로구매") {
+                                print("바로구매 버튼 클릭")
+                            }
+                            .font(.headline)
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.blue)
+                            .cornerRadius(10)
                         }
                         .padding(.horizontal)
 
-                        // 구분선
-                        Divider()
+                        Divider().padding(.horizontal)
+
+                        // ✅ 리뷰 섹션
+                        VStack(alignment: .leading, spacing: 15) {
+                            HStack {
+                                Text("리뷰 (\(viewModel.reviews.count))")
+                                    .font(.headline)
+                                Spacer()
+                                NavigationLink(destination: ReviewListView(reviews: viewModel.reviews)) {
+                                    Text("리뷰 전체보기 >")
+                                        .foregroundColor(.blue)
+                                        .font(.subheadline)
+                                }
+                            }
                             .padding(.horizontal)
 
+                            ForEach(viewModel.reviews.prefix(3)) { review in
+                                VStack(alignment: .leading, spacing: 5) {
+                                    HStack {
+                                        Text(maskUserID(review.userId))
+                                            .font(.subheadline)
+                                            .foregroundColor(.gray)
+                                        Spacer()
+                                        StarRatingView(rating: review.star ?? 0)
+                                    }
+                                    if let content = review.reviewContent {
+                                        Text(content)
+                                            .font(.body)
+                                            .lineLimit(2)
+                                    }
+                                }
+                                .padding()
+                                .background(Color(.systemGray6))
+                                .cornerRadius(8)
+                                .padding(.horizontal)
+                            }
+                        }
                     }
                 }
-            } else {
-                Text("상품 정보를 불러올 수 없습니다.")
-                    .foregroundColor(.gray)
             }
         }
         .onAppear {
             viewModel.fetchProductDetails(productID: productID)
         }
+    }
+
+    // ✅ 사용자 ID 마스킹 처리
+    func maskUserID(_ userID: String) -> String {
+        let prefix = userID.prefix(2)
+        let suffix = userID.suffix(2)
+        let masked = String(repeating: "*", count: max(0, userID.count - 4))
+        return "\(prefix)\(masked)\(suffix)"
     }
 }

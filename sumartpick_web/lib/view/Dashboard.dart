@@ -700,31 +700,32 @@ getJSONOrderData();
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: DataTable(
-                  columnSpacing: 200,
+                  columnSpacing: 85,
                   columns: const [
                     DataColumn(label: Text('주문번호')),
                     DataColumn(label: Text('상세번호')),
-                    DataColumn(label: Text('수령자명')),
+                    DataColumn(label: Text('상품명')),
                     DataColumn(label: Text('주문가격')),
                     DataColumn(label: Text('주문일시')),
                     DataColumn(label: Text('결제방법')),
                     DataColumn(label: Text('배송상태')),
                   ], 
                   rows: recentOrders.map((row) {
-            return DataRow(
-              cells: row.map<DataCell>((cell) {  // ✅ `map<DataCell>`을 명시적으로 사용
+                    print(row.length);  // 디버깅용: 각 row의 길이를 출력
+                            return DataRow(
+                              cells: row.map<DataCell>((cell) {  // ✅ `map<DataCell>`을 명시적으로 사용
                 return DataCell(
                   SizedBox(
-          width: 150,
-          child: Text(
-            cell.toString(),
-            softWrap: false,
-          ),
+                          width: 150,
+                          child: Text(
+                            cell.toString(),
+                            softWrap: false,
+                          ),
                   ),
                 );
-              }).toList(),
-            );
-          }).toList(),
+                              }).toList(),
+                            );
+                          }).toList(),
                   ),
               ),
               Padding(
