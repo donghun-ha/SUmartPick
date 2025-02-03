@@ -56,8 +56,8 @@ class _InventorypageState extends State<Inventorypage> {
   }
 
   getJSONTotalData() async {
-    var url =
-        Uri.parse('http://127.0.0.1:8000/inventories/inventory_total_${selectHubId}_select');
+    var url = Uri.parse(
+        'https://fastapi.sumartpick.shop/inventories/inventory_total_${selectHubId}_select');
     var response = await http.get(url);
 
     // 데이터를 클리어
@@ -87,7 +87,8 @@ class _InventorypageState extends State<Inventorypage> {
   }
 
   getJSONData() async {
-    var url = Uri.parse('http://127.0.0.1:8000/inventories/inventory_${selectHubId}_select');
+    var url = Uri.parse(
+        'https://fastapi.sumartpick.shop/inventories/inventory_${selectHubId}_select');
     var response = await http.get(url);
 
     // 데이터를 클리어
@@ -646,7 +647,7 @@ class _InventorypageState extends State<Inventorypage> {
     setState(() {});
   }
 
-  reloadData(){
+  reloadData() {
     getJSONTotalData();
     getJSONData();
   }

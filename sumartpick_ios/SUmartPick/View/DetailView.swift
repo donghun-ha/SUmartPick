@@ -21,7 +21,7 @@ struct DetailView: View {
             } else if let product = viewModel.product {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 16) {
-                        AsyncImage(url: URL(string: product.previewImage)) { image in
+                        AsyncImage(url: URL(string: product.preview_image)) { image in
                             image
                                 .resizable()
                                 .scaledToFit()
@@ -34,13 +34,13 @@ struct DetailView: View {
                             .font(.title)
                             .bold()
 
-                        Text(product.detail)
+                        Text(product.detail!)
                             .font(.body)
 
                         Text("Price: $\(product.price, specifier: "%.2f")원")
                             .font(.headline)
 
-                        Text("Category: \(product.category.name)")
+                        Text("Category: \(product.category)")
                             .font(.subheadline)
                             .foregroundColor(.gray)
                     }

@@ -7,16 +7,13 @@
 
 import Foundation
 
-struct Product: Codable {
-    let productID: Int
+struct Product: Codable , Identifiable{
+    let Product_ID: Int
     let name: String
-    let previewImage: String
+    let preview_image: String
     let price: Double
-    let detail: String
-    let category: Category
-}
-
-struct Category: Codable {
-    let categoryID: Int
-    let name: String
+    let detail: String? // 필수 값 옵셔널로 변경
+    let category: String
+    
+    var id: Int { Product_ID } // Identifiable을 위한 프로퍼티
 }

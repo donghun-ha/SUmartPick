@@ -15,12 +15,16 @@ class ProductDetailViewModel: ObservableObject {
         isLoading = true
         errorMessage = nil
 
-        // FastAPI의 엔드포인트 URL (상품 상세 정보 조회 API)
-        guard let url = URL(string: "https://sumartpick.shop/products_query") else {
-            self.isLoading = false
-            self.errorMessage = "Invalid URL"
-            return
-        }
+        let url = URL(string: "https://sumartpick.shop")! // Fastapi 주소로 변경
+
+        URLSession.shared.dataTask(with: url) { data, response, error in
+            DispatchQueue.main.async {
+                self.isLoading = false
+
+                if let error = error {
+                    self.errorMessage = "Failed to load product: \(error.localizedDescription)"
+                    return
+                }
 
         // 요청 데이터 생성
         let requestData: [String: Any] = ["name": "\(productID)"]

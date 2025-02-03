@@ -12,7 +12,7 @@ enum AppEnvironment {
 }
 
 enum SUmartPickConfig {
-    static let dbenvironment: AppEnvironment = .local
+    static let dbenvironment: AppEnvironment = .server
 
     static var baseURL: String {
         switch dbenvironment {
@@ -21,7 +21,7 @@ enum SUmartPickConfig {
             case .remote:
                 return "http://192.168.50.71:8000"
             case .server:
-                return "https://api.example.com"
+                return "https://fastapi.sumartpick.shop"
         }
     }
 }
