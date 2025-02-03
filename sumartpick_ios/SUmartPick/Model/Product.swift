@@ -7,13 +7,23 @@
 
 import Foundation
 
-struct Product: Codable , Identifiable{
-    let Product_ID: Int
+struct Product: Codable, Identifiable {
+    let productID: Int
     let name: String
-    let preview_image: String
+    let previewImage: String
     let price: Double
-    let detail: String? // 필수 값 옵셔널로 변경
+    let detail: String?
     let category: String
     
-    var id: Int { Product_ID } // Identifiable을 위한 프로퍼티
+    var id: Int { productID }
+    
+    enum CodingKeys: String, CodingKey {
+        case productID = "Product_ID"         // JSON의 Product_ID와 매핑
+        case name
+        case previewImage = "preview_image"   // JSON의 preview_image와 매핑
+        case price
+        case detail
+        case category
+    }
 }
+

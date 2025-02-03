@@ -15,39 +15,67 @@ struct DetailView: View {
         VStack {
             if viewModel.isLoading {
                 ProgressView("Loading...")
+                    .font(.title)
+                    .foregroundColor(.gray)
             } else if let errorMessage = viewModel.errorMessage {
                 Text(errorMessage)
                     .foregroundColor(.red)
+                    .padding()
             } else if let product = viewModel.product {
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 16) {
-                        AsyncImage(url: URL(string: product.preview_image)) { image in
+                    VStack(alignment: .leading, spacing: 20) {
+                        // 상품 이미지
+                        AsyncImage(url: URL(string: product.previewImage)) { image in
                             image
                                 .resizable()
                                 .scaledToFit()
+                                .cornerRadius(12)
                         } placeholder: {
                             ProgressView()
                         }
-                        .frame(height: 200)
+                        .frame(height: 300)
+                        .padding(.horizontal)
 
+                        // 상품 이름
                         Text(product.name)
+                            .font(.title2)
+                            .fontWeight(.bold)
+                            .padding(.horizontal)
+
+                        // 상품 가격
+                        Text("\(Int(product.price))원")
                             .font(.title)
-                            .bold()
+                            .foregroundColor(.blue)
+                            .padding(.horizontal)
 
-                        Text(product.detail!)
+                        // 상품 상세 설명
+                        Text(product.detail ?? "상세 설명이 없습니다.")
                             .font(.body)
-
-                        Text("Price: $\(product.price, specifier: "%.2f")원")
-                            .font(.headline)
-
-                        Text("Category: \(product.category)")
-                            .font(.subheadline)
                             .foregroundColor(.gray)
+                            .padding(.horizontal)
+
+                        // 구분선
+                        Divider()
+                            .padding(.horizontal)
+
+                        // 구매 버튼
+                        Button(action: {
+                            print("구매하기 버튼 클릭")
+                        }) {
+                            Text("구매하기")
+                                .font(.headline)
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color.blue)
+                                .cornerRadius(10)
+                        }
+                        .padding(.horizontal)
                     }
-                    .padding()
                 }
             } else {
-                Text("Product not found")
+                Text("상품 정보를 불러올 수 없습니다.")
+                    .foregroundColor(.gray)
             }
         }
         .onAppear {

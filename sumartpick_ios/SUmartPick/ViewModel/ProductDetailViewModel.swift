@@ -15,9 +15,19 @@ class ProductDetailViewModel: ObservableObject {
         isLoading = true
         errorMessage = nil
 
-        let url = URL(string: "https://sumartpick.shop")! // Fastapi 주소로 변경
+        // ✅ 정확한 API 엔드포인트로 수정
+        guard let url = URL(string: "https://fastapi.sumartpick.shop/users/\(productID)") else {
+            self.errorMessage = "Invalid URL"
+            return
+        }
 
-        URLSession.shared.dataTask(with: url) { data, response, error in
+        // ✅ URLRequest 생성
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET" // ✅ GET 요청으로 변경
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        // ✅ API 호출
+        URLSession.shared.dataTask(with: request) { data, response, error in
             DispatchQueue.main.async {
                 self.isLoading = false
 
@@ -26,54 +36,25 @@ class ProductDetailViewModel: ObservableObject {
                     return
                 }
 
-        // 요청 데이터 생성
-        let requestData: [String: Any] = ["name": "\(productID)"]
-
-        do {
-            // 요청 데이터를 JSON 형식으로 변환
-            let requestDataBody = try JSONSerialization.data(withJSONObject: requestData, options: [])
-
-            // URLRequest 생성
-            var request = URLRequest(url: url)
-            request.httpMethod = "POST"
-            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-            request.httpBody = requestDataBody
-
-            // URLSession으로 API 호출
-            URLSession.shared.dataTask(with: request) { data, response, error in
-                DispatchQueue.main.async {
-                    self.isLoading = false
-
-                    if let error = error {
-                        self.errorMessage = "Failed to load product: \(error.localizedDescription)"
-                        return
-                    }
-
-                    guard let data = data else {
-                        self.errorMessage = "No data received"
-                        return
-                    }
-
-                    do {
-                        // 응답 데이터를 디코딩
-                        let decoder = JSONDecoder()
-                        let products = try decoder.decode([Product].self, from: data)
-
-                        // ProductID에 해당하는 상품만 필터링
-                        self.product = products.first(where: { $0.productID == productID })
-
-                        if self.product == nil {
-                            self.errorMessage = "Product not found"
-                        }
-                    } catch {
-                        self.errorMessage = "Failed to decode product: \(error.localizedDescription)"
-                    }
+                guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) else {
+                    self.errorMessage = "Server error"
+                    return
                 }
-            }.resume()
 
-        } catch {
-            self.isLoading = false
-            self.errorMessage = "Failed to create request body: \(error.localizedDescription)"
-        }
+                guard let data = data else {
+                    self.errorMessage = "No data received"
+                    return
+                }
+
+                do {
+                    // ✅ 응답 데이터를 Product 모델로 디코딩
+                    let decoder = JSONDecoder()
+                    decoder.keyDecodingStrategy = .convertFromSnakeCase
+                    self.product = try decoder.decode(Product.self, from: data)
+                } catch {
+                    self.errorMessage = "Failed to decode product: \(error.localizedDescription)"
+                }
+            }
+        }.resume()
     }
 }

@@ -98,7 +98,7 @@ struct HomeView: View {
             LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: 20) {
                 ForEach(products) { product in
                     VStack(alignment: .leading) { // 🔹 왼쪽 정렬
-                        AsyncImage(url: URL(string: product.preview_image)) { image in
+                        AsyncImage(url: URL(string: product.previewImage)) { image in
                             image.resizable().scaledToFit()
                         } placeholder: {
                             ProgressView()
@@ -117,7 +117,7 @@ struct HomeView: View {
                             .padding(.leading, 5) // 패딩 추가
                     }
                     .onTapGesture {
-                        selectedProductID = product.Product_ID
+                        selectedProductID = product.productID
                         isNavigatingToDetail = true
                     }
                 }
