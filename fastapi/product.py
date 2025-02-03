@@ -95,7 +95,7 @@ async def products_query(query: ProductQuery):
     try:
         # SQL 쿼리 작성
         sql_query = """
-        SELECT Product_ID, Category_ID, name, preview_image ,price, detail, manufacturer, created 
+        SELECT Product_ID, Category_ID AS category, name, preview_image ,price, detail, manufacturer, created 
         FROM products 
         WHERE name LIKE %s
         """
