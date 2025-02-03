@@ -22,12 +22,16 @@ struct HomeView: View {
     @State private var searchText: String = ""
 
     let categories = [
-        "가구", "도서", "미디어", "뷰티", "스포츠",
-        "식품", "유아/애완", "전자제품", "패션", "기타"
-    ]
-    let categoryIcons = [
-        "bed.double", "book", "tv", "paintbrush", "sportscourt",
-        "cart", "pawprint", "desktopcomputer", "tshirt", "ellipsis"
+        (id: 4, name: "가구", icon: "bed.double"),
+        (id: 6, name: "도서", icon: "book"),
+        (id: 7, name: "미디어", icon: "tv"),
+        (id: 8, name: "뷰티", icon: "paintbrush"),
+        (id: 9, name: "스포츠", icon: "sportscourt"),
+        (id: 10, name: "식품", icon: "cart"),
+        (id: 11, name: "유아/애완", icon: "pawprint"),
+        (id: 12, name: "전자제품", icon: "desktopcomputer"),
+        (id: 13, name: "패션", icon: "tshirt"),
+        (id: 5, name: "기타", icon: "ellipsis")
     ]
     
     var body: some View {
@@ -75,9 +79,9 @@ struct HomeView: View {
 
         var body: some View {
             LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 5), spacing: 20) {
-                ForEach(categories, id: \.0) { category, icon in
+                ForEach(categories, id: \.0) { category in
                     VStack {
-                        Image(systemName: icon)
+                        Image(systemName: category.icon)
                             .resizable()
                             .scaledToFit()
                             .frame(width: 40, height: 40)
