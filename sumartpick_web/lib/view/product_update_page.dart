@@ -81,9 +81,10 @@ class _ProductUpdatePageState extends State<ProductUpdatePage> {
     }
 
     final Map<String, dynamic> productData = {
+      "Product_ID" : value[1],
       "Category_ID": selectedCategory!,
       "name": nameController.text,
-      "base64_image": base64Image, // ✅ Firebase Storage 업로드용 Base64 이미지
+      "base64_image": base64Image ?? "", // ✅ Firebase Storage 업로드용 Base64 이미지
       "price": int.tryParse(priceController.text) ?? 0,
     };
 
@@ -267,7 +268,9 @@ class _ProductUpdatePageState extends State<ProductUpdatePage> {
               padding: const EdgeInsets.fromLTRB(0, 40, 0, 0),
               child: ElevatedButton(
                 onPressed: () async{
-                  await _uploadProduct();
+                  imageBytes == null 
+                  ? await updateJSONData()
+                  : await _uploadProduct();
                   Get.back();
                 }, 
                 style: ElevatedButton.styleFrom(
@@ -289,25 +292,11 @@ class _ProductUpdatePageState extends State<ProductUpdatePage> {
   updateJSONData() async{
     // "update Products set Category_ID = %s, name = %s, price = %s where Product_ID = %s"
     var url = Uri.parse(
-      "https://fastapi.sumartpick.shop/products/product_update?Category_ID=$selectedCategory&name=${nameController.text}&price=${double.parse(priceController.text)}&Product_ID=${value[0]}");
+      "https://fastapi.sumartpick.shop/product_update?Category_ID=$selectedCategory&name=${nameController.text}&price=${double.parse(priceController.text)}&Product_ID=${value[1]}");
     var response = await http.get(url);
     var dataConvertedJSON = json.decode(utf8.decode(response.bodyBytes));
     var result = dataConvertedJSON['results'];
 
     setState(() {});
-
-    if(result == 'OK'){
-      _showDialog();
-    }else{
-      errorSnackBar();
-    }
-  }
-  _showDialog(){
-    print("Completed");
-    Get.back();
-  }
-
-  errorSnackBar(){
-    print("Error");
   }
 }
