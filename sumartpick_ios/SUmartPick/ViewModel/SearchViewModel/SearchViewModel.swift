@@ -13,7 +13,7 @@ import RealmSwift
 @MainActor
 class SearchViewModel: ObservableObject {
     @Published var searchQuery: String = ""
-    @Published var searchResults: [Product] = [] // API에서 받아온 검색 결과
+    @Published var searchResults: [SearchProduct] = [] // API에서 받아온 검색 결과
     @Published var searchHistory: [SearchHistory] = [] // Realm에서 불러온 검색 기록
     
     private let realm = try! Realm() // Realm 인스턴스
@@ -83,7 +83,7 @@ class SearchViewModel: ObservableObject {
                 return
             }
             
-            let decodedResponse = try! JSONDecoder().decode([Product].self, from: data)
+            let decodedResponse = try! JSONDecoder().decode([SearchProduct].self, from: data)
             searchResults = decodedResponse
             
             saveSearchQuery(searchQuery) // 검색어 저장
