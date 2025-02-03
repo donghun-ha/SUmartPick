@@ -7,8 +7,8 @@
 
 import Foundation
 
-struct SearchProduct: Codable {
-    let Product_ID: Int
+struct SearchProduct: Identifiable, Codable {
+    let id: Int
     let category: Int
     let name: String
     let preview_image: String?
@@ -18,7 +18,7 @@ struct SearchProduct: Codable {
     let created: String?
 
     enum CodingKeys: String, CodingKey {
-        case Product_ID
+        case id = "Product_ID"
         case category = "Category_ID"
         case name, preview_image, price, detail, manufacturer, created
     }
