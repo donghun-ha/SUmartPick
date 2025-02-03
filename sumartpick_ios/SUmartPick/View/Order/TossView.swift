@@ -9,7 +9,7 @@ import SwiftUI
 import TossPayments
 
 struct TossView: View {
-    @State private var isShow: Bool = false
+    @State private var isShow: Bool = true
     @State private var orderCompleted: Bool = false
     let userId: String
     let address: String
@@ -21,14 +21,9 @@ struct TossView: View {
 
     var body: some View {
         VStack {
-            Button(action: { isShow.toggle() }) {
-                Text("결제")
-                    .font(.title2)
-                    .padding()
-                    .background(Color.blue)
-                    .foregroundColor(.white)
-                    .cornerRadius(10)
-            }
+        }
+        .onAppear {
+            isShow = true
         }
         .sheet(isPresented: $isShow) {
             TossPaymentsView(
