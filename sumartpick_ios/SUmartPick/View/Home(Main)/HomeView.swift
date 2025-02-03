@@ -19,7 +19,6 @@ struct HomeView: View {
     @State private var selectedProductID: Int? = nil
     @State private var selectedCategoryID: Int? = nil
     @State private var isNavigatingToDetail = false
-    @State private var searchText: String = ""
 
     let categories = [
         (id: 4, name: "가구", icon: "bed.double"),
@@ -39,7 +38,6 @@ struct HomeView: View {
             ScrollView {
                 VStack(alignment: .leading) { // 전체 VStack 왼쪽 정렬
                     headerView
-                    searchView
                     CategoryGridView(categories: categories, viewModel: viewModel, selectedCategoryID: $selectedCategoryID)
 
                     // 섹션 구분을 위한 Divider 추가
@@ -68,6 +66,7 @@ struct HomeView: View {
                     DetailView(productID: productID)
                 }
             }
+            }
         }
     }
     
@@ -93,8 +92,13 @@ struct HomeView: View {
                     }
                     .onTapGesture {
                         Task {
-                            selectedCategoryID = category.id
-                            await viewModel.fetchProductsByCategory(categoryID: category.id)
+                            if selectedCategoryID == category.id {
+                                selectedCategoryID = nil
+                                await viewModel.fetchHomeProducts()
+                            } else {
+                                selectedCategoryID = category.id
+                                await viewModel.fetchProductsByCategory(categoryID: category.id)
+                            }
                         }
                     }
                 }
@@ -123,6 +127,8 @@ struct HomeView: View {
 
                         Text(product.name)
                             .font(.caption)
+                            .lineLimit(2)
+                            .truncationMode(.tail)
                             .frame(maxWidth: .infinity, alignment: .leading) // 왼쪽 정렬
                             .padding(.leading, 5) // 패딩 추가
 
@@ -156,21 +162,3 @@ struct HomeView: View {
         }
         .padding(.top)
     }
-    
-    private var searchView: some View {
-        HStack {
-            TextField("상품 검색", text: $searchText, onCommit: {
-                Task {
-                    await viewModel.fetchSearchResults(query: searchText)
-                }
-            })
-            .padding(10)
-            .background(Color(.systemGray6))
-            .cornerRadius(8)
-            .padding(.horizontal)
-            Image(systemName: "magnifyingglass")
-                .padding(.trailing)
-        }
-        .padding(.bottom)
-    }
-}
