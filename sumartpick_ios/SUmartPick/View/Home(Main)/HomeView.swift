@@ -127,7 +127,7 @@ struct HomeView: View {
 
                         Text(product.name)
                             .font(.caption)
-                            .lineLimit(1)
+                            .lineLimit(2)
                             .truncationMode(.tail)
                             .frame(maxWidth: .infinity, alignment: .leading) // 왼쪽 정렬
                             .padding(.leading, 5) // 패딩 추가

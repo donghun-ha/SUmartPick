@@ -56,7 +56,15 @@ class AuthenticationService {
 
             do {
                 let decodedResponse = try JSONDecoder().decode(LoginResponse.self, from: data)
-                completion(.success(decodedResponse.userData))
+                // 로그인 성공 후 사용자 정보를 UserDefaults에 저장
+                let userData = decodedResponse.userData
+                let userDefaults = UserDefaults.standard
+                userDefaults.set(userData.User_Id, forKey: "user_id")
+                userDefaults.set(userData.name, forKey: "user_name")
+                userDefaults.set(userData.email, forKey: "user_email")
+                userDefaults.set(userData.auth_provider, forKey: "auth_provider")
+                
+                completion(.success(userData))
             } catch {
                 completion(.failure(AuthenticationError.parsingError))
             }
