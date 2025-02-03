@@ -281,13 +281,10 @@ async def get_user_orders(user_id: str):
 
 @app.get("/orders/refunds/{user_id}")
 async def get_refund_exchange_orders(user_id: str):
-    """
-    특정 User_ID가 "취소, 반품, 교환" 상태인 주문들만 조회
-    예: Order_state가 'Cancelled', 'Returned', 'Exchanged' 등
-    """
     conn = connect()
     cursor = conn.cursor()
     try:
+
         sql = """
             SELECT 
                 o.Order_ID,
@@ -307,7 +304,8 @@ async def get_refund_exchange_orders(user_id: str):
             FROM Orders o
             JOIN Products p ON o.Product_ID = p.Product_ID
             WHERE o.User_ID = %s
-              AND o.Order_state IN ('Cancelled', 'Returned', 'Exchanged')
+              -- 반품 신청 상태값 추가
+              AND o.Order_state IN ('Cancelled', 'Returned', 'Exchanged', 'Return_Requested')
             ORDER BY o.Order_Date DESC
         """
         cursor.execute(sql, (user_id,))
@@ -570,6 +568,57 @@ async def delete_address(address_id: int):
         return {"message": "Address deleted successfully."}
     except pymysql.MySQLError as e:
         print("Error:", e)
+        raise HTTPException(status_code=500, detail="Database error occurred.")
+    finally:
+        conn.close()
+
+
+@app.put("/orders/{order_id}/requestRefund")
+async def request_refund(order_id: int):
+    """
+    예시: 반품 신청 처리
+    """
+    conn = connect()
+    cursor = conn.cursor()
+    try:
+        sql = """
+            UPDATE Orders
+            SET refund_demands_time = NOW(),
+                Order_state = 'Return_Requested'
+            WHERE Order_ID = %s
+        """
+        cursor.execute(sql, (order_id,))
+        if cursor.rowcount == 0:
+            raise HTTPException(status_code=404, detail="Order not found.")
+        conn.commit()
+        return {"message": "Refund request submitted."}
+    except pymysql.MySQLError as ex:
+        print("Error:", ex)
+        raise HTTPException(status_code=500, detail="Database error.")
+    finally:
+        conn.close()
+
+
+@app.get("/orders/{order_id}/track")
+async def track_order(order_id: int):
+    conn = connect()
+    cursor = conn.cursor()
+    try:
+        sql = """
+            SELECT Order_ID, TrackingNumber, Carrier, ShippingStatus
+            FROM Orders
+            WHERE Order_ID = %s
+        """
+        cursor.execute(sql, (order_id,))
+        tracking_info = cursor.fetchone()
+
+        # 만약 tracking_info가 None이면 order_id에 해당하는 레코드가 없는 경우
+        if not tracking_info:
+            raise HTTPException(status_code=404, detail="Order not found.")
+
+        return tracking_info
+    except pymysql.MySQLError as ex:
+        print("Error:", ex)
         raise HTTPException(status_code=500, detail="Database error occurred.")
     finally:
         conn.close()
