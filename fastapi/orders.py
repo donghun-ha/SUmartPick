@@ -15,7 +15,7 @@ class OrderItem(BaseModel):
 # 주문 요청 모델
 class OrderRequest(BaseModel):
     User_ID: str
-    Order_Date: str = datetime.now().replace(second=0, microsecond=0).strftime("%Y-%m-%d %H:%M:%S")  # 초 단위 저장
+    Order_Date: datetime = datetime.now().replace(second=0, microsecond=0)  # datetime 유지
     Address: str
     payment_method: str
     Order_state: str = "Payment_completed"
@@ -43,9 +43,12 @@ async def create_order(order: OrderRequest):
 
         # 주문한 모든 상품이 `products` 테이블에 존재하는지 확인
         for product in order.products:
-            curs.execute("SELECT COUNT(*) FROM products WHERE Product_ID = %s", (product.Product_ID,))
-            if curs.fetchone()[0] == 0:
+            curs.execute("SELECT 1 FROM products WHERE Product_ID = %s", (product.Product_ID,))
+            if not curs.fetchone():
                 raise HTTPException(status_code=400, detail=f"Product_ID {product.Product_ID} does not exist")
+
+        # Order_Date 문자열 변환
+        order_date_str = order.Order_Date.strftime("%Y-%m-%d %H:%M:%S")
 
         # `orders` 테이블에 주문 정보 추가 (Order_ID 생성)
         sql_order = """
@@ -55,7 +58,7 @@ async def create_order(order: OrderRequest):
         
         values_order = (
             order.User_ID,
-            order.Order_Date,
+            order_date_str,
             order.Address,
             order.payment_method,
             order.Order_state
@@ -78,7 +81,7 @@ async def create_order(order: OrderRequest):
                     product_seq,  # Product_seq 증가
                     order.User_ID,
                     product.Product_ID,
-                    order.Order_Date,
+                    order_date_str,
                     order.Address,
                     order.payment_method,
                     order.Order_state
