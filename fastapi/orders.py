@@ -96,7 +96,26 @@ async def update(Arrival_Time: str = None, Order_state: str = None, Order_ID: in
         print("Error :", e)
         return {'results' : 'Error'}
     
+# 환불요청 주문 상태 업데이트
+@router.get("/refund_orders_update")
+async def update(refund_time: str = None, Order_state: str = None, Order_ID: int = None, Product_seq: int = None):
+    conn = hosts.connect_to_mysql()
+    curs = conn.cursor()
 
+    try:
+        sql = """
+        UPDATE orders 
+        SET refund_time = NULLIF(%s, ''), Order_state = %s 
+        WHERE Order_ID = %s AND Product_seq = %s
+        """
+        curs.execute(sql, (refund_time, Order_state, Order_ID, Product_seq))
+        conn.commit()
+        conn.close()
+        return {'results': 'OK'}
+    except Exception as e:
+        conn.close()
+        print("Error:", e)
+        return {'results': 'Error', 'error': str(e)}
 
 #### 주문내역
 @router.get("/{user_id}")
@@ -251,27 +270,6 @@ async def track_order(order_id: int):
         print("Error:", ex)
         raise HTTPException(status_code=500, detail="Database error occurred.")
     finally:
-        conn.close()
-        print("Error:", e)
-        return {'results': 'Error', 'error': str(e)}
-
-# 환불요청 주문 상태 업데이트
-@router.get("/refund_orders_update")
-async def update(refund_time: str = None, Order_state: str = None, Order_ID: int = None, Product_seq: int = None):
-    conn = hosts.connect_to_mysql()
-    curs = conn.cursor()
-
-    try:
-        sql = """
-        UPDATE orders 
-        SET refund_time = NULLIF(%s, ''), Order_state = %s 
-        WHERE Order_ID = %s AND Product_seq = %s
-        """
-        curs.execute(sql, (refund_time, Order_state, Order_ID, Product_seq))
-        conn.commit()
-        conn.close()
-        return {'results': 'OK'}
-    except Exception as e:
         conn.close()
         print("Error:", e)
         return {'results': 'Error', 'error': str(e)}
