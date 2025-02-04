@@ -15,7 +15,7 @@ class OrderItem(BaseModel):
 # 주문 요청 모델
 class OrderRequest(BaseModel):
     User_ID: str
-    Order_Date: datetime = datetime.now().replace(second=0, microsecond=0).strftime("%Y-%m-%d %H:%M:%S")  # 초 단위 저장
+    Order_Date: str = datetime.now().replace(second=0, microsecond=0).strftime("%Y-%m-%d %H:%M:%S")  # 초 단위 저장
     Address: str
     payment_method: str
     Order_state: str = "Payment_completed"
