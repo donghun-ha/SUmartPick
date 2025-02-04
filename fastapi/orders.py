@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from datetime import datetime
 import pymysql
 import hosts
+import json
 
 router = APIRouter()
 
@@ -14,7 +15,7 @@ class OrderItem(BaseModel):
 # 주문 요청 모델
 class OrderRequest(BaseModel):
     User_ID: str
-    Order_Date: datetime = datetime.now()
+    Order_Date: datetime = datetime.now().replace(second=0, microsecond=0).strftime("%Y-%m-%d %H:%M")  # 초 단위 제거
     Address: str
     payment_method: str
     Order_state: str = "Payment_completed"
@@ -36,6 +37,7 @@ async def select():
 @router.post("/create_order")
 async def create_order(order: OrderRequest):
     try:
+        print(" Received JSON:", json.dumps(order.model_dump(), indent=4, ensure_ascii=False))
         conn = hosts.connect_to_mysql()
         curs = conn.cursor()
 
@@ -72,6 +74,7 @@ async def create_order(order: OrderRequest):
         return {"message": "Order created successfully"}
 
     except Exception as e:
+        print("JSON 디코딩 오류:", str(e))
         raise HTTPException(status_code=500, detail=str(e))
     
 # 환불요청 없는 주문 상태 업데이트
