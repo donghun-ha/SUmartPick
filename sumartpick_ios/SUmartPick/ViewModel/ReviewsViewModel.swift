@@ -68,4 +68,55 @@ class ReviewsViewModel: ObservableObject {
             self.showErrorAlert = true
         }
     }
+
+    // (A) 리뷰 수정
+    func updateReview(reviewID: Int, newContent: String, star: Int, userID: String) async {
+        guard let url = URL(string: "\(baseURL)/reviews/\(reviewID)") else { return }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "PUT"
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let body: [String: Any] = [
+            "Review_Content": newContent,
+            "Star": star
+        ]
+
+        do {
+            request.httpBody = try JSONSerialization.data(withJSONObject: body, options: [])
+            let (_, response) = try await URLSession.shared.data(for: request)
+            guard let httpResponse = response as? HTTPURLResponse,
+                  httpResponse.statusCode == 200
+            else {
+                throw URLError(.badServerResponse)
+            }
+            // 수정 성공 후 다시 리뷰 목록 갱신
+            await self.fetchReviews(for: userID)
+        } catch {
+            self.errorMessage = error.localizedDescription
+            self.showErrorAlert = true
+        }
+    }
+
+    // (B) 리뷰 삭제
+    func deleteReview(reviewID: Int, userID: String) async {
+        guard let url = URL(string: "\(baseURL)/reviews/\(reviewID)") else { return }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "DELETE"
+
+        do {
+            let (_, response) = try await URLSession.shared.data(for: request)
+            guard let httpResponse = response as? HTTPURLResponse,
+                  httpResponse.statusCode == 200
+            else {
+                throw URLError(.badServerResponse)
+            }
+            // 삭제 성공 후 다시 리뷰 목록 갱신
+            await self.fetchReviews(for: userID)
+        } catch {
+            self.errorMessage = error.localizedDescription
+            self.showErrorAlert = true
+        }
+    }
 }

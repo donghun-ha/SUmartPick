@@ -74,48 +74,69 @@ getJSONUserData();
 getJSONOrderData();
   }
   Future getJSONDashboardData() async {
-    Map<String, dynamic> apiEndpoints = {
-      'https://fastapi.sumartpick.shop/dashboard/total_orders': (List result) {
-        totalOrders.clear();
-        totalOrders.addAll(result);
-      },
-      'https://fastapi.sumartpick.shop/dashboard/total_orders_amount': (List result) {
-        totalsales.clear();
-        totalsales.addAll(result);
-      },
-      'https://fastapi.sumartpick.shop/dashboard/order_payment_completed': (List result) {
-        completedPayment.clear();
-        completedPayment.addAll(result);
-      },
-      'https://fastapi.sumartpick.shop/dashboard/order_preparing_for_delivery': (List result) {
-        readyDelivery.clear();
-        readyDelivery.addAll(result);
-      },
-      'https://fastapi.sumartpick.shop/dashboard/order_in_delivery': (List result) {
-        inDelivery.clear();
-        inDelivery.addAll(result);
-      },
-      'https://fastapi.sumartpick.shop/dashboard/order_delivered': (List result) {
-        completedDelivery.clear();
-        completedDelivery.addAll(result);
-      },
-      'https://fastapi.sumartpick.shop/dashboard/order_refund': (List result) {
-        refundStatus.clear();
-        refundStatus.addAll(result);
-      },
-    };
+  Map<String, dynamic> apiEndpoints = {
+    'https://fastapi.sumartpick.shop/dashboard/total_orders': (List result) {
+      totalOrders.clear();
+      totalOrders.addAll(result);
+    },
+    'https://fastapi.sumartpick.shop/dashboard/total_orders_amount': (List result) {
+      totalsales.clear();
+      totalsales.addAll(result);
+    },
+    'https://fastapi.sumartpick.shop/dashboard/order_payment_completed': (List result) {
+      completedPayment.clear();
+      completedPayment.addAll(result);
+    },
+    'https://fastapi.sumartpick.shop/dashboard/order_preparing_for_delivery': (List result) {
+      readyDelivery.clear();
+      readyDelivery.addAll(result);
+    },
+    'https://fastapi.sumartpick.shop/dashboard/order_in_delivery': (List result) {
+      inDelivery.clear();
+      inDelivery.addAll(result);
+    },
+    'https://fastapi.sumartpick.shop/dashboard/order_delivered': (List result) {
+      completedDelivery.clear();
+      completedDelivery.addAll(result);
+    },
+    'https://fastapi.sumartpick.shop/dashboard/order_refund': (List result) {
+      refundStatus.clear();
+      refundStatus.addAll(result);
+    },
+  };
 
-    for (var entry in apiEndpoints.entries) {
-      var url = Uri.parse(entry.key);
+  for (var entry in apiEndpoints.entries) {
+    var url = Uri.parse(entry.key);
+    try {
       var response = await http.get(url);
+      
+      // 🚨 응답이 200(정상)인지 확인
+      if (response.statusCode != 200) {
+        print("❌ API 요청 실패: ${entry.key} - 상태코드: ${response.statusCode}");
+        continue;
+      }
+
+      // 🚨 API 응답 출력 (디버깅용)
+      print("🔍 API 응답 (${entry.key}): ${response.body}");
+
       var dataConvertedJSON = json.decode(utf8.decode(response.bodyBytes));
+
+      // 🚨 JSON 구조 확인
+      if (!dataConvertedJSON.containsKey('results')) {
+        print("❌ 'results' 키 없음 (${entry.key}): $dataConvertedJSON");
+        continue;
+      }
+
       List result = dataConvertedJSON['results'];
+      entry.value(result); // 변수에 데이터 추가
 
-      entry.value(result); // 해당 변수에 데이터 추가
+    } catch (e) {
+      print("❌ API 요청 중 오류 발생 (${entry.key}): $e");
     }
-
-    setState(() {}); // UI 업데이트
   }
+
+  setState(() {}); // UI 업데이트
+}
   // getJSONTotalordersData() async{
   //   var url = Uri.parse('https://fastapi.sumartpick.shop/dashboard/total_orders');
   //   var response = await http.get(url);
@@ -737,6 +758,67 @@ getJSONOrderData();
                             color: const Color.fromARGB(255, 14, 101, 171),
                           ),
                         ),
+                        // -------------Chart---------------
+                        const Text(
+                          "차트",
+                          style: TextStyle(
+                            fontSize: 18,
+                          ),
+                          textAlign: TextAlign.center,
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              // ------------------차트 그리는 부분--------------------
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    Container(
+                      width: 800,
+                      height: 600,
+                      decoration: BoxDecoration(
+                            color: Colors.white, // 배경색
+                            border: Border.all(
+                              color: const Color.fromARGB(255, 199, 199, 199), // 외곽선 색상
+                              width: 1.0, // 외곽선 두께
+                            ),
+                            ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(15, 0, 0, 0),
+                      child: Container(
+                        width: 800,
+                        height: 600,
+                        decoration: BoxDecoration(
+                              color: Colors.white, // 배경색
+                              border: Border.all(
+                                color: const Color.fromARGB(255, 199, 199, 199), // 외곽선 색상
+                                width: 1.0, // 외곽선 두께
+                              ),
+                              ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(0, 30, 0, 10),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(0, 0, 5, 0),
+                          child: Container(
+                            width: 5,
+                            height: 18,
+                            color: const Color.fromARGB(255, 14, 101, 171),
+                          ),
+                        ),
                         const Text(
                           "최근 주문내역",
                           style: TextStyle(
@@ -856,6 +938,7 @@ getJSONOrderData();
                     DataColumn(label: Text('이름')),
                     DataColumn(label: Text('이메일')),
                     DataColumn(label: Text('가입일시')),
+                    DataColumn(label: Text('등록주소')),
                   ], 
                   rows: recentlyRegistered.map((row) {
             return DataRow(

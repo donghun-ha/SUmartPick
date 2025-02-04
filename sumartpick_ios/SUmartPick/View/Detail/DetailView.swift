@@ -199,7 +199,7 @@ struct DetailView: View {
         }
         .navigationDestination(isPresented: $isNavigatingToToss) {
                 TossView(
-                    userId: userName,
+                    userId: String(userId),
                     address: "서울 강남구 테헤란로",
                     products: [
                         OrderModels(
