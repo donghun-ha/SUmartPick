@@ -9,6 +9,7 @@ router = APIRouter()
 # 주문 아이템 모델
 class OrderItem(BaseModel):
     Product_ID: int
+    quantity: int # 상품 개수 추가
 
 # 주문 요청 모델
 class OrderRequest(BaseModel):
@@ -44,50 +45,35 @@ async def create_order(order: OrderRequest):
             if curs.fetchone()[0] == 0:
                 raise HTTPException(status_code=400, detail=f"Product_ID {product.Product_ID} does not exist")
 
-        # `orders` 테이블에 주문 정보 + 첫 번째 상품 추가
+        # `orders` 테이블에 주문 정보 추가 (첫 번째 상품)
         sql_order = """
         INSERT INTO orders (User_ID, Order_Date, Address, payment_method, Order_state, Product_seq, Product_ID)
         VALUES (%s, %s, %s, %s, %s, %s, %s)
         """
-        values_order = (
-            order.User_ID, 
-            order.Order_Date, 
-            order.Address, 
-            order.payment_method, 
-            order.Order_state, 
-            1,  # 첫 번째 상품이므로 Product_seq = 1
-            order.products[0].Product_ID  # 첫 번째 상품
-        )
-        curs.execute(sql_order, values_order)
-
-        order_id = curs.lastrowid  # 방금 생성된 주문의 ID 가져오기
-
-        # 나머지 상품들을 추가 (이미 첫 번째 상품은 저장되었음)
-        sql_product = """
-        INSERT INTO orders (Order_ID, Product_seq, User_ID, Product_ID, Order_Date, Address, payment_method, Order_state)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-        """
-        for idx, product in enumerate(order.products[1:], start=2):  # 두 번째 상품부터 시작
-            values_product = (
-                order_id,  # 같은 Order_ID 사용
-                idx,  # Product_seq 증가
-                order.User_ID,
-                product.Product_ID,
-                order.Order_Date,
-                order.Address,
-                order.payment_method,
-                order.Order_state
-            )
-            curs.execute(sql_product, values_product)
+        
+        product_seq = 1  # 첫 번째 상품부터 Product_seq 시작
+        for product in order.products:
+            for _ in range(product.quantity):  # 주문 개수만큼 반복하여 삽입
+                values_order = (
+                    order.User_ID,
+                    order.Order_Date,
+                    order.Address,
+                    order.payment_method,
+                    order.Order_state,
+                    product_seq,  # Product_seq 증가
+                    product.Product_ID
+                )
+                curs.execute(sql_order, values_order)
+                product_seq += 1  # Product_seq 증가
 
         conn.commit()
         conn.close()
 
-        return {"message": "Order created successfully", "order_id": order_id}
+        return {"message": "Order created successfully"}
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
+    
 # 환불요청 없는 주문 상태 업데이트
 @router.get("/norefund_orders_update")
 async def update(Arrival_Time: str = None, Order_state: str = None, Order_ID: int = None, Product_seq: int = None):
