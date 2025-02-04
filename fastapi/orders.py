@@ -40,6 +40,7 @@ async def create_order(order: OrderRequest):
     try:
         # JSON 직렬화 가능하게 변환
         order_data = jsonable_encoder(order)
+        print(OrderItem.Product_ID)
         print("Received JSON:", json.dumps(order_data, indent=4, ensure_ascii=False))
 
         conn = hosts.connect_to_mysql()
@@ -100,11 +101,11 @@ async def create_order(order: OrderRequest):
         return {
             "message": "Order created successfully", 
             "order_id": order_id,
-            # "order_date": order_date_str
             }
 
     except Exception as e:
         print("JSON 직렬화 오류:", str(e))
+        print(f"except : {OrderItem.Product_ID}")
         raise HTTPException(status_code=500, detail=str(e))
     
 # 환불요청 없는 주문 상태 업데이트
