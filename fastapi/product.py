@@ -227,6 +227,11 @@ async def get_all_products(id :str = "apple-987654321"):
     import random
     import pandas as pd
 
+    import os
+
+    current_directory = os.getcwd()
+    print("현재 디렉토리:", current_directory)
+
     corr_matrix = pd.read_csv('analysis/model/category.csv', index_col=0)
 
     """
@@ -242,6 +247,8 @@ async def get_all_products(id :str = "apple-987654321"):
     curs = conn.cursor(pymysql.cursors.DictCursor)  # ✅ DictCursor 사용 (딕셔너리 변환)
 
     # id = 'apple-987654321' ### 시험용
+
+    
 
     #### 2번과정에 쓸 카테고리 랜덤추출용 함수
     def recommend_maker(input_category):
