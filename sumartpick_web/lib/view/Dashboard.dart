@@ -1,9 +1,12 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:sumatpick_web/view/Inventorypage.dart';
 import 'package:sumatpick_web/view/Orderpage.dart';
 import 'package:sumatpick_web/view/Productspage.dart';
 import 'package:sumatpick_web/view/Userpage.dart';
+import 'package:http/http.dart' as http;
 
 class Dashboard extends StatefulWidget {
   const Dashboard({super.key});
@@ -14,60 +17,175 @@ class Dashboard extends StatefulWidget {
 
 class _DashboardState extends State<Dashboard> {
   // 전체 주문현황
-  late int totalOrders; // 총 주문건수
-  late int totalsales; // 총 주문액
+  late List totalOrders; // 총 주문건수
+  late List totalsales; // 총 주문액
   // 주문상태 현황
-  late int completedPayment; // 결제완료
-  late int readyDelivery; // 배송준비
-  late int inDelivery; // 배송중
-  late int completedDelivery; // 배송완료
+  late List completedPayment; // 결제완료
+  late List readyDelivery; // 배송준비
+  late List inDelivery; // 배송중
+  late List completedDelivery; // 배송완료
   // 클래임 현황
-  late int refundStatus; // 환불
-  late int returnStatus; // 반품
-  late int exchangeStatus; // 교환
+  late List refundStatus; // 환불
+  late List returnStatus; // 반품
+  late List exchangeStatus; // 교환
   // 최근 주문내역
-  late List<List<dynamic>> recentOrders; // 최근 주문내역 리스트
+  late List<dynamic> recentOrders; // 최근 주문내역 리스트
   // 최근 회원가입
-  late List<List<dynamic>> recentlyRegistered; // 최근 회원가입 리스트
+  late List<dynamic> recentlyRegistered; // 최근 회원가입 리스트
 
 
 
   @override
   void initState() {
     super.initState();
+
     // 전체 주문현황
-    totalOrders = 0;
-    totalsales = 0;
+    totalOrders = [];
+    totalsales = [];
+
     // 주문상태 현황
-    completedPayment = 0;
-    readyDelivery = 0;
-    inDelivery = 0;
-    completedDelivery = 0;
+    completedPayment = [];
+    readyDelivery = [];
+    inDelivery = [];
+    completedDelivery = [];
+
     // 클래임 현황
-    refundStatus = 0;
-    returnStatus = 0;
-    exchangeStatus = 0;
+    refundStatus = [];
+
+    // 클레임 현황 미적용 부분
+    returnStatus = [0];
+    exchangeStatus = [0];
+
     // 최근 주문내역(예시데이터)
     recentOrders = [
-  ["25010716241290", "관리자", "관리자", "010-0000-0000", "무통장", "89,000", "2025-01-07 16:25 (화)"],
-  ["24122316544816", "관리자", "관리자", "010-0000-0000", "무통장", "89,000", "2024-12-23 16:57 (월)"],
-  ["24120419364235", "세글만", "세글만", "010-3333-3333", "무통장", "615,600", "2024-12-04 19:36 (수)"],
+  // ["25010716241290", "관리자", "관리자", "010-0000-0000", "무통장", "89,000", "2025-01-07 16:25 (화)"],
+  // ["24122316544816", "관리자", "관리자", "010-0000-0000", "무통장", "89,000", "2024-12-23 16:57 (월)"],
+  // ["24120419364235", "세글만", "세글만", "010-3333-3333", "무통장", "615,600", "2024-12-04 19:36 (수)"],
 ];
     // 최근 회원가입(예시데이터)
     recentlyRegistered = [
-  ["가맹점몰", "submall", "가맹점", "서울", "2024-12-16 06:14 (월)"],
-  ["세글만", "test3", "일반회원", "충주", "2020-10-04 18:05 (일)"],
-  ["두글만", "test2", "일반회원", "판교", "2020-10-04 18:05 (일)"],
-  ["한글만", "test1", "가맹점", "인천", "2020-10-04 18:04 (일)"],
+  // ["가맹점몰", "submall", "가맹점", "서울", "2024-12-16 06:14 (월)"],
+  // ["세글만", "test3", "일반회원", "충주", "2020-10-04 18:05 (일)"],
+  // ["두글만", "test2", "일반회원", "판교", "2020-10-04 18:05 (일)"],
+  // ["한글만", "test1", "가맹점", "인천", "2020-10-04 18:04 (일)"],
 ];
+getJSONDashboardData();
+getJSONUserData();
+getJSONOrderData();
+  }
+  Future getJSONDashboardData() async {
+  Map<String, dynamic> apiEndpoints = {
+    'https://fastapi.sumartpick.shop/dashboard/total_orders': (List result) {
+      totalOrders.clear();
+      totalOrders.addAll(result);
+    },
+    'https://fastapi.sumartpick.shop/dashboard/total_orders_amount': (List result) {
+      totalsales.clear();
+      totalsales.addAll(result);
+    },
+    'https://fastapi.sumartpick.shop/dashboard/order_payment_completed': (List result) {
+      completedPayment.clear();
+      completedPayment.addAll(result);
+    },
+    'https://fastapi.sumartpick.shop/dashboard/order_preparing_for_delivery': (List result) {
+      readyDelivery.clear();
+      readyDelivery.addAll(result);
+    },
+    'https://fastapi.sumartpick.shop/dashboard/order_in_delivery': (List result) {
+      inDelivery.clear();
+      inDelivery.addAll(result);
+    },
+    'https://fastapi.sumartpick.shop/dashboard/order_delivered': (List result) {
+      completedDelivery.clear();
+      completedDelivery.addAll(result);
+    },
+    'https://fastapi.sumartpick.shop/dashboard/order_refund': (List result) {
+      refundStatus.clear();
+      refundStatus.addAll(result);
+    },
+  };
+
+  for (var entry in apiEndpoints.entries) {
+    var url = Uri.parse(entry.key);
+    try {
+      var response = await http.get(url);
+      
+      // 🚨 응답이 200(정상)인지 확인
+      if (response.statusCode != 200) {
+        print("❌ API 요청 실패: ${entry.key} - 상태코드: ${response.statusCode}");
+        continue;
+      }
+
+      // 🚨 API 응답 출력 (디버깅용)
+      print("🔍 API 응답 (${entry.key}): ${response.body}");
+
+      var dataConvertedJSON = json.decode(utf8.decode(response.bodyBytes));
+
+      // 🚨 JSON 구조 확인
+      if (!dataConvertedJSON.containsKey('results')) {
+        print("❌ 'results' 키 없음 (${entry.key}): $dataConvertedJSON");
+        continue;
+      }
+
+      List result = dataConvertedJSON['results'];
+      entry.value(result); // 변수에 데이터 추가
+
+    } catch (e) {
+      print("❌ API 요청 중 오류 발생 (${entry.key}): $e");
+    }
+  }
+
+  setState(() {}); // UI 업데이트
+}
+  // getJSONTotalordersData() async{
+  //   var url = Uri.parse('https://fastapi.sumartpick.shop/dashboard/total_orders');
+  //   var response = await http.get(url);
+  //   // print(response.body);
+  //   totalOrders.clear();
+  //   var dataConvertedJSON = json.decode(utf8.decode(response.bodyBytes));
+  //   List result = dataConvertedJSON['results'];
+  //   totalOrders.addAll(result);
+  //   setState(() {});
+  // }
+  // getJSONTotalamountData() async{
+  //   var url = Uri.parse('https://fastapi.sumartpick.shop/dashboard/total_orders_amount');
+  //   var response = await http.get(url);
+  //   // print(response.body);
+  //   totalsales.clear();
+  //   var dataConvertedJSON = json.decode(utf8.decode(response.bodyBytes));
+  //   List result = dataConvertedJSON['results'];
+  //   totalsales.addAll(result);
+  //   setState(() {});
+  // }
+  // 최근 회원가입 유저
+  getJSONUserData() async{
+    var url = Uri.parse('https://fastapi.sumartpick.shop/dashboard/user_recent_select');
+    var response = await http.get(url);
+    // print(response.body);
+    recentlyRegistered.clear();
+    var dataConvertedJSON = json.decode(utf8.decode(response.bodyBytes));
+    List result = dataConvertedJSON['results'];
+    recentlyRegistered.addAll(result);
+    setState(() {});
+  }
+  // 최근 주문내역
+  getJSONOrderData() async{
+    var url = Uri.parse('https://fastapi.sumartpick.shop/dashboard/order_recent_select');
+    var response = await http.get(url);
+    // print(response.body);
+    recentOrders.clear();
+    var dataConvertedJSON = json.decode(utf8.decode(response.bodyBytes));
+    List result = dataConvertedJSON['results'];
+    recentOrders.addAll(result);
+    setState(() {});
   }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xffF9FAFB),
-      body: Padding(
-        padding: const EdgeInsets.fromLTRB(30, 10, 30, 30),
-        child: SingleChildScrollView(
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(30, 10, 30, 30),
           child: Column(
             children: [
               // 위의 탭 부분
@@ -93,7 +211,7 @@ class _DashboardState extends State<Dashboard> {
                     alignment: Alignment.center,
                     color: const Color(0xffF9FAFB),
                     child: const Text(
-                      '회원관리',
+                      '회원검색',
                       )
                     ),
                     ),
@@ -274,7 +392,7 @@ class _DashboardState extends State<Dashboard> {
                                     color: const Color.fromARGB(255, 243, 243, 243),
                                   child: Center(
                                     child: Text(
-                                      '$totalOrders',
+                                      totalOrders.isNotEmpty ? '${totalOrders[0][0]}' : '0',
                                       style: const TextStyle(
                                         fontSize: 18,
                                         fontWeight: FontWeight.bold
@@ -290,7 +408,7 @@ class _DashboardState extends State<Dashboard> {
                                       color: const Color.fromARGB(255, 243, 243, 243),
                                       child: Center(
                                         child: Text(
-                                          '$totalsales',
+                                          totalsales.isNotEmpty ? '${totalsales[0][0]}' : '0',
                                           style: const TextStyle(
                                             fontSize: 18,
                                             fontWeight: FontWeight.bold
@@ -414,7 +532,7 @@ class _DashboardState extends State<Dashboard> {
                                       color: const Color.fromARGB(255, 243, 243, 243),
                                     child: Center(
                                       child: Text(
-                                        '$completedPayment',
+                                        completedPayment.isNotEmpty ? '${completedPayment[0][0]}' : '0',
                                         style: const TextStyle(
                                           fontSize: 18,
                                           fontWeight: FontWeight.bold
@@ -430,7 +548,7 @@ class _DashboardState extends State<Dashboard> {
                                         color: const Color.fromARGB(255, 243, 243, 243),
                                         child: Center(
                                           child: Text(
-                                            '$readyDelivery',
+                                            readyDelivery.isNotEmpty ? '${readyDelivery[0][0]}' : '0',
                                             style: const TextStyle(
                                               fontSize: 18,
                                               fontWeight: FontWeight.bold
@@ -447,7 +565,7 @@ class _DashboardState extends State<Dashboard> {
                                         color: const Color.fromARGB(255, 243, 243, 243),
                                         child: Center(
                                           child: Text(
-                                            '$inDelivery',
+                                            inDelivery.isNotEmpty ? '${inDelivery[0][0]}' : '0',
                                             style: const TextStyle(
                                               fontSize: 18,
                                               fontWeight: FontWeight.bold
@@ -464,7 +582,7 @@ class _DashboardState extends State<Dashboard> {
                                         color: const Color.fromARGB(255, 243, 243, 243),
                                         child: Center(
                                           child: Text(
-                                            '$completedDelivery',
+                                            completedDelivery.isNotEmpty ? '${completedDelivery[0][0]}' : '0',
                                             style: const TextStyle(
                                               fontSize: 18,
                                               fontWeight: FontWeight.bold
@@ -572,7 +690,7 @@ class _DashboardState extends State<Dashboard> {
                                       color: const Color.fromARGB(255, 243, 243, 243),
                                     child: Center(
                                       child: Text(
-                                        '$refundStatus',
+                                        refundStatus.isNotEmpty ? '${refundStatus[0][0]}' : '0',
                                         style: const TextStyle(
                                           fontSize: 18,
                                           fontWeight: FontWeight.bold
@@ -588,7 +706,7 @@ class _DashboardState extends State<Dashboard> {
                                         color: const Color.fromARGB(255, 243, 243, 243),
                                         child: Center(
                                           child: Text(
-                                            '$returnStatus',
+                                            '${returnStatus[0]}',
                                             style: const TextStyle(
                                               fontSize: 18,
                                               fontWeight: FontWeight.bold
@@ -605,7 +723,7 @@ class _DashboardState extends State<Dashboard> {
                                         color: const Color.fromARGB(255, 243, 243, 243),
                                         child: Center(
                                           child: Text(
-                                            '$exchangeStatus',
+                                            '${exchangeStatus[0]}',
                                             style: const TextStyle(
                                               fontSize: 18,
                                               fontWeight: FontWeight.bold
@@ -675,31 +793,31 @@ class _DashboardState extends State<Dashboard> {
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: DataTable(
-                  columnSpacing: 200,
+                  columnSpacing: 85,
                   columns: const [
                     DataColumn(label: Text('주문번호')),
-                    DataColumn(label: Text('주문자명')),
-                    DataColumn(label: Text('수령자명')),
-                    DataColumn(label: Text('전화번호')),
-                    DataColumn(label: Text('결제방법')),
-                    DataColumn(label: Text('총주문액')),
+                    DataColumn(label: Text('상세번호')),
+                    DataColumn(label: Text('상품명')),
+                    DataColumn(label: Text('주문가격')),
                     DataColumn(label: Text('주문일시')),
+                    DataColumn(label: Text('결제방법')),
+                    DataColumn(label: Text('배송상태')),
                   ], 
                   rows: recentOrders.map((row) {
-                  return DataRow(
-                    cells: row.map((cell) {
-                      return DataCell(
-                        SizedBox(
+                            return DataRow(
+                              cells: row.map<DataCell>((cell) {  // ✅ `map<DataCell>`을 명시적으로 사용
+                return DataCell(
+                  SizedBox(
                           width: 150,
                           child: Text(
                             cell.toString(),
                             softWrap: false,
-                            ),
-                        )
-                        );
-                    }).toList(),
-                  );
-                }).toList(),
+                          ),
+                  ),
+                );
+                              }).toList(),
+                            );
+                          }).toList(),
                   ),
               ),
               Padding(
@@ -739,7 +857,7 @@ class _DashboardState extends State<Dashboard> {
                         ),
                         
                         child: const Text(
-                          '회원관리 바로가기',
+                          '회원검색 바로가기',
                           style: TextStyle(
                             fontSize: 12,
                             
@@ -754,27 +872,27 @@ class _DashboardState extends State<Dashboard> {
                 child: DataTable(
                   columnSpacing: 200,
                   columns: const [
-                    DataColumn(label: Text('이름')),
                     DataColumn(label: Text('아이디')),
-                    DataColumn(label: Text('회원유형')),
-                    DataColumn(label: Text('주소')),
+                    DataColumn(label: Text('가입유형')),
+                    DataColumn(label: Text('이름')),
+                    DataColumn(label: Text('이메일')),
                     DataColumn(label: Text('가입일시')),
                   ], 
                   rows: recentlyRegistered.map((row) {
-                  return DataRow(
-                    cells: row.map((cell) {
-                      return DataCell(
-                        SizedBox(
-                          width: 150,
-                          child: Text(
-                            cell.toString(),
-                            softWrap: false,
-                            ),
-                        )
-                        );
-                    }).toList(),
-                  );
-                }).toList(),
+            return DataRow(
+              cells: row.map<DataCell>((cell) {  // ✅ `map<DataCell>`을 명시적으로 사용
+                return DataCell(
+                  SizedBox(
+          width: 150,
+          child: Text(
+            cell.toString(),
+            softWrap: false,
+          ),
+                  ),
+                );
+              }).toList(),
+            );
+          }).toList(),
                   ),
               ),
             ],

@@ -11,6 +11,8 @@ from product import router as product_router
 from orders import router as orders_router
 from inventories import router as inventories_router
 from dashboard import router as dashboard_router
+from review import router as review_router
+from address import router as address_router
 
 app = FastAPI()
 
@@ -32,6 +34,8 @@ app.include_router(product_router, tags=["Products"])
 app.include_router(orders_router, prefix="/orders", tags=["orders"])
 app.include_router(inventories_router, prefix="/inventories", tags=["inventories"])
 app.include_router(dashboard_router, prefix="/dashboard", tags=["dashboard"])
+app.include_router(review_router, tags=["Reviews"])
+app.include_router(address_router, tags=["Address"])
 
 if __name__ == "__main__":
     import uvicorn
