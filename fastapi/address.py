@@ -18,8 +18,6 @@ class Address(BaseModel):
     is_default: bool | None = False
 
 
-
-
 @router.get("/addresses/{user_id}")
 async def get_addresses(user_id: str):
     conn = connect_to_mysql()

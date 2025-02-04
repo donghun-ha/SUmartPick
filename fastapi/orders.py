@@ -6,10 +6,12 @@ import hosts
 
 router = APIRouter()
 
+
 class OrderItem(BaseModel):
     product_id: int
     quantity: int
     total_price: float
+
 
 class OrderRequest(BaseModel):
     user_id: str
@@ -18,6 +20,7 @@ class OrderRequest(BaseModel):
     payment_method: str
     order_state: str = "Preparing_for_delivery"
     products: list[OrderItem]
+
 
 @router.get("/order_select")
 async def select():
@@ -30,7 +33,8 @@ async def select():
     conn.close()
     print(rows)
     # 데이터가 많을때 쓰는 방법
-    return {'results' : rows}
+    return {"results": rows}
+
 
 @router.post("/create_order")
 async def create_order(order: OrderRequest):
@@ -43,7 +47,13 @@ async def create_order(order: OrderRequest):
         INSERT INTO orders (User_ID, Order_Date, Address, payment_method, Order_state)
         VALUES (%s, %s, %s, %s, %s)
         """
-        values_order = (order.user_id, order.order_date, order.address, order.payment_method, order.order_state)
+        values_order = (
+            order.user_id,
+            order.order_date,
+            order.address,
+            order.payment_method,
+            order.order_state,
+        )
         curs.execute(sql_order, values_order)
 
         order_id = curs.lastrowid  # 새로 생성된 주문 ID 가져오기
@@ -63,7 +73,7 @@ async def create_order(order: OrderRequest):
                 order.order_date,
                 order.address,
                 order.payment_method,
-                order.order_state
+                order.order_state,
             )
             curs.execute(sql_product, values_product)
             product_seq += 1  # 상품 순서 증가
@@ -75,9 +85,15 @@ async def create_order(order: OrderRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
 # 환불요청 없는 주문 상태 업데이트
 @router.get("/norefund_orders_update")
-async def update(Arrival_Time: str = None, Order_state: str = None, Order_ID: int = None, Product_seq: int = None):
+async def update(
+    Arrival_Time: str = None,
+    Order_state: str = None,
+    Order_ID: int = None,
+    Product_seq: int = None,
+):
     conn = hosts.connect_to_mysql()
     curs = conn.cursor()
 
@@ -90,15 +106,21 @@ async def update(Arrival_Time: str = None, Order_state: str = None, Order_ID: in
         curs.execute(sql, (Arrival_Time, Order_state, Order_ID, Product_seq))
         conn.commit()
         conn.close()
-        return {'results': 'OK'}
+        return {"results": "OK"}
     except Exception as e:
         conn.close()
         print("Error :", e)
-        return {'results' : 'Error'}
-    
+        return {"results": "Error"}
+
+
 # 환불요청 주문 상태 업데이트
 @router.get("/refund_orders_update")
-async def update(refund_time: str = None, Order_state: str = None, Order_ID: int = None, Product_seq: int = None):
+async def update(
+    refund_time: str = None,
+    Order_state: str = None,
+    Order_ID: int = None,
+    Product_seq: int = None,
+):
     conn = hosts.connect_to_mysql()
     curs = conn.cursor()
 
@@ -111,11 +133,12 @@ async def update(refund_time: str = None, Order_state: str = None, Order_ID: int
         curs.execute(sql, (refund_time, Order_state, Order_ID, Product_seq))
         conn.commit()
         conn.close()
-        return {'results': 'OK'}
+        return {"results": "OK"}
     except Exception as e:
         conn.close()
         print("Error:", e)
-        return {'results': 'Error', 'error': str(e)}
+        return {"results": "Error", "error": str(e)}
+
 
 #### 주문내역
 @router.get("/{user_id}")
@@ -165,7 +188,6 @@ async def get_user_orders(user_id: str):
         raise HTTPException(status_code=500, detail="Database error occurred.")
     finally:
         conn.close()
-
 
 
 #### 환불
@@ -246,7 +268,6 @@ async def request_refund(order_id: int):
         conn.close()
 
 
-
 #### 배송조회쪽(고칠예정)
 @router.get("/{order_id}/track")
 async def track_order(order_id: int):
@@ -272,4 +293,4 @@ async def track_order(order_id: int):
     finally:
         conn.close()
         print("Error:", e)
-        return {'results': 'Error', 'error': str(e)}
+        return {"results": "Error", "error": str(e)}

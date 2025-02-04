@@ -4,7 +4,8 @@ import hosts
 
 router = APIRouter()
 
-conn = hosts.connect_to_mysql() # MySQL 연동
+conn = hosts.connect_to_mysql()  # MySQL 연동
+
 
 @router.get("/user_recent_select")
 async def select():
@@ -18,7 +19,8 @@ async def select():
     conn.close()
     print(rows)
     # 데이터가 많을때 쓰는 방법
-    return {'results' : rows}
+    return {"results": rows}
+
 
 @router.get("/order_recent_select")
 async def select():
@@ -32,7 +34,8 @@ async def select():
     conn.close()
     print(rows)
     # 데이터가 많을때 쓰는 방법
-    return {'results' : rows}
+    return {"results": rows}
+
 
 # 총 주문수
 @router.get("/total_orders")
@@ -47,7 +50,8 @@ async def select():
     conn.close()
     print(rows)
     # 데이터가 많을때 쓰는 방법
-    return {'results' : rows}
+    return {"results": rows}
+
 
 # 총 주문액
 @router.get("/total_orders_amount")
@@ -62,7 +66,8 @@ async def select():
     conn.close()
     print(rows)
     # 데이터가 많을때 쓰는 방법
-    return {'results' : rows}
+    return {"results": rows}
+
 
 # 결제완료
 @router.get("/order_payment_completed")
@@ -77,7 +82,8 @@ async def select():
     conn.close()
     print(rows)
     # 데이터가 많을때 쓰는 방법
-    return {'results' : rows}
+    return {"results": rows}
+
 
 # 배송준비
 @router.get("/order_preparing_for_delivery")
@@ -92,7 +98,8 @@ async def select():
     conn.close()
     print(rows)
     # 데이터가 많을때 쓰는 방법
-    return {'results' : rows}
+    return {"results": rows}
+
 
 # 배송중
 @router.get("/order_in_delivery")
@@ -107,7 +114,8 @@ async def select():
     conn.close()
     print(rows)
     # 데이터가 많을때 쓰는 방법
-    return {'results' : rows}
+    return {"results": rows}
+
 
 # 배송완료
 @router.get("/order_delivered")
@@ -122,7 +130,8 @@ async def select():
     conn.close()
     print(rows)
     # 데이터가 많을때 쓰는 방법
-    return {'results' : rows}
+    return {"results": rows}
+
 
 # 환불건수
 @router.get("/order_refund")
@@ -137,4 +146,4 @@ async def select():
     conn.close()
     print(rows)
     # 데이터가 많을때 쓰는 방법
-    return {'results' : rows}
+    return {"results": rows}

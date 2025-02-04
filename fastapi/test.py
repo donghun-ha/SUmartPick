@@ -229,6 +229,7 @@ class Address(BaseModel):
 #         return FileResponse(path=file_path, filename=file_name)
 #     return {"result": "Error"}
 
+
 #### 주문내역
 @app.get("/orders/{user_id}")
 async def get_user_orders(user_id: str):
@@ -277,6 +278,7 @@ async def get_user_orders(user_id: str):
         raise HTTPException(status_code=500, detail="Database error occurred.")
     finally:
         conn.close()
+
 
 #### 환불
 @app.get("/orders/refunds/{user_id}")
@@ -441,6 +443,7 @@ async def get_refund_exchange_orders(user_id: str):
 #         conn.close()
 #########################
 
+
 # (2) 주소 관련 CRUD
 @app.get("/addresses/{user_id}")
 async def get_addresses(user_id: str):
@@ -468,8 +471,6 @@ async def get_addresses(user_id: str):
 
 # 주소 관리
 ###############---###############---###############---###############---###############---###############---
-
-
 
 
 @app.post("/addresses")
@@ -578,9 +579,6 @@ async def delete_address(address_id: int):
         conn.close()
 
 
-
-
-
 ####################################---###############---###############---###############---###############---###############---###############---
 
 
@@ -609,6 +607,7 @@ async def request_refund(order_id: int):
         raise HTTPException(status_code=500, detail="Database error.")
     finally:
         conn.close()
+
 
 #### 배송조회쪽(고칠예정)
 @app.get("/orders/{order_id}/track")

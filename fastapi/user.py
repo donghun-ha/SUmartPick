@@ -13,11 +13,13 @@ import json
 from pydantic import BaseModel
 import pymysql
 
+
 class User(BaseModel):
     User_ID: str
     auth_provider: str
     name: str
     email: str
+
 
 # FastAPI 라우터 생성
 router = APIRouter()
@@ -69,7 +71,7 @@ async def user_login(request: Request):
                 "email": user[1],
                 "name": user[2],
                 "auth_provider": user[3],
-                "Creation_date": user[4].strftime('%Y-%m-%d %H:%M:%S')
+                "Creation_date": user[4].strftime("%Y-%m-%d %H:%M:%S"),
             }
             # Redis에 사용자 데이터 캐싱
             await redis.set(redis_key, json.dumps(user_data), ex=3600)  # 1시간 캐싱
@@ -89,7 +91,7 @@ async def user_login(request: Request):
             "email": email,
             "name": name,
             "auth_provider": login_type,
-            "Creation_date": None  # 새 사용자는 현재 Creation_date를 가져오지 않음
+            "Creation_date": None,  # 새 사용자는 현재 Creation_date를 가져오지 않음
         }
         await redis.set(redis_key, json.dumps(user_data), ex=3600)
         return {"source": "mysql", "user_data": user_data}
@@ -100,6 +102,7 @@ async def user_login(request: Request):
     finally:
         cursor.close()
         mysql_conn.close()
+
 
 @router.get("/user_select")
 async def select():
@@ -113,7 +116,8 @@ async def select():
     conn.close()
     print(rows)
     # 데이터가 많을때 쓰는 방법
-    return {'results' : rows}
+    return {"results": rows}
+
 
 @router.post("/users")
 async def add_user(user: User):
