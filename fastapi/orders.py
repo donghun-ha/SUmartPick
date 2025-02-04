@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException
+from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 from datetime import datetime
 import pymysql
@@ -95,7 +96,7 @@ async def create_order(order: OrderRequest):
         return {
             "message": "Order created successfully", 
             "order_id": order_id,
-            "order_date": order.Order_Date.isoformat() # JSON 직렬화
+            "order_date": jsonable_encoder(order.Order_Date) # datetime 직렬화
             }
 
     except Exception as e:
