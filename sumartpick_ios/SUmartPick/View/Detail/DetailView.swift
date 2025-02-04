@@ -18,6 +18,16 @@ struct DetailView: View {
     // alert 상태관리
     @State private var showAlert = false
     @State private var navigateToCart = false
+    @State private var isNavigatingToToss = false
+    
+    // UserDefaults에서 로그인된 사용자 정보 불러오기
+    private var userId: Int {
+        UserDefaults.standard.integer(forKey: "user_id")
+    }
+    
+    private var userName: String {
+        UserDefaults.standard.string(forKey: "user_name") ?? "Guest"
+    }
 
     var body: some View {
         VStack {
@@ -117,7 +127,7 @@ struct DetailView: View {
                             )
 
                             Button("바로구매") {
-                                print("바로구매 버튼 클릭")
+                                isNavigatingToToss = true
                             }
                             .font(.headline)
                             .foregroundColor(.white)
@@ -187,6 +197,19 @@ struct DetailView: View {
                 secondaryButton: .cancel(Text("쇼핑 계속하기"))
             )
         }
+//        .navigationDestination(isPresented: $isNavigatingToToss) {
+//                TossView(
+//                    userId: userName,
+//                    address: "서울 강남구 테헤란로",
+//                    products: [
+//                        OrderModels(
+//                            Product_ID: productID,
+//                            quantity: quantity,
+//                            total_price: Int(viewModel.product?.price ?? 0) * quantity
+//                        )
+//                    ]
+//                )
+//        }
     }
 
     // ✅ 사용자 ID 마스킹 처리

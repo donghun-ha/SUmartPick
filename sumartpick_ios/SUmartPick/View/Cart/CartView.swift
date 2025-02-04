@@ -18,7 +18,20 @@ struct CartView: View {
 
     var body: some View {
         NavigationView {
-            VStack {
+            VStack(spacing: 0) {
+                // ✅ 상단 타이틀
+                HStack {
+                    Text("장바구니")
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
+                    Spacer()
+                }
+                .padding(.horizontal)
+                .padding(.top, 10)
+                .background(Color.white)
+                .shadow(color: .gray.opacity(0.3), radius: 3, x: 0, y: 2)
+
+                // ✅ 장바구니 리스트
                 List {
                     ForEach(cartItems) { item in
                         HStack {
@@ -34,13 +47,11 @@ struct CartView: View {
                                 Text("\(Int(item.price))원")
                                     .foregroundColor(.gray)
 
-                                // 수량 조절
+                                // ✅ 수량 조절
                                 HStack {
                                     Button(action: {
-                                        if item.quantity > 1 {
-                                            try! item.realm?.write {
-                                                item.quantity -= 1
-                                            }
+                                        if item.quantity > 1 && !item.isInvalidated {
+                                            cartViewModel.updateQuantity(item: item, newQuantity: item.quantity - 1)
                                         }
                                     }) {
                                         Image(systemName: "minus.circle")
@@ -50,8 +61,8 @@ struct CartView: View {
                                         .padding(.horizontal, 5)
 
                                     Button(action: {
-                                        try! item.realm?.write {
-                                            item.quantity += 1
+                                        if !item.isInvalidated {
+                                            cartViewModel.updateQuantity(item: item, newQuantity: item.quantity + 1)
                                         }
                                     }) {
                                         Image(systemName: "plus.circle")
@@ -60,9 +71,11 @@ struct CartView: View {
                             }
                             Spacer()
 
-                            // 삭제 버튼
+                            // ✅ 삭제 버튼
                             Button(action: {
-                                cartViewModel.removeFromCart(userId: item.userId, productId: item.productId)
+                                if !item.isInvalidated {
+                                    cartViewModel.removeFromCart(userId: item.userId, productId: item.productId)
+                                }
                             }) {
                                 Image(systemName: "trash")
                                     .foregroundColor(.red)
@@ -71,8 +84,10 @@ struct CartView: View {
                         .padding(.vertical, 5)
                     }
                 }
+                .listStyle(PlainListStyle())
+                .padding(.bottom, 70) // ✅ 하단 버튼과의 간격 확보
 
-                // ✅ 총 금액 & 결제 버튼
+                // ✅ 총 금액 & 구매하기 버튼
                 HStack {
                     Text("총 금액: \(Int(totalPrice))원")
                         .font(.headline)
@@ -86,8 +101,10 @@ struct CartView: View {
                     .cornerRadius(10)
                 }
                 .padding()
+                .background(Color.white)
+                .shadow(color: .gray.opacity(0.3), radius: 3, x: 0, y: -2)
             }
-            .navigationTitle("장바구니")
+            .navigationBarHidden(true)
         }
     }
 }

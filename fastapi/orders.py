@@ -1,8 +1,23 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
+from datetime import datetime
 import pymysql
 import hosts
 
 router = APIRouter()
+
+class OrderItem(BaseModel):
+    product_id: int
+    quantity: int
+    total_price: float
+
+class OrderRequest(BaseModel):
+    user_id: str
+    order_date: datetime = datetime.now()
+    address: str
+    payment_method: str
+    order_state: str = "Preparing_for_delivery"
+    products: list[OrderItem]
 
 @router.get("/order_select")
 async def select():
@@ -17,32 +32,45 @@ async def select():
     # 데이터가 많을때 쓰는 방법
     return {'results' : rows}
 
-@router.post("/order/create")
-async def create_order(user_id: str, address: str, payment_method: str):
-    conn = hosts.connect_to_mysql()
-    curs = conn.cursor()
+@router.post("/create_order")
+async def create_order(order: OrderRequest):
+    try:
+        conn = hosts.connect_to_mysql()
+        curs = conn.cursor()
 
-    # ✅ 장바구니 정보 가져오기
-    cart_sql = "SELECT Product_ID, QTY FROM cart WHERE User_ID = %s"
-    curs.execute(cart_sql, (user_id,))
-    cart_items = curs.fetchall()
-
-    if not cart_items:
-        raise HTTPException(status_code=400, detail="장바구니가 비어 있습니다.")
-
-    # ✅ 주문 저장
-    for item in cart_items:
-        order_sql = """
-            INSERT INTO orders (Product_ID, User_ID, Address, payment_method, Order_state)
-            VALUES (%s, %s, %s, %s, '주문완료')
+        # 먼저 `orders` 테이블에 주문 정보 저장 (Product_ID 없이 삽입)
+        sql_order = """
+        INSERT INTO orders (User_ID, Order_Date, Address, payment_method, Order_state)
+        VALUES (%s, %s, %s, %s, %s)
         """
-        curs.execute(order_sql, (item['Product_ID'], user_id, address, payment_method))
+        values_order = (order.user_id, order.order_date, order.address, order.payment_method, order.order_state)
+        curs.execute(sql_order, values_order)
 
-    # ✅ 장바구니 비우기
-    delete_sql = "DELETE FROM cart WHERE User_ID = %s"
-    curs.execute(delete_sql, (user_id,))
+        order_id = curs.lastrowid  # 새로 생성된 주문 ID 가져오기
 
-    conn.commit()
-    conn.close()
+        # 주문한 각 상품을 `orders` 테이블에 추가
+        product_seq = 1  # 첫 번째 상품부터 시작
+        for product in order.products:
+            sql_product = """
+            INSERT INTO orders (Order_ID, Product_seq, User_ID, Product_ID, Order_Date, Address, payment_method, Order_state)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            """
+            values_product = (
+                order_id,  # 방금 삽입한 주문 ID
+                product_seq,  # 순차적인 제품 번호
+                order.user_id,
+                product.product_id,  # 올바른 Product_ID 입력
+                order.order_date,
+                order.address,
+                order.payment_method,
+                order.order_state
+            )
+            curs.execute(sql_product, values_product)
+            product_seq += 1  # 상품 순서 증가
 
-    return {"message": "주문이 성공적으로 완료되었습니다."}
+        conn.commit()
+        conn.close()
+
+        return {"message": "Order created successfully", "order_id": order_id}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
