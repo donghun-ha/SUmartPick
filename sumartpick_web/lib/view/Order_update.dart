@@ -1,5 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 
 class OrderUpdate extends StatefulWidget {
   const OrderUpdate({super.key});
@@ -15,7 +19,6 @@ class _OrderUpdateState extends State<OrderUpdate> {
   late String selectedFilter;
   late List<String> orderState;
   late String selectedOrderstate;
-
   // product['주문번호'],product['주문상세번호'],product['환불요청시간'],product['배송도착시간'],product['배송상태']
 
   // argument
@@ -194,9 +197,10 @@ class _OrderUpdateState extends State<OrderUpdate> {
                           onChanged: (String? value) {
                             setState(() {
                               selectedOrderstate = value!; // 선택된 값 업데이트
+                              DateTime now = DateTime.now();
                               value == 'Delivered'
                                   ? deliveryFinishtime.text =
-                                      DateTime.now().toString()
+                                      DateFormat('yyyy-MM-dd HH:mm:ss').format(now)
                                   : deliveryFinishtime.text = '';
                             });
                           },
@@ -210,7 +214,8 @@ class _OrderUpdateState extends State<OrderUpdate> {
                 padding: const EdgeInsets.fromLTRB(0, 50, 0, 0),
                 child: ElevatedButton(
                     onPressed: () {
-                      //
+                      updateJSONData();
+                      Get.back();
                     },
                     style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.black,
@@ -224,5 +229,16 @@ class _OrderUpdateState extends State<OrderUpdate> {
         ),
       ),
     );
+  }
+  // "update orders set Arrival_Time = %s, Order_state = %s where Order_ID = %s and Product_seq = %s"
+  updateJSONData() async{
+    // "update Products set Category_ID = %s, name = %s, price = %s where Product_ID = %s"
+    var url = Uri.parse(
+      "https://fastapi.sumartpick.shop/orders/norefund_orders_update?Arrival_Time=${deliveryFinishtime.text}&Order_state=$selectedOrderstate&Order_ID=${(value[0])}&Product_ID=${value[1]}");
+    var response = await http.get(url);
+    var dataConvertedJSON = json.decode(utf8.decode(response.bodyBytes));
+    var result = dataConvertedJSON['results'];
+
+    setState(() {});
   }
 }
