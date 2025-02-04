@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 import pymysql
 import config
+from hosts import connect_to_mysql
 
 router = APIRouter()
 
@@ -17,25 +18,11 @@ class Address(BaseModel):
     is_default: bool | None = False
 
 
-def connect():
-    db = config.get_db_config()
-    try:
-        conn = pymysql.connect(
-            host=db["host"],
-            user=db["user"],
-            password=db["password"],
-            database=db["database"],
-            charset="utf8mb4",
-            cursorclass=pymysql.cursors.DictCursor,
-        )
-        return conn
-    except pymysql.MySQLError as e:
-        raise HTTPException(status_code=500, detail="Database connection failed")
 
 
 @router.get("/addresses/{user_id}")
 async def get_addresses(user_id: str):
-    conn = connect()
+    conn = connect_to_mysql()
     cursor = conn.cursor()
     try:
         sql = """
@@ -64,7 +51,7 @@ async def create_address(address: Address):
     """
     새 주소 등록
     """
-    conn = connect()
+    conn = connect_to_mysql()
     cursor = conn.cursor()
 
     try:
@@ -106,7 +93,7 @@ async def update_address(address_id: int, address: Address):
     """
     주소 정보 수정
     """
-    conn = connect()
+    conn = connect_to_mysql()
     cursor = conn.cursor()
     try:
         # 기본주소로 설정 시, 다른 주소들을 False 처리
@@ -151,7 +138,7 @@ async def delete_address(address_id: int):
     """
     주소 삭제
     """
-    conn = connect()
+    conn = connect_to_mysql()
     cursor = conn.cursor()
     try:
         sql = "DELETE FROM UserAddresses WHERE Address_ID = %s"
