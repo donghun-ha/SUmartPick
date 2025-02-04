@@ -44,7 +44,7 @@ async def create_order(order: OrderRequest):
         INSERT INTO orders (User_ID, Order_Date, Address, payment_method, Order_state)
         VALUES (%s, %s, %s, %s, %s)
         """
-        values_order = (order.user_id, order.order_date, order.address, order.payment_method, order.order_state)
+        values_order = (order.User_ID, order.order_date, order.address, order.payment_method, order.order_state)
         curs.execute(sql_order, values_order)
 
         order_id = curs.lastrowid  # 방금 생성된 주문의 ID 가져오기
