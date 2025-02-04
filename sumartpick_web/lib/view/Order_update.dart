@@ -14,7 +14,7 @@ class OrderUpdate extends StatefulWidget {
 
 class _OrderUpdateState extends State<OrderUpdate> {
   late TextEditingController refundRequesttime;
-  late TextEditingController refuntFinishtime;
+  late String refundFinishtime;
   late TextEditingController deliveryFinishtime;
   late String selectedFilter;
   late List<String> orderState;
@@ -28,7 +28,7 @@ class _OrderUpdateState extends State<OrderUpdate> {
   void initState() {
     super.initState();
     refundRequesttime = TextEditingController(text: value[2]);
-    refuntFinishtime = TextEditingController();
+    refundFinishtime = '';
     deliveryFinishtime = TextEditingController(text: value[3]);
     selectedFilter = '취소';
     selectedOrderstate = value[4];
@@ -45,7 +45,6 @@ class _OrderUpdateState extends State<OrderUpdate> {
   @override
   void dispose() {
     refundRequesttime.dispose();
-    refuntFinishtime.dispose();
     deliveryFinishtime.dispose();
     super.dispose();
   }
@@ -133,6 +132,9 @@ class _OrderUpdateState extends State<OrderUpdate> {
                                 onChanged: (String? value) {
                                   setState(() {
                                     selectedFilter = value!; // 선택된 값 업데이트
+                                    selectedOrderstate = 'Refund';
+                                    DateTime now = DateTime.now();
+                                    refundFinishtime = DateFormat('yyyy-MM-dd HH:mm:ss').format(now).toString();
                                   });
                                 },
                               ),
@@ -185,7 +187,19 @@ class _OrderUpdateState extends State<OrderUpdate> {
                       ),
                       Padding(
                         padding: const EdgeInsets.fromLTRB(100, 0, 0, 0),
-                        child: DropdownButton<String>(
+                        child: selectedFilter == '수락' 
+                        ? DropdownButton<String>(
+                                dropdownColor: Colors.white,
+                                value: selectedOrderstate, // 현재 선택된 값
+                                items: orderState
+                                    .map((String option) =>
+                                        DropdownMenuItem<String>(
+                                          value: option,
+                                          child: Text(option),
+                                        ))
+                                    .toList(),
+                                onChanged: null)
+                        :DropdownButton<String>(
                           dropdownColor: Colors.white,
                           value: selectedOrderstate, // 현재 선택된 값
                           items: orderState
@@ -200,9 +214,11 @@ class _OrderUpdateState extends State<OrderUpdate> {
                               DateTime now = DateTime.now();
                               value == 'Delivered'
                                   ? deliveryFinishtime.text =
-                                      DateFormat('yyyy-MM-dd HH:mm:ss').format(now)
+                                      DateFormat('yyyy-MM-dd HH:mm:ss').format(now).toString()
                                   : deliveryFinishtime.text = '';
                             });
+                            print(selectedOrderstate);
+                            print(deliveryFinishtime.text);
                           },
                         ),
                       ),
@@ -214,7 +230,9 @@ class _OrderUpdateState extends State<OrderUpdate> {
                 padding: const EdgeInsets.fromLTRB(0, 50, 0, 0),
                 child: ElevatedButton(
                     onPressed: () {
-                      updateJSONData();
+                      selectedFilter == '수락' 
+                      ? updateJSONRefundData()
+                      : updateJSONData();
                       Get.back();
                     },
                     style: ElevatedButton.styleFrom(
@@ -234,11 +252,52 @@ class _OrderUpdateState extends State<OrderUpdate> {
   updateJSONData() async{
     // "update Products set Category_ID = %s, name = %s, price = %s where Product_ID = %s"
     var url = Uri.parse(
-      "https://fastapi.sumartpick.shop/orders/norefund_orders_update?Arrival_Time=${deliveryFinishtime.text}&Order_state=$selectedOrderstate&Order_ID=${(value[0])}&Product_ID=${value[1]}");
+    "https://fastapi.sumartpick.shop/orders/norefund_orders_update?"
+    "refund_time=${Uri.encodeComponent(refundFinishtime)}"
+    "&Order_state=${Uri.encodeComponent(selectedOrderstate)}"
+    "&Order_ID=${value[0]}"
+    "&Product_seq=${value[1]}"
+  );
+    try {
     var response = await http.get(url);
     var dataConvertedJSON = json.decode(utf8.decode(response.bodyBytes));
     var result = dataConvertedJSON['results'];
 
+    if (result == 'OK') {
+      print("✅ 업데이트 성공");
+    } else {
+      print("❌ 업데이트 실패: $result");
+    }
+
     setState(() {});
+  } catch (e) {
+    print("❌ 요청 실패: $e");
+  }
+  }
+
+  updateJSONRefundData() async{
+    // "update Products set Category_ID = %s, name = %s, price = %s where Product_ID = %s"
+    var url = Uri.parse(
+    "https://fastapi.sumartpick.shop/orders/norefund_orders_update?"
+    "Arrival_Time=${Uri.encodeComponent(deliveryFinishtime.text)}"
+    "&Order_state=${Uri.encodeComponent(selectedOrderstate)}"
+    "&Order_ID=${value[0]}"
+    "&Product_seq=${value[1]}"
+  );
+    try {
+    var response = await http.get(url);
+    var dataConvertedJSON = json.decode(utf8.decode(response.bodyBytes));
+    var result = dataConvertedJSON['results'];
+
+    if (result == 'OK') {
+      print("✅ 업데이트 성공");
+    } else {
+      print("❌ 업데이트 실패: $result");
+    }
+
+    setState(() {});
+  } catch (e) {
+    print("❌ 요청 실패: $e");
+  }
   }
 }
