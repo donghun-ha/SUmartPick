@@ -197,19 +197,19 @@ struct DetailView: View {
                 secondaryButton: .cancel(Text("쇼핑 계속하기"))
             )
         }
-//        .navigationDestination(isPresented: $isNavigatingToToss) {
-//                TossView(
-//                    userId: userName,
-//                    address: "서울 강남구 테헤란로",
-//                    products: [
-//                        OrderModels(
-//                            Product_ID: productID,
-//                            quantity: quantity,
-//                            total_price: Int(viewModel.product?.price ?? 0) * quantity
-//                        )
-//                    ]
-//                )
-//        }
+        .navigationDestination(isPresented: $isNavigatingToToss) {
+                TossView(
+                    userId: userName,
+                    address: "서울 강남구 테헤란로",
+                    products: [
+                        OrderModels(
+                            Product_ID: productID,
+                            quantity: quantity,
+                            total_price: Int(viewModel.product?.price ?? 0) * quantity
+                        )
+                    ]
+                )
+        }
     }
 
     // ✅ 사용자 ID 마스킹 처리

@@ -31,7 +31,6 @@ struct CartView: View {
                 .background(Color.white)
                 .shadow(color: .gray.opacity(0.3), radius: 3, x: 0, y: 2)
 
-                // ✅ 장바구니 리스트
                 List {
                     ForEach(cartItems) { item in
                         HStack {
@@ -55,7 +54,9 @@ struct CartView: View {
                                         }
                                     }) {
                                         Image(systemName: "minus.circle")
+                                            .foregroundColor(item.quantity > 1 ? .blue : .gray)
                                     }
+                                    .buttonStyle(PlainButtonStyle()) // ✅ 버튼 스타일 적용 (이벤트 전파 방지)
 
                                     Text("\(item.quantity)")
                                         .padding(.horizontal, 5)
@@ -66,7 +67,9 @@ struct CartView: View {
                                         }
                                     }) {
                                         Image(systemName: "plus.circle")
+                                            .foregroundColor(.blue)
                                     }
+                                    .buttonStyle(PlainButtonStyle()) // ✅ 버튼 스타일 적용 (이벤트 전파 방지)
                                 }
                             }
                             Spacer()
@@ -80,12 +83,14 @@ struct CartView: View {
                                 Image(systemName: "trash")
                                     .foregroundColor(.red)
                             }
+                            .buttonStyle(PlainButtonStyle()) // ✅ 버튼 스타일 적용 (이벤트 전파 방지)
                         }
                         .padding(.vertical, 5)
+                        .contentShape(Rectangle()) // ✅ 터치 가능한 영역을 명확하게 설정
                     }
                 }
                 .listStyle(PlainListStyle())
-                .padding(.bottom, 70) // ✅ 하단 버튼과의 간격 확보
+                .padding(.bottom, 70)
 
                 // ✅ 총 금액 & 구매하기 버튼
                 HStack {
@@ -99,6 +104,7 @@ struct CartView: View {
                     .padding()
                     .background(Color.blue)
                     .cornerRadius(10)
+                    .buttonStyle(PlainButtonStyle()) // ✅ 구매 버튼도 이벤트 전파 방지
                 }
                 .padding()
                 .background(Color.white)

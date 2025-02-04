@@ -55,19 +55,26 @@ class CartViewModel: ObservableObject {
     }
     
     func updateQuantity(item: CartItem, newQuantity: Int) {
+        guard newQuantity >= 1 else { return } // ❗️ 수량이 1 미만이면 업데이트 중단
+
         DispatchQueue.main.async {
             let realm = self.getRealm()
             if let itemToUpdate = realm.objects(CartItem.self)
                 .filter("userId == %@ AND productId == %@", item.userId, item.productId)
-                .first {
-                try! realm.write {
-                    itemToUpdate.quantity = newQuantity
+                .first, !itemToUpdate.isInvalidated {  // ✅ 유효성 검사 추가
+                do {
+                    try realm.write {
+                        itemToUpdate.quantity = newQuantity
+                    }
+                    self.loadCartItems()
+                    self.syncUpdateQuantityToServer(userId: item.userId, productId: item.productId, quantity: newQuantity)
+                } catch {
+                    print("❌ Realm 업데이트 오류: \(error.localizedDescription)")
                 }
             }
-            self.loadCartItems()
-            self.syncUpdateQuantityToServer(userId: item.userId, productId: item.productId, quantity: newQuantity)
         }
     }
+
     
     //  장바구니에서 상품 삭제 (로컬 + 서버 동기화)
     func removeFromCart(userId: String, productId: Int) {
@@ -75,15 +82,15 @@ class CartViewModel: ObservableObject {
             let realm = self.getRealm()
             if let itemToRemove = realm.objects(CartItem.self)
                 .filter("userId == %@ AND productId == %@", userId, productId)
-                .first {
-                do{
+                .first, !itemToRemove.isInvalidated {  // ✅ 유효성 검사 강화
+                do {
                     try realm.write {
                         realm.delete(itemToRemove)
-                }
+                    }
                     self.loadCartItems()
                     self.syncRemoveFromServer(userId: userId, productId: productId)
-                } catch{
-                    print("Realm 트랜잭션 오류: \(error.localizedDescription)")
+                } catch {
+                    print("❌ Realm 삭제 오류: \(error.localizedDescription)")
                 }
             }
         }
