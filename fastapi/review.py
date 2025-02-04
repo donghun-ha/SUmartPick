@@ -56,7 +56,7 @@ async def get_reviews(product_id: int):
 @router.get("/reviews/{user_id}")
 async def get_user_reviews(user_id: str):
     conn = connect_to_mysql()
-    cursor = conn.cursor()
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
     try:
         sql = """
             SELECT r.ReviewSeq,
@@ -65,8 +65,8 @@ async def get_user_reviews(user_id: str):
                    r.Review_Content,
                    r.Star,
                    p.name AS product_name
-            FROM Reviews r
-            JOIN Products p ON r.Product_ID = p.Product_ID
+            FROM reviews r
+            JOIN products p ON r.Product_ID = p.Product_ID
             WHERE r.User_ID = %s
             ORDER BY r.ReviewSeq DESC
         """
@@ -93,10 +93,10 @@ async def add_review(review: dict):
     }
     """
     conn = connect_to_mysql()
-    cursor = conn.cursor()
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
     try:
         sql = """
-            INSERT INTO Reviews (User_ID, Product_ID, Review_Content, Star)
+            INSERT INTO reviews (User_ID, Product_ID, Review_Content, Star)
             VALUES (%s, %s, %s, %s)
         """
         cursor.execute(
@@ -128,10 +128,10 @@ async def update_review(review_id: int, review: dict):
     }
     """
     conn = connect_to_mysql()
-    cursor = conn.cursor()
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
     try:
         sql = """
-            UPDATE Reviews
+            UPDATE reviews
             SET Review_Content = %s,
                 Star = %s
             WHERE ReviewSeq = %s
@@ -150,9 +150,9 @@ async def update_review(review_id: int, review: dict):
 @router.delete("/reviews/{review_id}")
 async def delete_review(review_id: int):
     conn = connect_to_mysql()
-    cursor = conn.cursor()
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
     try:
-        sql = "DELETE FROM Reviews WHERE ReviewSeq = %s"
+        sql = "DELETE FROM reviews WHERE ReviewSeq = %s"
         cursor.execute(sql, (review_id,))
         conn.commit()
         return {"message": "리뷰가 삭제되었습니다."}
