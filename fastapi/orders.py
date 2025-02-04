@@ -40,7 +40,6 @@ async def create_order(order: OrderRequest):
     try:
         # JSON 직렬화 가능하게 변환
         order_data = jsonable_encoder(order)
-        print(OrderItem.Product_ID)
         print("Received JSON:", json.dumps(order_data, indent=4, ensure_ascii=False))
 
         conn = hosts.connect_to_mysql()
@@ -55,23 +54,17 @@ async def create_order(order: OrderRequest):
         # Order_Date 문자열 변환
         order_date_str = order.Order_Date.strftime("%Y-%m-%d %H:%M:%S")
 
-        # `orders` 테이블에 주문 정보 추가 (Order_ID 생성)
         sql_order = """
-        INSERT INTO orders (User_ID, Order_Date, Address, payment_method, Order_state)
-        VALUES (%s, %s, %s, %s, %s)
+        SELECT Order_ID 
+        FROM orders
+        ORDER BY Order_ID DESC
+        LIMIT 1
         """
-        
-        values_order = (
-            order.User_ID,
-            order_date_str,
-            order.Address,
-            order.payment_method,
-            order.Order_state
-        )
-        
-        curs.execute(sql_order, values_order)
-        order_id = curs.lastrowid  # 새로 생성된 Order_ID 가져오기
 
+        curs.execute(sql_order,)
+        order_id = curs.fetchone()['Order_ID']
+
+        
         # 주문한 각 상품을 추가하면서 `Product_seq` 증가
         sql_product = """
         INSERT INTO orders (Order_ID, Product_seq, User_ID, Product_ID, Order_Date, Address, payment_method, Order_state)
@@ -82,7 +75,7 @@ async def create_order(order: OrderRequest):
         for product in order.products:
             for _ in range(product.quantity):  # 주문 개수만큼 반복하여 삽입
                 values_product = (
-                    order_id,  # 같은 Order_ID 사용
+                    order_id,
                     product_seq,  # Product_seq 증가
                     order.User_ID,
                     product.Product_ID,
@@ -93,19 +86,16 @@ async def create_order(order: OrderRequest):
                 )
                 curs.execute(sql_product, values_product)
                 product_seq += 1  # Product_seq 증가
-        print(order_date_str)
 
         conn.commit()
         conn.close()
 
         return {
-            "message": "Order created successfully", 
-            "order_id": order_id,
+            "message": "Order created successfully"
             }
 
     except Exception as e:
         print("JSON 직렬화 오류:", str(e))
-        print(f"except : {OrderItem.Product_ID}")
         raise HTTPException(status_code=500, detail=str(e))
     
 # 환불요청 없는 주문 상태 업데이트
