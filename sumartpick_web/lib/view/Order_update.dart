@@ -29,7 +29,13 @@ class _OrderUpdateState extends State<OrderUpdate> {
     deliveryFinishtime = TextEditingController(text: value[3]);
     selectedFilter = '취소';
     selectedOrderstate = value[4];
-    orderState = ['Payment_completed', 'Preparing_for_delivery', 'In_delivery', 'Delivered', 'Refund'];
+    orderState = [
+      'Payment_completed',
+      'Preparing_for_delivery',
+      'In_delivery',
+      'Delivered',
+      'Refund'
+    ];
     print(value);
   }
 
@@ -67,13 +73,13 @@ class _OrderUpdateState extends State<OrderUpdate> {
                 child: Row(
                   children: [
                     Padding(
-                          padding: const EdgeInsets.fromLTRB(0, 0, 10, 0),
-                          child: Container(
-                            width: 5,
-                            height: 18,
-                            color: const Color.fromARGB(255, 214, 111, 111),
-                          ),
-                        ),
+                      padding: const EdgeInsets.fromLTRB(0, 0, 10, 0),
+                      child: Container(
+                        width: 5,
+                        height: 18,
+                        color: const Color.fromARGB(255, 214, 111, 111),
+                      ),
+                    ),
                     const Text(
                       '환불',
                       style:
@@ -110,9 +116,7 @@ class _OrderUpdateState extends State<OrderUpdate> {
                                           child: Text(option),
                                         ))
                                     .toList(),
-                                onChanged: null
-                                
-                              )
+                                onChanged: null)
                             : DropdownButton<String>(
                                 dropdownColor: Colors.white,
                                 value: selectedFilter, // 현재 선택된 값
@@ -146,13 +150,13 @@ class _OrderUpdateState extends State<OrderUpdate> {
                 child: Row(
                   children: [
                     Padding(
-                          padding: const EdgeInsets.fromLTRB(0, 0, 10, 0),
-                          child: Container(
-                            width: 5,
-                            height: 18,
-                            color: const Color.fromARGB(255, 214, 111, 111),
-                          ),
-                        ),
+                      padding: const EdgeInsets.fromLTRB(0, 0, 10, 0),
+                      child: Container(
+                        width: 5,
+                        height: 18,
+                        color: const Color.fromARGB(255, 214, 111, 111),
+                      ),
+                    ),
                     const Text(
                       '주문 상태',
                       style:
@@ -168,47 +172,53 @@ class _OrderUpdateState extends State<OrderUpdate> {
                   child: Row(
                     children: [
                       SizedBox(
-                                width: 450,
-                                child: TextField(
-                                  controller: deliveryFinishtime,
-                                  decoration: const InputDecoration(
-                                      border: OutlineInputBorder()),
-                                  readOnly: true,
-                                ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.fromLTRB(100, 0, 0, 0),
-                                child: DropdownButton<String>(
-                                    dropdownColor: Colors.white,
-                                    value: selectedOrderstate, // 현재 선택된 값
-                                    items: orderState
-                                        .map((String option) =>
-                                            DropdownMenuItem<String>(
-                                              value: option,
-                                              child: Text(option),
-                                            ))
-                                        .toList(),
-                                    onChanged: (String? value) {
-                                      setState(() {
-                                        selectedOrderstate = value!; // 선택된 값 업데이트
-                                      });
-                                    },
-                                  ),
-                              ),
+                        width: 450,
+                        child: TextField(
+                          controller: deliveryFinishtime,
+                          decoration: const InputDecoration(
+                              border: OutlineInputBorder()),
+                          readOnly: true,
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(100, 0, 0, 0),
+                        child: DropdownButton<String>(
+                          dropdownColor: Colors.white,
+                          value: selectedOrderstate, // 현재 선택된 값
+                          items: orderState
+                              .map((String option) => DropdownMenuItem<String>(
+                                    value: option,
+                                    child: Text(option),
+                                  ))
+                              .toList(),
+                          onChanged: (String? value) {
+                            setState(() {
+                              selectedOrderstate = value!; // 선택된 값 업데이트
+                              value == 'Delivered'
+                                  ? deliveryFinishtime.text =
+                                      DateTime.now().toString()
+                                  : deliveryFinishtime.text = '';
+                            });
+                          },
+                        ),
+                      ),
                     ],
                   ),
                 ),
               ),
-              ElevatedButton(
-                onPressed: () {
-                  
-                }, 
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.black,
-                  foregroundColor: Colors.white
-                ),
-                child: const Text('주문상태 수정')
-                )
+              Padding(
+                padding: const EdgeInsets.fromLTRB(0, 50, 0, 0),
+                child: ElevatedButton(
+                    onPressed: () {
+                      //
+                    },
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.black,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(5))),
+                    child: const Text('주문상태 수정')),
+              )
             ],
           ),
         ),

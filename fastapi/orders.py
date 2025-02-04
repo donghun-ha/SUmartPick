@@ -74,3 +74,20 @@ async def create_order(order: OrderRequest):
         return {"message": "Order created successfully", "order_id": order_id}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+# 환불요청 없는 주문 상태 업데이트
+@router.get("/norefund_orders_update")
+async def update(Arrival_Time: str=None, Order_state: str=None, Order_ID: int=None, Product_seq: int=None):
+    conn = hosts.connect_to_mysql()
+    curs = conn.cursor()
+
+    try:
+        sql = "update orders set Arrival_Time = %s, Order_state = %s where Order_ID = %s and Product_seq = %s"
+        curs.execute(sql, (Arrival_Time, Order_state, Order_ID, Product_seq))
+        conn.commit()
+        conn.close()
+        return {'results' : 'OK'}
+    except Exception as e:
+        conn.close()
+        print("Error :", e)
+        return {'results' : 'Error'}
