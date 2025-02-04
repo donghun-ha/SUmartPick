@@ -60,6 +60,12 @@ struct MyPageView: View {
                     }
                     Divider()
 
+                    // (6) 간편 로그인 등록
+                    NavigationLink(destination: EasyLoginRegisterView()) {
+                        rowItem(title: "간편 로그인 등록", icon: "person.badge.plus")
+                    }
+                    Divider()
+
                     Spacer()
 
                     // 로그아웃
@@ -85,7 +91,7 @@ struct MyPageView: View {
         }
     }
 
-    // 기존 rowItem 함수는 그대로 사용
+    // 공용 행 레이아웃
     func rowItem(title: String, icon: String) -> some View {
         HStack {
             Image(systemName: icon)

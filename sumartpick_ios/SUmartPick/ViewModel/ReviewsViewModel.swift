@@ -5,13 +5,6 @@
 //  Created by aeong on 1/23/25.
 //
 
-//
-//  ReviewsViewModel.swift
-//  SUmartPick
-//
-//  Created by aeong on 1/23/25.
-//
-
 import SwiftUI
 
 @MainActor

@@ -6,17 +6,17 @@ import hosts
 
 router = APIRouter()
 
+# 주문 아이템 모델
 class OrderItem(BaseModel):
-    product_id: int
-    quantity: int
-    total_price: float
+    Product_ID: int
 
+# 주문 요청 모델
 class OrderRequest(BaseModel):
-    user_id: str
-    order_date: datetime = datetime.now()
-    address: str
+    User_ID: str
+    Order_Date: datetime = datetime.now()
+    Address: str
     payment_method: str
-    order_state: str = "Preparing_for_delivery"
+    Order_state: str = "Payment_completed"
     products: list[OrderItem]
 
 @router.get("/order_select")
@@ -38,40 +38,41 @@ async def create_order(order: OrderRequest):
         conn = hosts.connect_to_mysql()
         curs = conn.cursor()
 
-        # 먼저 `orders` 테이블에 주문 정보 저장 (Product_ID 없이 삽입)
+        # 주문을 먼저 생성 (Product_ID 없이 저장)
         sql_order = """
         INSERT INTO orders (User_ID, Order_Date, Address, payment_method, Order_state)
         VALUES (%s, %s, %s, %s, %s)
         """
-        values_order = (order.user_id, order.order_date, order.address, order.payment_method, order.order_state)
+        values_order = (order.User_ID, order.Order_Date, order.Address, order.payment_method, order.Order_state)
         curs.execute(sql_order, values_order)
 
-        order_id = curs.lastrowid  # 새로 생성된 주문 ID 가져오기
+        order_id = curs.lastrowid  # 방금 생성된 주문의 ID 가져오기
 
-        # 주문한 각 상품을 `orders` 테이블에 추가
-        product_seq = 1  # 첫 번째 상품부터 시작
+        # 주문한 상품들을 'orders' 테이블에 추가
+        product_seq = 1 # 상품 순서 초기화
         for product in order.products:
             sql_product = """
             INSERT INTO orders (Order_ID, Product_seq, User_ID, Product_ID, Order_Date, Address, payment_method, Order_state)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
             """
             values_product = (
-                order_id,  # 방금 삽입한 주문 ID
-                product_seq,  # 순차적인 제품 번호
-                order.user_id,
-                product.product_id,  # 올바른 Product_ID 입력
-                order.order_date,
-                order.address,
+                order_id, # 방금 생성한 주문 ID
+                product_seq, # Product_seq
+                order.User_ID, 
+                product.Product_ID, # Product_ID
+                order.Order_Date,
+                order.Address,
                 order.payment_method,
-                order.order_state
+                order.Order_state
             )
             curs.execute(sql_product, values_product)
-            product_seq += 1  # 상품 순서 증가
+            product_seq += 1 # seq 증가
 
-        conn.commit()
-        conn.close()
+            conn.commit()
+            conn.close()
 
-        return {"message": "Order created successfully", "order_id": order_id}
+            return {"message" : "Order created successfully", "order_id": order_id}
+        
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
