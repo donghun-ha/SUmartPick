@@ -77,6 +77,9 @@ struct ContentView: View {
                 .transition(.slide)
             }
         }
+        .onAppear {
+            authState.autoLogin()
+        }
         .animation(.easeInOut, value: authState.isAuthenticated)
     }
 }

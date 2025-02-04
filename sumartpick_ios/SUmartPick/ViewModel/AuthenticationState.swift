@@ -133,6 +133,24 @@ class AuthenticationState: ObservableObject {
     @Published var showingErrorAlert = false
     @Published var errorMessage = ""
 
+    init() {
+            autoLogin() // 🚀 자동 로그인 호출 추가
+        }
+
+    func autoLogin() {
+            do {
+                let realm = try Realm()
+                if let account = realm.objects(EasyLoginAccount.self).first {
+                    self.userIdentifier = account.id
+                    self.userFullName = account.fullName
+                    self.isAuthenticated = true
+                    print("✅ 자동 로그인 성공: \(account.email)")
+                }
+            } catch {
+                print("❌ 자동 로그인 실패: \(error.localizedDescription)")
+            }
+        }
+    
     // Apple 로그인 요청 시 설정
     func configureSignInWithApple(_ request: ASAuthorizationAppleIDRequest) {
         request.requestedScopes = [.fullName, .email]
@@ -422,6 +440,15 @@ class AuthenticationState: ObservableObject {
 
     // 로그아웃 메서드
     func logout() {
+        do {
+            let realm = try Realm()
+            try realm.write {
+                realm.deleteAll() // 🚀 로그아웃 시 저장된 계정 삭제
+            }
+        } catch {
+            print("❌ Realm 데이터 삭제 실패: \(error.localizedDescription)")
+        }
+        
         self.isAuthenticated = false
         self.userIdentifier = nil
         self.userFullName = nil
