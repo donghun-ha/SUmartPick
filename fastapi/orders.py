@@ -120,8 +120,8 @@ async def get_user_orders(user_id: str):
                 p.name AS product_name,
                 p.preview_image AS product_image,
                 p.price AS product_price
-            FROM Orders o
-            JOIN Products p ON o.Product_ID = p.Product_ID
+            FROM orders o
+            JOIN products p ON o.Product_ID = p.Product_ID
             WHERE o.User_ID = %s
             ORDER BY o.Order_Date DESC
         """
@@ -172,8 +172,8 @@ async def get_refund_exchange_orders(user_id: str):
                 p.name AS product_name,
                 p.preview_image AS product_image,
                 p.price AS product_price
-            FROM Orders o
-            JOIN Products p ON o.Product_ID = p.Product_ID
+            FROM orders o
+            JOIN products p ON o.Product_ID = p.Product_ID
             WHERE o.User_ID = %s
               -- 반품 신청 상태값 추가
               AND o.Order_state IN ('Cancelled', 'Returned', 'Exchanged', 'Return_Requested')
@@ -210,7 +210,7 @@ async def request_refund(order_id: int):
     cursor = conn.cursor()
     try:
         sql = """
-            UPDATE Orders
+            UPDATE orders
             SET refund_demands_time = NOW(),
                 Order_state = 'Return_Requested'
             WHERE Order_ID = %s
@@ -236,7 +236,7 @@ async def track_order(order_id: int):
     try:
         sql = """
             SELECT Order_ID, TrackingNumber, Carrier, ShippingStatus
-            FROM Orders
+            FROM orders
             WHERE Order_ID = %s
         """
         cursor.execute(sql, (order_id,))

@@ -95,51 +95,51 @@ class Address(BaseModel):
 #         print("Error:", ex)
 #         return {"result": "Error"}
 
-### 로그인
-@app.post("/users")
-async def add_user(user: User):
-    # 유저 추가
-    print(f"Received request: {user.dict()}")
-    conn = connect()
-    cursor = conn.cursor()
+# ### 로그인
+# @app.post("/users")
+# async def add_user(user: User):
+#     # 유저 추가
+#     print(f"Received request: {user.dict()}")
+#     conn = connect()
+#     cursor = conn.cursor()
 
-    try:
-        cursor.execute("SELECT * FROM Users WHERE User_ID = %s", (user.User_ID,))
-        existing_user = cursor.fetchone()
+#     try:
+#         cursor.execute("SELECT * FROM Users WHERE User_ID = %s", (user.User_ID,))
+#         existing_user = cursor.fetchone()
 
-        if existing_user:
-            return {"message": "User already exists."}
+#         if existing_user:
+#             return {"message": "User already exists."}
 
-        sql = "INSERT INTO Users (User_ID, auth_provider, name, email) VALUES (%s, %s, %s, %s)"
-        cursor.execute(sql, (user.User_ID, user.auth_provider, user.name, user.email))
-        conn.commit()
-        return {"message": "User successfully added."}
-    except pymysql.MySQLError as ex:
-        print("Database error:", ex)
-        raise HTTPException(status_code=500, detail="Database error occurred.")
-    finally:
-        conn.close()
+#         sql = "INSERT INTO Users (User_ID, auth_provider, name, email) VALUES (%s, %s, %s, %s)"
+#         cursor.execute(sql, (user.User_ID, user.auth_provider, user.name, user.email))
+#         conn.commit()
+#         return {"message": "User successfully added."}
+#     except pymysql.MySQLError as ex:
+#         print("Database error:", ex)
+#         raise HTTPException(status_code=500, detail="Database error occurred.")
+#     finally:
+#         conn.close()
 
-### 로그인
-@app.get("/users/{user_id}")
-async def get_user(user_id: str):
-    # 유저 정보 조회
-    conn = connect()
-    cursor = conn.cursor()
+# ### 로그인
+# @app.get("/users/{user_id}")
+# async def get_user(user_id: str):
+#     # 유저 정보 조회
+#     conn = connect()
+#     cursor = conn.cursor()
 
-    try:
-        cursor.execute("SELECT * FROM Users WHERE User_ID = %s", (user_id,))
-        user = cursor.fetchone()
+#     try:
+#         cursor.execute("SELECT * FROM Users WHERE User_ID = %s", (user_id,))
+#         user = cursor.fetchone()
 
-        if not user:
-            raise HTTPException(status_code=404, detail="User not found.")
+#         if not user:
+#             raise HTTPException(status_code=404, detail="User not found.")
 
-        return user
-    except pymysql.MySQLError as ex:
-        print("Error:", ex)
-        raise HTTPException(status_code=500, detail="Database error occurred.")
-    finally:
-        conn.close()
+#         return user
+#     except pymysql.MySQLError as ex:
+#         print("Error:", ex)
+#         raise HTTPException(status_code=500, detail="Database error occurred.")
+#     finally:
+#         conn.close()
 
 
 # @app.get("/products")
