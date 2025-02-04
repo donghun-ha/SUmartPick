@@ -10,7 +10,7 @@ router = APIRouter()
 # 주문 아이템 모델
 class OrderItem(BaseModel):
     Product_ID: int
-    quantity: int # 상품 개수 추가
+    quantity: int  # 상품 개수 추가
 
 # 주문 요청 모델
 class OrderRequest(BaseModel):
@@ -33,29 +33,6 @@ async def select():
     print(rows)
     # 데이터가 많을때 쓰는 방법
     return {'results' : rows}
-
-from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
-from datetime import datetime
-import pymysql
-import hosts
-import json
-
-router = APIRouter()
-
-# 주문 아이템 모델
-class OrderItem(BaseModel):
-    Product_ID: int
-    quantity: int  # 상품 개수 추가
-
-# 주문 요청 모델
-class OrderRequest(BaseModel):
-    User_ID: str
-    Order_Date: str = datetime.now().replace(second=0, microsecond=0).strftime("%Y-%m-%d %H:%M:%S")  # 초 단위 저장
-    Address: str
-    payment_method: str
-    Order_state: str = "Payment_completed"
-    products: list[OrderItem]
 
 @router.post("/create_order")
 async def create_order(order: OrderRequest):
