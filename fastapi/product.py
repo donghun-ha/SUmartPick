@@ -314,13 +314,13 @@ async def get_all_products(id :str = "x"):
     for key in sorted_keys:
         temp_sql = f"""
         (SELECT 
-            P.Product_ID, 
-            P.name, 
-            P.preview_image, 
-            P.price, 
-            P.detail, 
+            P.Product_ID AS Product_ID , 
+            P.name AS name, 
+            P.preview_image AS preview_image, 
+            P.price AS price, 
+            P.detail AS detail, 
             C.name AS category,
-            P.created,
+            P.created AS created,
             COUNT(R.Product_ID) AS review_count
         FROM products AS P
         INNER JOIN category AS C ON C.Category_ID = P.Category_ID
@@ -334,7 +334,15 @@ async def get_all_products(id :str = "x"):
 
 
     sql1 = """
-        SELECT * FROM (\n"""
+        SELECT 
+            Product_ID,
+            name,
+            preview_image,
+            price,
+            detail,
+            category,
+            created
+        FROM (\n"""
     sql2 =  '\nUNION ALL\n'.join(sqls)
     sql3 = ") AS CombinedResults\nORDER BY review_count DESC, RAND()"
 
