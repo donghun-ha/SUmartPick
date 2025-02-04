@@ -16,7 +16,7 @@ class OrderItem(BaseModel):
 # 주문 요청 모델
 class OrderRequest(BaseModel):
     User_ID: str
-    Order_Date: datetime # datetime
+    Order_Date: datetime # datetime..
     Address: str
     payment_method: str
     Order_state: str = "Payment_completed"
