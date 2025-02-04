@@ -3,17 +3,19 @@ from pydantic import BaseModel
 from datetime import datetime
 import pymysql
 import hosts
+import json
 
 router = APIRouter()
 
 # 주문 아이템 모델
 class OrderItem(BaseModel):
     Product_ID: int
+    quantity: int  # 상품 개수 추가
 
 # 주문 요청 모델
 class OrderRequest(BaseModel):
     User_ID: str
-    Order_Date: datetime = datetime.now()
+    Order_Date: str = datetime.now().replace(second=0, microsecond=0).strftime("%Y-%m-%d %H:%M:%S")  # 초 단위 저장
     Address: str
     payment_method: str
     Order_state: str = "Payment_completed"
@@ -35,47 +37,64 @@ async def select():
 @router.post("/create_order")
 async def create_order(order: OrderRequest):
     try:
+        print("Received JSON:", json.dumps(order.model_dump(), indent=4, ensure_ascii=False))
         conn = hosts.connect_to_mysql()
         curs = conn.cursor()
 
-        # 주문을 먼저 생성 (Product_ID 없이 저장)
+        # 주문한 모든 상품이 `products` 테이블에 존재하는지 확인
+        for product in order.products:
+            curs.execute("SELECT COUNT(*) FROM products WHERE Product_ID = %s", (product.Product_ID,))
+            if curs.fetchone()[0] == 0:
+                raise HTTPException(status_code=400, detail=f"Product_ID {product.Product_ID} does not exist")
+
+        # `orders` 테이블에 주문 정보 추가 (Order_ID 생성)
         sql_order = """
         INSERT INTO orders (User_ID, Order_Date, Address, payment_method, Order_state)
         VALUES (%s, %s, %s, %s, %s)
         """
-        values_order = (order.User_ID, order.Order_Date, order.Address, order.payment_method, order.Order_state)
-        curs.execute(sql_order, values_order)
-
-        order_id = curs.lastrowid  # 방금 생성된 주문의 ID 가져오기
-
-        # 주문한 상품들을 'orders' 테이블에 추가
-        product_seq = 1 # 상품 순서 초기화
-        for product in order.products:
-            sql_product = """
-            INSERT INTO orders (Order_ID, Product_seq, User_ID, Product_ID, Order_Date, Address, payment_method, Order_state)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-            """
-            values_product = (
-                order_id, # 방금 생성한 주문 ID
-                product_seq, # Product_seq
-                order.User_ID, 
-                product.Product_ID, # Product_ID
-                order.Order_Date,
-                order.Address,
-                order.payment_method,
-                order.Order_state
-            )
-            curs.execute(sql_product, values_product)
-            product_seq += 1 # seq 증가
-
-            conn.commit()
-            conn.close()
-
-            return {"message" : "Order created successfully", "order_id": order_id}
         
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        values_order = (
+            order.User_ID,
+            order.Order_Date,
+            order.Address,
+            order.payment_method,
+            order.Order_state
+        )
+        
+        curs.execute(sql_order, values_order)
+        order_id = curs.lastrowid  # 새로 생성된 Order_ID 가져오기
 
+        # 주문한 각 상품을 추가하면서 `Product_seq` 증가
+        sql_product = """
+        INSERT INTO orders (Order_ID, Product_seq, User_ID, Product_ID, Order_Date, Address, payment_method, Order_state)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        """
+        
+        product_seq = 1  # 첫 번째 상품부터 Product_seq 시작
+        for product in order.products:
+            for _ in range(product.quantity):  # 주문 개수만큼 반복하여 삽입
+                values_product = (
+                    order_id,  # 같은 Order_ID 사용
+                    product_seq,  # Product_seq 증가
+                    order.User_ID,
+                    product.Product_ID,
+                    order.Order_Date,
+                    order.Address,
+                    order.payment_method,
+                    order.Order_state
+                )
+                curs.execute(sql_product, values_product)
+                product_seq += 1  # Product_seq 증가
+
+        conn.commit()
+        conn.close()
+
+        return {"message": "Order created successfully", "order_id": order_id}
+
+    except Exception as e:
+        print("JSON 디코딩 오류:", str(e))
+        raise HTTPException(status_code=500, detail=str(e))
+    
 # 환불요청 없는 주문 상태 업데이트
 @router.get("/norefund_orders_update")
 async def update(Arrival_Time: str = None, Order_state: str = None, Order_ID: int = None, Product_seq: int = None):
