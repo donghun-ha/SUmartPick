@@ -16,7 +16,7 @@ class OrderItem(BaseModel):
 # 주문 요청 모델
 class OrderRequest(BaseModel):
     User_ID: str
-    Order_Date: datetime = datetime.now().replace(second=0, microsecond=0)  # datetime 유지
+    Order_Date: datetime
     Address: str
     payment_method: str
     Order_state: str = "Payment_completed"
@@ -38,7 +38,10 @@ async def select():
 @router.post("/create_order")
 async def create_order(order: OrderRequest):
     try:
-        print("Received JSON:", json.dumps(order.model_dump(), indent=4, ensure_ascii=False))
+        # JSON 직렬화 가능하게 변환
+        order_data = jsonable_encoder(order)
+        print("Received JSON:", json.dumps(order_data, indent=4, ensure_ascii=False))
+
         conn = hosts.connect_to_mysql()
         curs = conn.cursor()
 
@@ -89,6 +92,7 @@ async def create_order(order: OrderRequest):
                 )
                 curs.execute(sql_product, values_product)
                 product_seq += 1  # Product_seq 증가
+        print(order_date_str)
 
         conn.commit()
         conn.close()
@@ -96,11 +100,11 @@ async def create_order(order: OrderRequest):
         return {
             "message": "Order created successfully", 
             "order_id": order_id,
-            "order_date": jsonable_encoder(order.Order_Date) # datetime 직렬화
+            # "order_date": order_date_str
             }
 
     except Exception as e:
-        print("JSON 디코딩 오류:", str(e))
+        print("JSON 직렬화 오류:", str(e))
         raise HTTPException(status_code=500, detail=str(e))
     
 # 환불요청 없는 주문 상태 업데이트
