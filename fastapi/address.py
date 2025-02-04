@@ -23,7 +23,7 @@ class Address(BaseModel):
 @router.get("/addresses/{user_id}")
 async def get_addresses(user_id: str):
     conn = connect_to_mysql()
-    cursor = conn.cursor()
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
     try:
         sql = """
             SELECT * FROM UserAddresses
