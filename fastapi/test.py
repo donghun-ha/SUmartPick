@@ -26,7 +26,6 @@ if not os.path.exists(UPLOAD_FOLDER):
 
 # Database connection
 def connect():
-    # config에서 DB 정보를 받아옴
     db = config.get_db_config()
     try:
         conn = pymysql.connect(
@@ -57,6 +56,18 @@ class Product(BaseModel):
     preview_image: str
     price: float
     detail: str
+
+
+# (1) 주소 관리를 위한 Pydantic 모델 (예시)
+class Address(BaseModel):
+    Address_ID: int | None = None
+    User_ID: str
+    address: str
+    address_detail: str | None = None
+    postal_code: str | None = None
+    recipient_name: str | None = None
+    phone: str | None = None
+    is_default: bool | None = False
 
 
 @app.post("/upload")
@@ -270,15 +281,10 @@ async def get_user_orders(user_id: str):
 
 @app.get("/orders/refunds/{user_id}")
 async def get_refund_exchange_orders(user_id: str):
-    """
-    특정 User_ID가 "취소, 반품, 교환" 상태인 주문들만 조회
-    예: Order_state가 'Cancelled', 'Returned', 'Exchanged' 등
-    """
     conn = connect()
     cursor = conn.cursor()
     try:
-        # 예: 상태가 'Cancelled'(취소), 'Returned'(반품), 'Exchanged'(교환)인 주문만 가져온다.
-        # 실제 사용 프로젝트 상태값에 따라 WHERE 문을 추가로 변경하면 됨.
+
         sql = """
             SELECT 
                 o.Order_ID,
@@ -298,13 +304,13 @@ async def get_refund_exchange_orders(user_id: str):
             FROM Orders o
             JOIN Products p ON o.Product_ID = p.Product_ID
             WHERE o.User_ID = %s
-              AND o.Order_state IN ('Cancelled', 'Returned', 'Exchanged')
+              -- 반품 신청 상태값 추가
+              AND o.Order_state IN ('Cancelled', 'Returned', 'Exchanged', 'Return_Requested')
             ORDER BY o.Order_Date DESC
         """
         cursor.execute(sql, (user_id,))
         orders = cursor.fetchall()
 
-        # 날짜/시간 필드를 isoformat() 변환
         for row in orders:
             if row["Order_Date"]:
                 row["Order_Date"] = row["Order_Date"].isoformat()
@@ -351,7 +357,6 @@ async def get_user_reviews(user_id: str):
         raise HTTPException(status_code=500, detail="Database error occurred.")
     finally:
         conn.close()
-
 
 # 리뷰 작성
 @app.post("/reviews")
@@ -429,6 +434,188 @@ async def delete_review(review_id: int):
         cursor.execute(sql, (review_id,))
         conn.commit()
         return {"message": "리뷰가 삭제되었습니다."}
+    except pymysql.MySQLError as ex:
+        print("Error:", ex)
+        raise HTTPException(status_code=500, detail="Database error occurred.")
+    finally:
+        conn.close()
+#########################
+
+# (2) 주소 관련 CRUD
+@app.get("/addresses/{user_id}")
+async def get_addresses(user_id: str):
+    conn = connect()
+    cursor = conn.cursor()
+    try:
+        sql = """
+            SELECT * FROM UserAddresses
+            WHERE User_ID = %s
+            ORDER BY is_default DESC, Address_ID DESC
+        """
+        cursor.execute(sql, (user_id,))
+        rows = cursor.fetchall()
+
+        for row in rows:
+            if "is_default" in row and row["is_default"] in (0, 1):
+                row["is_default"] = bool(row["is_default"])
+
+        return rows
+    except pymysql.MySQLError as e:
+        ...
+    finally:
+        conn.close()
+
+
+@app.post("/addresses")
+async def create_address(address: Address):
+    """
+    새 주소 등록
+    """
+    conn = connect()
+    cursor = conn.cursor()
+    try:
+        if address.is_default:
+            # 기존 기본주소들 is_default = False
+            cursor.execute(
+                "UPDATE UserAddresses SET is_default = FALSE WHERE User_ID = %s",
+                (address.User_ID,),
+            )
+
+        sql = """
+            INSERT INTO UserAddresses 
+            (User_ID, address, address_detail, postal_code, recipient_name, phone, is_default)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+        """
+        cursor.execute(
+            sql,
+            (
+                address.User_ID,
+                address.address,
+                address.address_detail,
+                address.postal_code,
+                address.recipient_name,
+                address.phone,
+                address.is_default,
+            ),
+        )
+        conn.commit()
+        return {"message": "Address created successfully."}
+    except pymysql.MySQLError as e:
+        print("Error:", e)
+        raise HTTPException(status_code=500, detail="Database error occurred.")
+    finally:
+        conn.close()
+
+
+@app.put("/addresses/{address_id}")
+async def update_address(address_id: int, address: Address):
+    """
+    주소 수정
+    """
+    conn = connect()
+    cursor = conn.cursor()
+    try:
+        if address.is_default:
+            # 새 주소를 기본으로 설정 시, 나머지 주소는 false 처리
+            cursor.execute(
+                "UPDATE UserAddresses SET is_default = FALSE WHERE User_ID = %s",
+                (address.User_ID,),
+            )
+
+        sql = """
+            UPDATE UserAddresses
+            SET address = %s,
+                address_detail = %s,
+                postal_code = %s,
+                recipient_name = %s,
+                phone = %s,
+                is_default = %s
+            WHERE Address_ID = %s
+        """
+        cursor.execute(
+            sql,
+            (
+                address.address,
+                address.address_detail,
+                address.postal_code,
+                address.recipient_name,
+                address.phone,
+                address.is_default,
+                address_id,
+            ),
+        )
+        conn.commit()
+        return {"message": "Address updated successfully."}
+    except pymysql.MySQLError as e:
+        print("Error:", e)
+        raise HTTPException(status_code=500, detail="Database error occurred.")
+    finally:
+        conn.close()
+
+
+@app.delete("/addresses/{address_id}")
+async def delete_address(address_id: int):
+    """
+    주소 삭제
+    """
+    conn = connect()
+    cursor = conn.cursor()
+    try:
+        sql = "DELETE FROM UserAddresses WHERE Address_ID = %s"
+        cursor.execute(sql, (address_id,))
+        conn.commit()
+        return {"message": "Address deleted successfully."}
+    except pymysql.MySQLError as e:
+        print("Error:", e)
+        raise HTTPException(status_code=500, detail="Database error occurred.")
+    finally:
+        conn.close()
+
+
+@app.put("/orders/{order_id}/requestRefund")
+async def request_refund(order_id: int):
+    """
+    예시: 반품 신청 처리
+    """
+    conn = connect()
+    cursor = conn.cursor()
+    try:
+        sql = """
+            UPDATE Orders
+            SET refund_demands_time = NOW(),
+                Order_state = 'Return_Requested'
+            WHERE Order_ID = %s
+        """
+        cursor.execute(sql, (order_id,))
+        if cursor.rowcount == 0:
+            raise HTTPException(status_code=404, detail="Order not found.")
+        conn.commit()
+        return {"message": "Refund request submitted."}
+    except pymysql.MySQLError as ex:
+        print("Error:", ex)
+        raise HTTPException(status_code=500, detail="Database error.")
+    finally:
+        conn.close()
+
+
+@app.get("/orders/{order_id}/track")
+async def track_order(order_id: int):
+    conn = connect()
+    cursor = conn.cursor()
+    try:
+        sql = """
+            SELECT Order_ID, TrackingNumber, Carrier, ShippingStatus
+            FROM Orders
+            WHERE Order_ID = %s
+        """
+        cursor.execute(sql, (order_id,))
+        tracking_info = cursor.fetchone()
+
+        # 만약 tracking_info가 None이면 order_id에 해당하는 레코드가 없는 경우
+        if not tracking_info:
+            raise HTTPException(status_code=404, detail="Order not found.")
+
+        return tracking_info
     except pymysql.MySQLError as ex:
         print("Error:", ex)
         raise HTTPException(status_code=500, detail="Database error occurred.")
