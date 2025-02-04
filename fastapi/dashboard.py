@@ -55,7 +55,7 @@ async def select():
     conn = hosts.connect_to_mysql()
     curs = conn.cursor()
     # 결과값을 딕셔너리로 변환할때 쓰이는 SQL문장
-    sql = "select sum(P.price) from orders as O, products as P where O.Product_ID = P.Product_ID"
+    sql = "select sum(P.price) from orders as O, products as P where O.Product_ID = P.Product_ID and Order_state != 'refund'"
     # sql = "select * from student"
     curs.execute(sql)
     rows = curs.fetchall()
