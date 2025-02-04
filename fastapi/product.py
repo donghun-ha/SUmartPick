@@ -232,7 +232,7 @@ async def get_all_products(id :str = "apple-987654321"):
     current_directory = os.getcwd()
     print("현재 디렉토리:", current_directory)
 
-    corr_matrix = pd.read_csv('analysis/model/category.csv', index_col=0)
+    corr_matrix = pd.read_csv('/SUmartPick/analysis/model/category.csv', index_col=0)
 
     """
     📌 추천상품 불러오기 api
