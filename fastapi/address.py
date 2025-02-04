@@ -24,7 +24,7 @@ async def get_addresses(user_id: str):
     cursor = conn.cursor(pymysql.cursors.DictCursor)
     try:
         sql = """
-            SELECT * FROM UserAddresses
+            SELECT * FROM useraddresses
             WHERE User_ID = %s
             ORDER BY is_default DESC, Address_ID DESC
         """
@@ -57,12 +57,12 @@ async def create_address(address: Address):
         # 기존 주소들의 is_default를 False로 만들어줄 수도 있음 (1개의 주소만 기본)
         if address.is_default:
             cursor.execute(
-                "UPDATE UserAddresses SET is_default = FALSE WHERE User_ID = %s",
+                "UPDATE useraddresses SET is_default = FALSE WHERE User_ID = %s",
                 (address.User_ID,),
             )
 
         sql = """
-            INSERT INTO UserAddresses 
+            INSERT INTO useraddresses 
             (User_ID, address, address_detail, postal_code, recipient_name, phone, is_default)
             VALUES (%s, %s, %s, %s, %s, %s, %s)
         """
@@ -97,12 +97,12 @@ async def update_address(address_id: int, address: Address):
         # 기본주소로 설정 시, 다른 주소들을 False 처리
         if address.is_default:
             cursor.execute(
-                "UPDATE UserAddresses SET is_default = FALSE WHERE User_ID = %s",
+                "UPDATE useraddresses SET is_default = FALSE WHERE User_ID = %s",
                 (address.User_ID,),
             )
 
         sql = """
-            UPDATE UserAddresses
+            UPDATE useraddresses
             SET address = %s,
                 address_detail = %s,
                 postal_code = %s,
@@ -139,7 +139,7 @@ async def delete_address(address_id: int):
     conn = connect_to_mysql()
     cursor = conn.cursor()
     try:
-        sql = "DELETE FROM UserAddresses WHERE Address_ID = %s"
+        sql = "DELETE FROM useraddresses WHERE Address_ID = %s"
         cursor.execute(sql, (address_id,))
         conn.commit()
         return {"message": "Address deleted successfully."}
