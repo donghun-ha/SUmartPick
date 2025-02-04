@@ -222,12 +222,12 @@ async def update(Product_ID: int, Category_ID: int, name: str, price: float):
 
 
 @router.get("/get_all_products")
-async def get_all_products(id :str = "x"):
+async def get_all_products(id :str = "apple-987654321"):
 
     import random
     import pandas as pd
 
-    corr_matrix = pd.read_csv('../analysis/model/category.csv')
+    corr_matrix = pd.read_csv('../analysis/model/category.csv', index_col=0)
 
     """
     📌 추천상품 불러오기 api
