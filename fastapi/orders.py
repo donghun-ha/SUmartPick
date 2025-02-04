@@ -58,7 +58,7 @@ async def create_order(order: OrderRequest):
         """
 
         curs.execute(sql_order,)
-        order_id = curs.fetchone()[0]
+        order_id = curs.fetchone()[0] + 1
 
         
         # 주문한 각 상품을 추가하면서 `Product_seq` 증가
