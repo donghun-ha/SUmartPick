@@ -21,6 +21,8 @@ Usage:
 from fastapi import APIRouter, HTTPException, Request, File, UploadFile
 from pydantic import BaseModel
 from typing import List
+
+import pymysql.cursors
 from hosts import connect_to_mysql
 import pymysql
 from firebase_admin import credentials, storage # firebase
@@ -57,10 +59,17 @@ class ProductResponse(BaseModel):
 class ProductCreateRequest(BaseModel):
     Category_ID: int  # 카테고리 ID
     name: str         # 상품 이름
-    preview_image: str  # Firebase 이미지 URL
+    base64_image: str  # Firebase 이미지 URL
     price: float
     detail: str
     manufacturer: str
+
+class ProductUpdateRequest(BaseModel):
+    Product_ID: int # 상품 ID
+    Category_ID: int  # 카테고리 ID
+    name: str         # 상품 이름
+    base64_image: str  # Firebase 이미지 URL
+    price: float
 
 
 @router.post("/products_query", response_model=List[ProductResponse])
@@ -86,7 +95,15 @@ async def products_query(query: ProductQuery):
     try:
         # SQL 쿼리 작성
         sql_query = """
-        SELECT Product_ID, Category_ID, name, preview_image ,price, detail, manufacturer, created 
+        SELECT 
+        Product_ID, 
+        Category_ID, 
+        name, 
+        preview_image,
+        price, 
+        detail, 
+        manufacturer, 
+        created 
         FROM products 
         WHERE name LIKE %s
         """
@@ -110,7 +127,7 @@ async def products_query(query: ProductQuery):
         cursor.close()
         mysql_conn.close()
 
-@router.post("/insert_products/")
+@router.post("/insert_products")
 async def create_product(product: ProductCreateRequest):
     """
     상품 등록:
@@ -118,6 +135,8 @@ async def create_product(product: ProductCreateRequest):
     2. Firebase URL과 함께 상품 정보를 MySQL에 저장
     """
     try:
+        mysql_conn = connect_to_mysql()
+        cursor = mysql_conn.cursor()
         # 카테고리 매핑
         category_map = {
             4: "가구",
@@ -146,8 +165,7 @@ async def create_product(product: ProductCreateRequest):
         image_url = blob.public_url
 
         # MySQL에 상품 데이터 저장
-        mysql_conn = connect_to_mysql()
-        cursor = mysql_conn.cursor()
+
         cursor.execute(
             """
             INSERT INTO products (Category_ID, name, preview_image, price, detail, manufacturer, created)
@@ -164,8 +182,10 @@ async def create_product(product: ProductCreateRequest):
         raise HTTPException(status_code=500, detail=f"상품 등록 실패: {str(e)}")
 
     finally:
-        cursor.close()
-        mysql_conn.close()
+        if cursor:  # ✅ `None` 체크 후 close()
+            cursor.close()
+        if mysql_conn:  # ✅ `None` 체크 후 close()
+            mysql_conn.close()
 
 @router.get("/product_select_all")
 async def select():
@@ -183,6 +203,7 @@ async def select():
     # 데이터가 많을때 쓰는 방법
     return {'results' : rows}
 
+# 상품 update 기능
 @router.get("/product_update")
 async def update(Product_ID: int, Category_ID: int, name: str, price: float):
     conn = connect_to_mysql()
@@ -198,3 +219,216 @@ async def update(Product_ID: int, Category_ID: int, name: str, price: float):
         conn.close()
         print("Error :", e)
         return {'results' : 'Error'}
+
+
+@router.get("/get_all_products")
+async def get_all_products():
+    """
+    📌 상품 전체 불러오기 API
+    - `products` 테이블과 `category` 테이블을 조인하여 `category` 필드를 명확하게 반환
+    - `detail` 필드가 포함되지 않아 발생하는 JSON 디코딩 오류를 해결
+    - `P.Product_ID >= 430` 조건으로 특정 ID 이상만 조회 (필요시 수정 가능)
+    
+    Returns:
+    - `results`: 상품 목록 (JSON)
+    """
+    conn = connect_to_mysql()
+    curs = conn.cursor(pymysql.cursors.DictCursor)  # ✅ DictCursor 사용 (딕셔너리 변환)
+
+    try:
+        sql = """
+        SELECT 
+            P.Product_ID, 
+            P.name, 
+            P.preview_image, 
+            P.price, 
+            P.detail, 
+            C.name AS category,
+            P.created
+        FROM products AS P
+        INNER JOIN category AS C ON C.Category_ID = P.Category_ID
+        WHERE P.Product_ID >= 430
+        """
+        
+        curs.execute(sql)
+        rows = curs.fetchall()
+
+        return {"results": rows}  # ✅ JSON 응답 구조 유지
+
+    except Exception as e:
+        print(f"❌ 상품 조회 실패: {e}")
+        raise HTTPException(status_code=500, detail="상품 정보를 불러오는 중 오류 발생")
+
+    finally:
+        curs.close()
+        conn.close()  # ✅ DB 연결 종료 보장
+
+# 관리자 페이지 상품 삭제 기능
+@router.get("/delete")
+async def update(Product_ID: int=None):
+    conn = connect_to_mysql()
+    curs = conn.cursor()
+
+    try:
+        sql = "delete from products where Product_ID = %s"
+        curs.execute(sql, (Product_ID))
+        conn.commit()
+        conn.close()
+        return {'results' : 'OK'}
+    except Exception as e:
+        conn.close()
+        print("Error :", e)
+        return {'results' : 'Error'}
+
+
+# 상품 전체 업데이트 기능
+@router.post("/update_all_products")
+async def create_product(product: ProductUpdateRequest):
+    """
+    상품 등록(수정):
+    1. Base64 이미지를 Firebase Storage에 업로드
+    2. Firebase URL과 함께 상품 정보를 MySQL에 저장
+    """
+    try:
+        mysql_conn = connect_to_mysql()
+        cursor = mysql_conn.cursor()
+        # 카테고리 매핑
+        category_map = {
+            4: "가구",
+            5: "기타",
+            6: "도서",
+            7: "미디어",
+            8: "뷰티",
+            9: "스포츠",
+            10: "식품_음료",
+            11: "유아_애완",
+            12: "전자제품",
+            13: "패션"
+        }
+
+        # 카테고리 이름 가져오기
+        category_name = category_map.get(product.Category_ID)
+        if not category_name:
+            raise HTTPException(status_code=400, detail="유효하지 않은 카테고리 ID입니다.")
+
+        # Base64 이미지를 디코딩하여 Firebase Storage에 저장
+        bucket = storage.bucket()
+        image_data = base64.b64decode(product.base64_image)
+        blob = bucket.blob(f"{category_name}/{product.name}.jpg")  # 카테고리 이름 사용
+        blob.upload_from_string(image_data, content_type="image/jpeg")
+        blob.make_public()
+        image_url = blob.public_url
+
+        # MySQL에 상품 데이터 저장
+
+        cursor.execute(
+            """
+            update products set Category_ID = %s, name = %s, preview_image = %s, price = %s where Product_ID = %s
+            """,
+            (product.Category_ID, product.name, image_url, product.price, product.Product_ID)
+        )
+        mysql_conn.commit()
+
+        return {"message": "Product registered successfully", "image_url": image_url}
+
+    except Exception as e:
+        print(f"Error: {e}")
+        raise HTTPException(status_code=500, detail=f"상품 등록 실패: {str(e)}")
+
+    finally:
+        if cursor:  # ✅ `None` 체크 후 close()
+            cursor.close()
+        if mysql_conn:  # ✅ `None` 체크 후 close()
+            mysql_conn.close()
+
+@router.get("/get_products_by_category")
+async def get_products_by_category(category_id: int):
+    """
+    📌 특정 카테고리에 속하는 상품 조회 API
+    - `category_id`를 기반으로 해당 카테고리의 상품 목록을 반환
+    - `products` 테이블과 `category` 테이블을 조인하여 `category` 필드를 명확하게 반환
+
+    Parameters:
+    - `category_id` (int): 조회할 카테고리 ID (예: 4 = "가구", 6 = "도서" 등)
+
+    Returns:
+    - `results`: 해당 카테고리의 상품 목록 (JSON)
+    """
+    conn = connect_to_mysql()
+    curs = conn.cursor(pymysql.cursors.DictCursor)  # ✅ DictCursor 사용 (딕셔너리 변환)
+
+    try:
+        sql = """
+        SELECT 
+            P.Product_ID, 
+            P.name, 
+            P.preview_image, 
+            P.price, 
+            P.detail, 
+            C.Category_ID,
+            C.name AS category,
+            P.created
+        FROM products AS P
+        INNER JOIN category AS C ON C.Category_ID = P.Category_ID
+        WHERE C.Category_ID = %s
+        """
+
+        curs.execute(sql, (category_id,))
+        rows = curs.fetchall()
+
+        return {"results": rows}  # ✅ JSON 응답 구조 유지
+
+    except Exception as e:
+        print(f"❌ 카테고리별 상품 조회 실패: {e}")
+        raise HTTPException(status_code=500, detail="카테고리별 상품을 불러오는 중 오류 발생")
+
+    finally:
+        curs.close()
+        conn.close()  # ✅ DB 연결 종료 보장
+
+@router.get("/get_product/{product_id}")
+async def get_product(product_id: int):
+    """
+    📌 특정 상품 조회 API
+    - `product_id`를 기반으로 상품 정보를 가져옵니다.
+    - `products` 테이블과 `category` 테이블을 조인하여 카테고리 이름을 반환합니다.
+
+    Parameters:
+    - product_id (int): 조회할 상품 ID
+
+    Returns:
+    - `result`: 상품 정보 (JSON)
+    """
+    conn = connect_to_mysql()
+    curs = conn.cursor(pymysql.cursors.DictCursor)  # ✅ DictCursor 사용 (딕셔너리 변환)
+
+    try:
+        sql = """
+        SELECT 
+            P.Product_ID, 
+            P.name, 
+            P.preview_image, 
+            P.price, 
+            P.detail, 
+            C.name AS category,
+            P.created
+        FROM products AS P
+        INNER JOIN category AS C ON C.Category_ID = P.Category_ID
+        WHERE P.Product_ID = %s
+        """
+        
+        curs.execute(sql, (product_id,))
+        product = curs.fetchone()  # ✅ 단일 결과만 가져오기
+
+        if not product:
+            raise HTTPException(status_code=404, detail="상품을 찾을 수 없습니다.")
+
+        return {"result": product}  # ✅ JSON 응답
+
+    except Exception as e:
+        print(f"❌ 상품 조회 실패: {e}")
+        raise HTTPException(status_code=500, detail="상품 정보를 불러오는 중 오류 발생")
+
+    finally:
+        curs.close()
+        conn.close()  # ✅ DB 연결 종료

@@ -15,6 +15,76 @@ import LocalAuthentication
 import RealmSwift
 import SwiftUI
 
+class AuthenticationService {
+    static let shared = AuthenticationService()
+    
+    let baseURL = "https://fastapi.sumartpick.shop" // ✅ FastAPI 주소
+
+    func login(email: String, name: String, provider: AuthProvider, completion: @escaping (Result<UserData, Error>) -> Void) {
+        guard let url = URL(string: "\(baseURL)/login") else {
+            completion(.failure(AuthenticationError.invalidURL))
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let loginData: [String: Any] = [
+            "email": email,
+            "name": name,
+            "login_type": provider.rawValue.lowercased()
+        ]
+
+        do {
+            request.httpBody = try JSONSerialization.data(withJSONObject: loginData)
+        } catch {
+            completion(.failure(AuthenticationError.serializationError))
+            return
+        }
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
+
+            guard let data = data else {
+                completion(.failure(AuthenticationError.noData))
+                return
+            }
+
+            do {
+                let decodedResponse = try JSONDecoder().decode(LoginResponse.self, from: data)
+                // 로그인 성공 후 사용자 정보를 UserDefaults에 저장
+                let userData = decodedResponse.userData
+                let userDefaults = UserDefaults.standard
+                userDefaults.set(userData.User_Id, forKey: "user_id")
+                userDefaults.set(userData.name, forKey: "user_name")
+                userDefaults.set(userData.email, forKey: "user_email")
+                userDefaults.set(userData.auth_provider, forKey: "auth_provider")
+                
+                completion(.success(userData))
+            } catch {
+                completion(.failure(AuthenticationError.parsingError))
+            }
+        }.resume()
+    }
+}
+
+// ✅ 로그인 응답 데이터 모델
+struct LoginResponse: Codable {
+    let source: String
+    let userData: UserData
+}
+
+struct UserData: Codable {
+    let User_Id: Int
+    let email: String
+    let name: String
+    let auth_provider: String
+}
+
 enum AuthProvider: String, Codable {
     case apple = "Apple"
     case google = "Google"
