@@ -93,5 +93,162 @@ async def update(Arrival_Time: str = None, Order_state: str = None, Order_ID: in
         return {'results': 'OK'}
     except Exception as e:
         conn.close()
-        print("Error:", e)
-        return {'results': 'Error', 'error': str(e)}
+        print("Error :", e)
+        return {'results' : 'Error'}
+    
+
+
+#### 주문내역
+@router.get("/{user_id}")
+async def get_user_orders(user_id: str):
+    conn = hosts.connect_to_mysql()
+    cursor = conn.cursor()
+    try:
+        sql = """
+            SELECT 
+                o.Order_ID,
+                o.Product_seq,
+                o.User_ID,
+                o.Product_ID,
+                o.Order_Date,
+                o.Address,
+                o.refund_demands_time,
+                o.refund_time,
+                o.payment_method,
+                o.Arrival_Time,
+                o.Order_state,
+                p.name AS product_name,
+                p.preview_image AS product_image,
+                p.price AS product_price
+            FROM Orders o
+            JOIN Products p ON o.Product_ID = p.Product_ID
+            WHERE o.User_ID = %s
+            ORDER BY o.Order_Date DESC
+        """
+        cursor.execute(sql, (user_id,))
+        orders = cursor.fetchall()
+
+        # Python dict 형태로 온 데이터 중 datetime 타입을 isoformat()으로 변환
+        for row in orders:
+            if row["Order_Date"]:
+                row["Order_Date"] = row["Order_Date"].isoformat()
+            if row["refund_demands_time"]:
+                row["refund_demands_time"] = row["refund_demands_time"].isoformat()
+            if row["refund_time"]:
+                row["refund_time"] = row["refund_time"].isoformat()
+            if row["Arrival_Time"]:
+                row["Arrival_Time"] = row["Arrival_Time"].isoformat()
+
+        return orders
+
+    except pymysql.MySQLError as ex:
+        print("Error:", ex)
+        raise HTTPException(status_code=500, detail="Database error occurred.")
+    finally:
+        conn.close()
+
+
+
+#### 환불
+@router.get("/refunds/{user_id}")
+async def get_refund_exchange_orders(user_id: str):
+    conn = hosts.connect_to_mysql()
+    cursor = conn.cursor()
+    try:
+
+        sql = """
+            SELECT 
+                o.Order_ID,
+                o.Product_seq,
+                o.User_ID,
+                o.Product_ID,
+                o.Order_Date,
+                o.Address,
+                o.refund_demands_time,
+                o.refund_time,
+                o.payment_method,
+                o.Arrival_Time,
+                o.Order_state,
+                p.name AS product_name,
+                p.preview_image AS product_image,
+                p.price AS product_price
+            FROM Orders o
+            JOIN Products p ON o.Product_ID = p.Product_ID
+            WHERE o.User_ID = %s
+              -- 반품 신청 상태값 추가
+              AND o.Order_state IN ('Cancelled', 'Returned', 'Exchanged', 'Return_Requested')
+            ORDER BY o.Order_Date DESC
+        """
+        cursor.execute(sql, (user_id,))
+        orders = cursor.fetchall()
+
+        for row in orders:
+            if row["Order_Date"]:
+                row["Order_Date"] = row["Order_Date"].isoformat()
+            if row["refund_demands_time"]:
+                row["refund_demands_time"] = row["refund_demands_time"].isoformat()
+            if row["refund_time"]:
+                row["refund_time"] = row["refund_time"].isoformat()
+            if row["Arrival_Time"]:
+                row["Arrival_Time"] = row["Arrival_Time"].isoformat()
+
+        return orders
+
+    except pymysql.MySQLError as ex:
+        print("Error:", ex)
+        raise HTTPException(status_code=500, detail="Database error occurred.")
+    finally:
+        conn.close()
+
+
+@router.put("/{order_id}/requestRefund")
+async def request_refund(order_id: int):
+    """
+    예시: 반품 신청 처리
+    """
+    conn = hosts.connect_to_mysql()
+    cursor = conn.cursor()
+    try:
+        sql = """
+            UPDATE Orders
+            SET refund_demands_time = NOW(),
+                Order_state = 'Return_Requested'
+            WHERE Order_ID = %s
+        """
+        cursor.execute(sql, (order_id,))
+        if cursor.rowcount == 0:
+            raise HTTPException(status_code=404, detail="Order not found.")
+        conn.commit()
+        return {"message": "Refund request submitted."}
+    except pymysql.MySQLError as ex:
+        print("Error:", ex)
+        raise HTTPException(status_code=500, detail="Database error.")
+    finally:
+        conn.close()
+
+
+
+#### 배송조회쪽(고칠예정)
+@router.get("/{order_id}/track")
+async def track_order(order_id: int):
+    conn = hosts.connect_to_mysql()
+    cursor = conn.cursor()
+    try:
+        sql = """
+            SELECT Order_ID, TrackingNumber, Carrier, ShippingStatus
+            FROM Orders
+            WHERE Order_ID = %s
+        """
+        cursor.execute(sql, (order_id,))
+        tracking_info = cursor.fetchone()
+
+        # 만약 tracking_info가 None이면 order_id에 해당하는 레코드가 없는 경우
+        if not tracking_info:
+            raise HTTPException(status_code=404, detail="Order not found.")
+
+        return tracking_info
+    except pymysql.MySQLError as ex:
+        print("Error:", ex)
+        raise HTTPException(status_code=500, detail="Database error occurred.")
+    finally:
+        conn.close()
