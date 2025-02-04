@@ -92,7 +92,11 @@ async def create_order(order: OrderRequest):
         conn.commit()
         conn.close()
 
-        return {"message": "Order created successfully", "order_id": order_id}
+        return {
+            "message": "Order created successfully", 
+            "order_id": order_id,
+            "order_date": order.Order_Date.isoformat() # JSON 직렬화
+            }
 
     except Exception as e:
         print("JSON 디코딩 오류:", str(e))
