@@ -253,7 +253,7 @@ class _OrderUpdateState extends State<OrderUpdate> {
     // "update Products set Category_ID = %s, name = %s, price = %s where Product_ID = %s"
     var url = Uri.parse(
     "https://fastapi.sumartpick.shop/orders/norefund_orders_update?"
-    "refund_time=${Uri.encodeComponent(refundFinishtime)}"
+    "Arrival_Time=${Uri.encodeComponent(deliveryFinishtime.text)}"
     "&Order_state=${Uri.encodeComponent(selectedOrderstate)}"
     "&Order_ID=${value[0]}"
     "&Product_seq=${value[1]}"
@@ -278,8 +278,8 @@ class _OrderUpdateState extends State<OrderUpdate> {
   updateJSONRefundData() async{
     // "update Products set Category_ID = %s, name = %s, price = %s where Product_ID = %s"
     var url = Uri.parse(
-    "https://fastapi.sumartpick.shop/orders/norefund_orders_update?"
-    "Arrival_Time=${Uri.encodeComponent(deliveryFinishtime.text)}"
+    "https://fastapi.sumartpick.shop/orders/refund_orders_update?"
+    "refund_time=${Uri.encodeComponent(refundFinishtime)}"
     "&Order_state=${Uri.encodeComponent(selectedOrderstate)}"
     "&Order_ID=${value[0]}"
     "&Product_seq=${value[1]}"

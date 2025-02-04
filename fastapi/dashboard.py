@@ -40,7 +40,7 @@ async def select():
     conn = hosts.connect_to_mysql()
     curs = conn.cursor()
     # 결과값을 딕셔너리로 변환할때 쓰이는 SQL문장
-    sql = "SELECT count(*) count FROM orders WHERE refund_time = ''"
+    sql = "SELECT count(*) count FROM orders WHERE refund_time is null"
     # sql = "select * from student"
     curs.execute(sql)
     rows = curs.fetchall()
