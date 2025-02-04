@@ -9,7 +9,6 @@ router = APIRouter()
 # 주문 아이템 모델
 class OrderItem(BaseModel):
     Product_ID: int
-    quantity: int
 
 # 주문 요청 모델
 class OrderRequest(BaseModel):
