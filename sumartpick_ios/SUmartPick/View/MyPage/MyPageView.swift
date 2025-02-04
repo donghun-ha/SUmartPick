@@ -20,46 +20,43 @@ struct MyPageView: View {
                         .frame(height: 24)
                     Divider()
                         .frame(height: 1)
-                        .ignoresSafeArea(edges: .horizontal) // SafeArea 무시
+                        .ignoresSafeArea(edges: .horizontal)
                     Spacer()
                 }
 
-                // 실제 화면 내용
                 VStack(alignment: .leading, spacing: 0) {
-                    // 유저 이름 표시
-                    HStack {
-                        Text(authState.userFullName ?? "UserFullName")
-                            .font(.title)
+                    // (1) 유저 이름 + 오른쪽 화살표 → 주소지 관리 화면 링크
+                    NavigationLink(destination: AddressManagementView()) {
+                        HStack {
+                            Text(authState.userFullName ?? "UserFullName")
+                                .font(.title)
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(.gray)
+                        }
+                        .padding(.vertical, 24)
                     }
-                    .padding(.vertical, 24)
 
-                    // 주문 목록
+                    // (2) 주문 목록
                     NavigationLink(destination: OrderListView()) {
                         rowItem(title: "주문목록", icon: "doc.text.fill")
                     }
                     Divider()
 
-                    // 최근 본 상품
+                    // (3) 최근 본 상품
                     NavigationLink(destination: Text("최근본상품 뷰")) {
                         rowItem(title: "최근본상품", icon: "clock.fill")
                     }
                     Divider()
 
-                    // 취소·반품·교환 목록
+                    // (4) 취소·반품·교환 목록
                     NavigationLink(destination: RefundExchangeListView()) {
                         rowItem(title: "취소·반품·교환목록", icon: "arrow.uturn.backward.circle.fill")
                     }
                     Divider()
 
-                    // 리뷰 관리
+                    // (5) 리뷰 관리
                     NavigationLink(destination: ReviewManagementView()) {
                         rowItem(title: "리뷰 관리", icon: "star.fill")
-                    }
-                    Divider()
-
-                    // 간편 로그인 등록
-                    NavigationLink(destination: EasyLoginRegisterView()) {
-                        rowItem(title: "간편 로그인 등록", icon: "person.badge.plus")
                     }
                     Divider()
 
@@ -88,7 +85,7 @@ struct MyPageView: View {
         }
     }
 
-    // 공용 행 레이아웃
+    // 기존 rowItem 함수는 그대로 사용
     func rowItem(title: String, icon: String) -> some View {
         HStack {
             Image(systemName: icon)

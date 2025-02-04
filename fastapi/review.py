@@ -50,3 +50,114 @@ async def get_reviews(product_id: int):
     finally:
         curs.close()
         conn.close()  # ✅ DB 연결 종료 보장
+
+
+# 리뷰 조회: 특정 유저의 리뷰 목록을 가져오고, Product 테이블 join해서 상품명도 함께 반환
+@router.get("/reviews/{user_id}")
+async def get_user_reviews(user_id: str):
+    conn = connect_to_mysql()
+    cursor = conn.cursor()
+    try:
+        sql = """
+            SELECT r.ReviewSeq,
+                   r.User_ID,
+                   r.Product_ID,
+                   r.Review_Content,
+                   r.Star,
+                   p.name AS product_name
+            FROM Reviews r
+            JOIN Products p ON r.Product_ID = p.Product_ID
+            WHERE r.User_ID = %s
+            ORDER BY r.ReviewSeq DESC
+        """
+        cursor.execute(sql, (user_id,))
+        reviews = cursor.fetchall()
+        return reviews
+
+    except pymysql.MySQLError as ex:
+        print("Error:", ex)
+        raise HTTPException(status_code=500, detail="Database error occurred.")
+    finally:
+        conn.close()
+
+# 리뷰 작성
+@router.post("/reviews")
+async def add_review(review: dict):
+    """
+    Body 예시:
+    {
+      "User_ID": "...",
+      "Product_ID": 123,
+      "Review_Content": "리뷰 내용",
+      "Star": 5
+    }
+    """
+    conn = connect_to_mysql()
+    cursor = conn.cursor()
+    try:
+        sql = """
+            INSERT INTO Reviews (User_ID, Product_ID, Review_Content, Star)
+            VALUES (%s, %s, %s, %s)
+        """
+        cursor.execute(
+            sql,
+            (
+                review["User_ID"],
+                review["Product_ID"],
+                review["Review_Content"],
+                review["Star"],
+            ),
+        )
+        conn.commit()
+        return {"message": "리뷰가 등록되었습니다."}
+    except pymysql.MySQLError as ex:
+        print("Error:", ex)
+        raise HTTPException(status_code=500, detail="Database error occurred.")
+    finally:
+        conn.close()
+
+
+# 리뷰 수정
+@router.put("/reviews/{review_id}")
+async def update_review(review_id: int, review: dict):
+    """
+    Body 예시:
+    {
+      "Review_Content": "수정된 리뷰 내용",
+      "Star": 4
+    }
+    """
+    conn = connect_to_mysql()
+    cursor = conn.cursor()
+    try:
+        sql = """
+            UPDATE Reviews
+            SET Review_Content = %s,
+                Star = %s
+            WHERE ReviewSeq = %s
+        """
+        cursor.execute(sql, (review["Review_Content"], review["Star"], review_id))
+        conn.commit()
+        return {"message": "리뷰가 수정되었습니다."}
+    except pymysql.MySQLError as ex:
+        print("Error:", ex)
+        raise HTTPException(status_code=500, detail="Database error occurred.")
+    finally:
+        conn.close()
+
+
+# 리뷰 삭제
+@router.delete("/reviews/{review_id}")
+async def delete_review(review_id: int):
+    conn = connect_to_mysql()
+    cursor = conn.cursor()
+    try:
+        sql = "DELETE FROM Reviews WHERE ReviewSeq = %s"
+        cursor.execute(sql, (review_id,))
+        conn.commit()
+        return {"message": "리뷰가 삭제되었습니다."}
+    except pymysql.MySQLError as ex:
+        print("Error:", ex)
+        raise HTTPException(status_code=500, detail="Database error occurred.")
+    finally:
+        conn.close()
