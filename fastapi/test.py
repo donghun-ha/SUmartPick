@@ -358,7 +358,6 @@ async def get_user_reviews(user_id: str):
     finally:
         conn.close()
 
-
 # 리뷰 작성
 @app.post("/reviews")
 async def add_review(review: dict):
@@ -440,7 +439,7 @@ async def delete_review(review_id: int):
         raise HTTPException(status_code=500, detail="Database error occurred.")
     finally:
         conn.close()
-
+#########################
 
 # (2) 주소 관련 CRUD
 @app.get("/addresses/{user_id}")
