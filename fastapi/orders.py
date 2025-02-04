@@ -121,7 +121,7 @@ async def update(refund_time: str = None, Order_state: str = None, Order_ID: int
 @router.get("/{user_id}")
 async def get_user_orders(user_id: str):
     conn = hosts.connect_to_mysql()
-    cursor = conn.cursor()
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
     try:
         sql = """
             SELECT 
@@ -172,7 +172,7 @@ async def get_user_orders(user_id: str):
 @router.get("/refunds/{user_id}")
 async def get_refund_exchange_orders(user_id: str):
     conn = hosts.connect_to_mysql()
-    cursor = conn.cursor()
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
     try:
 
         sql = """
@@ -226,7 +226,7 @@ async def request_refund(order_id: int):
     예시: 반품 신청 처리
     """
     conn = hosts.connect_to_mysql()
-    cursor = conn.cursor()
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
     try:
         sql = """
             UPDATE orders
@@ -251,7 +251,7 @@ async def request_refund(order_id: int):
 @router.get("/{order_id}/track")
 async def track_order(order_id: int):
     conn = hosts.connect_to_mysql()
-    cursor = conn.cursor()
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
     try:
         sql = """
             SELECT Order_ID, TrackingNumber, Carrier, ShippingStatus
