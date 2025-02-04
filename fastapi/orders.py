@@ -16,7 +16,6 @@ class OrderItem(BaseModel):
 # 주문 요청 모델
 class OrderRequest(BaseModel):
     User_ID: str
-    Order_Date: datetime # datetime..
     Address: str
     payment_method: str
     Order_state: str = "Payment_completed"
@@ -51,9 +50,6 @@ async def create_order(order: OrderRequest):
             if not curs.fetchone():
                 raise HTTPException(status_code=400, detail=f"Product_ID {product.Product_ID} does not exist")
 
-        # Order_Date 문자열 변환
-        order_date_str = order.Order_Date.strftime("%Y-%m-%d %H:%M:%S")
-
         sql_order = """
         SELECT Order_ID 
         FROM orders
@@ -67,8 +63,8 @@ async def create_order(order: OrderRequest):
         
         # 주문한 각 상품을 추가하면서 `Product_seq` 증가
         sql_product = """
-        INSERT INTO orders (Order_ID, Product_seq, User_ID, Product_ID, Order_Date, Address, payment_method, Order_state)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        INSERT INTO orders (Order_ID, Product_seq, User_ID, Product_ID, Address, payment_method, Order_state)
+        VALUES (%s, %s, %s, %s, %s, %s, %s)
         """
         
         product_seq = 1  # 첫 번째 상품부터 Product_seq 시작
@@ -79,7 +75,6 @@ async def create_order(order: OrderRequest):
                     product_seq,  # Product_seq 증가
                     order.User_ID,
                     product.Product_ID,
-                    order_date_str,
                     order.Address,
                     order.payment_method,
                     order.Order_state
