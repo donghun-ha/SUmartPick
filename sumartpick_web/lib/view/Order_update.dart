@@ -19,7 +19,7 @@ class _OrderUpdateState extends State<OrderUpdate> {
   late String selectedFilter;
   late List<String> orderState;
   late String selectedOrderstate;
-  // product['주문번호'],product['주문상세번호'],product['환불요청시간'],product['배송도착시간'],product['배송상태'], product['상품ID']
+  // product['주문번호'],product['주문상세번호'],product['환불요청시간'],product['배송도착시간'],product['배송상태']
 
   // argument
   var value = Get.arguments ?? "__";
