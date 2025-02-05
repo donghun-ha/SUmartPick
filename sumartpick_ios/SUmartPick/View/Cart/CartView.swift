@@ -131,15 +131,15 @@ struct CartView: View {
                         onPaymentSuccess: {
                             clearCart()
                         }
-                        
                     )
             }
             .navigationBarHidden(true)
         }
     }
+    
     private func clearCart() {
-            for item in cartItems {
-                cartViewModel.removeFromCart(userId: item.userId, productId: item.productId)
-            }
+        for item in cartItems {
+            cartViewModel.removeFromCart(userId: item.userId, productId: item.productId)
         }
+    }
 }
