@@ -11,7 +11,7 @@ import TossPayments
 struct TossView: View {
     @State private var isShow: Bool = true
     @State private var orderCompleted: Bool = false
-    @EnvironmentObject(\.presentationMode) var presentationMode // 뒤로 가기 기능 추가
+    @Environment(\.presentationMode) var presentationMode // 뒤로 가기 기능 추가
     @EnvironmentObject var authState: AuthenticationState
     
     let userId: String
@@ -42,14 +42,28 @@ struct TossView: View {
                 isPresented: $isShow
             )
             .onSuccess { _, _, _ in
-                Task { await processOrder() }
+                Task {
+                    await processOrder()
+                    DispatchQueue.main.async {
+                            isShow = false // 결제 완료 시 자동으로 닫힘
+                        }
+                }
             }
             .onFail { _, errorMessage, _ in
                 print("❌ 결제 실패: \(errorMessage)")
+                DispatchQueue.main.async {
+                    isShow = false // 결제 취소 시 자동으로 닫힘
+                    presentationMode.wrappedValue.dismiss() // 결제 실패 시 이전 화면으로 이동
+                }
             }
         }
         .alert(isPresented: $orderCompleted) {
-            Alert(title: Text("결제 완료"), message: Text("주문이 성공적으로 완료되었습니다!"), dismissButton: .default(Text("확인")))
+            Alert(
+                title: Text("결제 완료"),
+                message: Text("주문이 성공적으로 완료되었습니다!"),
+                dismissButton: .default(Text("확인"), action: {
+                    presentationMode.wrappedValue.dismiss() // 주문 완료시 닫힘
+                }))
         }
     }
 
@@ -65,10 +79,10 @@ struct TossView: View {
 
         do {
             let response = try await OrderService.shared.createOrder(order: order)
-            print("✅ 서버 응답: \(response)")
+            print("서버 응답: \(response)")
             DispatchQueue.main.async { orderCompleted = true }
         } catch {
-            print("❌ 주문 실패: \(error.localizedDescription)")
+            print("주문 실패: \(error.localizedDescription)")
         }
     }
 }
