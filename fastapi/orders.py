@@ -399,7 +399,7 @@ async def request_refund(order_id: int):
 
 # 환불요청 주문 상태 업데이트
 @router.get("/refund_orders_updat")
-async def update(
+async def updateeeeee(
 ):
     try:
         return {"results": "OK"}
