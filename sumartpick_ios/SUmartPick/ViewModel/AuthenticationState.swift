@@ -35,6 +35,21 @@ class AuthenticationState: ObservableObject {
             print("AuthenticationState init - userAddress: \(self.userAddress ?? "nil")")
         }
     }
+    
+    func autoLogin() {
+            do {
+                let realm = try Realm()
+                if let account = realm.objects(EasyLoginAccount.self).first {
+                    self.userIdentifier = account.id
+                    self.userFullName = account.fullName
+                    self.isAuthenticated = true
+                    print("✅ 자동 로그인 성공: \(account.email)")
+                }
+            } catch {
+                print("❌ 자동 로그인 실패: \(error.localizedDescription)")
+            }
+        }
+
 
     // Apple 로그인 요청 시 설정
     func configureSignInWithApple(_ request: ASAuthorizationAppleIDRequest) {
