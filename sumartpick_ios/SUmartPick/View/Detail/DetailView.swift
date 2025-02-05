@@ -19,15 +19,6 @@ struct DetailView: View {
     @State private var showAlert = false
     @State private var navigateToCart = false
     @State private var isNavigatingToToss = false
-    
-    // UserDefaults에서 로그인된 사용자 정보 불러오기
-    private var userId: Int {
-        UserDefaults.standard.integer(forKey: "user_id")
-    }
-    
-    private var userName: String {
-        UserDefaults.standard.string(forKey: "user_name") ?? "Guest"
-    }
 
     var body: some View {
         VStack {
