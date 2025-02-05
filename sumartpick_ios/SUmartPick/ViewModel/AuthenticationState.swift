@@ -17,7 +17,7 @@ import SwiftUI
 
 class AuthenticationService {
     static let shared = AuthenticationService()
-    
+
     let baseURL = "https://fastapi.sumartpick.shop" // ✅ FastAPI 주소
 
     func login(email: String, name: String, provider: AuthProvider, completion: @escaping (Result<UserData, Error>) -> Void) {
@@ -63,7 +63,7 @@ class AuthenticationService {
                 userDefaults.set(userData.name, forKey: "user_name")
                 userDefaults.set(userData.email, forKey: "user_email")
                 userDefaults.set(userData.auth_provider, forKey: "auth_provider")
-                
+
                 completion(.success(userData))
             } catch {
                 completion(.failure(AuthenticationError.parsingError))
@@ -130,6 +130,7 @@ class AuthenticationState: ObservableObject {
     @Published var isAuthenticated: Bool = false
     @Published var userIdentifier: String? = nil
     @Published var userFullName: String? = nil
+    @Published var userAddress: String? = nil
     @Published var showingErrorAlert = false
     @Published var errorMessage = ""
 
@@ -425,46 +426,8 @@ class AuthenticationState: ObservableObject {
         self.isAuthenticated = false
         self.userIdentifier = nil
         self.userFullName = nil
-        // 필요 시 아래처럼 간편 로그인 계정까지 삭제 가능:
-        /*
-         Task {
-         do {
-         try await self.clearAccountFromRealm()
-         print("Realm 데이터가 삭제되었습니다.")
-         } catch {
-         print("Realm 데이터 삭제 중 오류 발생: \(error.localizedDescription)")
-         }
-         }
-         */
-        // 필요 시 서버 로그아웃 API 호출도 가능:
-        /*
-         Task {
-         do {
-         try await self.performServerLogout()
-         print("서버 로그아웃이 성공적으로 처리되었습니다.")
-         } catch {
-         print("서버 로그아웃 중 오류 발생: \(error.localizedDescription)")
-         }
-         }
-         */
+        self.userAddress = nil
     }
-
-    // 만약 서버 로그아웃이 필요 없다면 제거해도 됩니다.
-    /*
-     private func performServerLogout() async throws {
-     guard let url = URL(string: "\(SUmartPickConfig.baseURL)/logout") else {
-     throw AuthenticationError.invalidURL
-     }
-     var request = URLRequest(url: url)
-     request.httpMethod = "POST"
-     request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-
-     let (_, response) = try await URLSession.shared.data(for: request)
-     guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
-     throw AuthenticationError.serverError(statusCode: (response as? HTTPURLResponse)?.statusCode ?? -1)
-     }
-     }
-     */
 
     // 에러 처리
     func showError(message: String) {

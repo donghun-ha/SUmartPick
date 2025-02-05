@@ -103,11 +103,6 @@ struct OrderListView: View {
             }
 
             // (E) 배송 조회 Sheet
-            .sheet(isPresented: $showTrackingSheet) {
-                if let trackingInfo = viewModel.selectedTrackingInfo {
-                    TrackingView(trackingInfo: trackingInfo)
-                }
-            }
         }
     }
 }
@@ -176,30 +171,5 @@ struct OrderRow: View {
         let formatter = DateFormatter()
         formatter.dateFormat = "M/d(EEE)"
         return formatter.string(from: date)
-    }
-}
-
-// MARK: - TrackingView
-
-struct TrackingView: View {
-    let trackingInfo: TrackingInfo
-
-    var body: some View {
-        VStack(spacing: 16) {
-            Text("주문번호: \(trackingInfo.orderID)")
-                .font(.headline)
-
-            if let c = trackingInfo.carrier {
-                Text("택배사: \(c)")
-            }
-            if let tn = trackingInfo.trackingNumber {
-                Text("송장번호: \(tn)")
-            }
-            if let status = trackingInfo.shippingStatus {
-                Text("배송상태: \(status)")
-            }
-        }
-        .padding()
-        .presentationDetents([.medium, .large]) // iOS16+ Sheet 사이즈
     }
 }
