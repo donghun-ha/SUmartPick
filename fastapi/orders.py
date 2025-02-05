@@ -313,30 +313,28 @@ async def track_order(order_id: int):
 
 
 
-#### 머신러닝 테스트
+### 머신러닝 테스트
 @router.get("/ml_test")
-async def track_order(order_id: int):
+async def ml_test(order_id: int):
     """
     머신러닝 테스트용으로 만든 테스트에용
     """
     import pymysql
     import pandas as pd
     import hashlib
+    from datetime import timedelta
 
     def text_to_number(text):
         hash_object = hashlib.md5(text.encode('utf-8'))  # MD5 해시 생성
         return int(hash_object.hexdigest(), 16)  # 16진수를 10진수 정수로 변환
+    
+
 
     import joblib
     loaded_rf = joblib.load('best_random_forest_model.pkl')
 
     seller_id_parser =  pd.read_csv('seller_id_parser.csv', index_col=0)
     train =  pd.read_csv('time_train.csv', index_col=0)
-
-    dist_idx = text_to_number(orders[0]['Address']) % train.shape[0]
-    dist = train['dist'].iloc[dist_idx]
-
-    # order_id = 14
 
 
     conn = hosts.connect_to_mysql()
@@ -352,6 +350,11 @@ async def track_order(order_id: int):
 
     orders = curs.fetchall()
     conn.close()
+
+
+    dist_idx = text_to_number(orders[0]['Address']) % train.shape[0]
+    dist = train['dist'].iloc[dist_idx]
+
 
     product_id = orders[0]['Product_ID']
     raw_price = orders[0]['price']
@@ -395,6 +398,17 @@ async def track_order(order_id: int):
         }
     )
 
-    print({'results' : loaded_rf.predict(pred).item()})
-    return {'results' : loaded_rf.predict(pred).item()}
+    pred_result = loaded_rf.predict(pred).item()
+    result =  orders[0]['Order_Date'] + timedelta(pred_result +1)
+    
+    return {'results' : result}
 
+
+
+### 머신러닝 테스트
+@router.get("/ml_test2")
+async def ml_test(order_id: int):
+    import datetime
+    return {
+        'result' : datetime.now(),
+    }
