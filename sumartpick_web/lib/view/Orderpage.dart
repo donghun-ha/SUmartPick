@@ -476,7 +476,7 @@ class _OrderpageState extends State<Orderpage> {
                           Expanded(
                             child: Row(
                               children: [
-                                SizedBox(
+                                const SizedBox(
                                   width: 47,
                                   height: 20,
                                 ),

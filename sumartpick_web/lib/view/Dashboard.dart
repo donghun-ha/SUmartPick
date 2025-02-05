@@ -830,9 +830,9 @@ class _DashboardState extends State<Dashboard> {
                   children: [
                     Column(
                       children: [
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(0, 0, 710, 10),
-                          child: const Text(
+                        const Padding(
+                          padding: EdgeInsets.fromLTRB(0, 0, 710, 10),
+                          child: Text(
                             '날짜별 주문량',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
@@ -852,7 +852,11 @@ class _DashboardState extends State<Dashboard> {
                               ),
                             ),
                             child: chartData.isEmpty
-                                ? const CircularProgressIndicator()
+                                ? const SizedBox(
+                                  width: 50,
+                                  height: 50,
+                                  child: CircularProgressIndicator()
+                                  )
                                 : SfCartesianChart(
                                     primaryXAxis: const CategoryAxis(),
                                     primaryYAxis: const NumericAxis(),
@@ -884,9 +888,9 @@ class _DashboardState extends State<Dashboard> {
                       padding: const EdgeInsets.fromLTRB(15, 0, 0, 0),
                       child: Column(
                         children: [
-                          Padding(
-                          padding: const EdgeInsets.fromLTRB(0, 0, 710, 10),
-                          child: const Text(
+                          const Padding(
+                          padding: EdgeInsets.fromLTRB(0, 0, 710, 10),
+                          child: Text(
                             '허브별 재고량',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
@@ -906,7 +910,11 @@ class _DashboardState extends State<Dashboard> {
                                 ),
                               ),
                               child: hubData.isEmpty
-                                  ? const CircularProgressIndicator()
+                                  ? const SizedBox(
+                                  width: 50,
+                                  height: 50,
+                                  child: CircularProgressIndicator()
+                                  )
                                   : SfCartesianChart(
                                       primaryXAxis:
                                           const CategoryAxis(), // ✅ X축: Hub 이름 (문자열)

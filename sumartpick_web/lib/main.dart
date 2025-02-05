@@ -3,14 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:sumatpick_web/firebase_options.dart';
-import 'package:sumatpick_web/view/Dashboard.dart';
 import 'package:sumatpick_web/view/Home.dart';
-import 'package:sumatpick_web/view/Inventorypage.dart';
-import 'package:sumatpick_web/view/Orderpage.dart';
-import 'package:sumatpick_web/view/Productspage.dart';
-import 'package:sumatpick_web/view/Userpage.dart';
-import 'package:sumatpick_web/view/product_insert_page.dart';
-import 'package:sumatpick_web/view/product_update_page.dart';
 
 void main() async{
   WidgetsFlutterBinding.ensureInitialized();

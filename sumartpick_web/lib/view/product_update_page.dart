@@ -116,7 +116,7 @@ class _ProductUpdatePageState extends State<ProductUpdatePage> {
     selectedCategory = reversedCategoryMap[value[2]];
     nameController = TextEditingController(text: value[3]);
     priceController = TextEditingController(text: value[4].toString());
-    print(selectedCategory);
+    // print(selectedCategory);
     
   }
 

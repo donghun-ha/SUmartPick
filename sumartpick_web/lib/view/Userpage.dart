@@ -26,6 +26,9 @@ class _UserpageState extends State<Userpage> {
   // 검색 데이터 선언
   late List<Map<String, dynamic>> filteredMembers;
 
+  late DateTime? startDate; // 시작 날짜
+  late DateTime? endDate; // 종료 날짜
+
   @override
   void initState() {
     super.initState();
@@ -37,10 +40,12 @@ class _UserpageState extends State<Userpage> {
 
     selectedFilter = "아이디";
     searchController = TextEditingController();
-  getJSONData();
+    startDate = null; // 초기값 null
+    endDate = null; // 초기값 null
+    getJSONData();
   }
 
-  getJSONData() async{
+  getJSONData() async {
     var url = Uri.parse('https://fastapi.sumartpick.shop/user_select');
     var response = await http.get(url);
     // print(response.body);
@@ -49,16 +54,15 @@ class _UserpageState extends State<Userpage> {
     List result = dataConvertedJSON['results'];
     data.addAll(result);
     members = data.map((entry) {
-    return Map.fromIterables(keys, entry);
-  }).toList();
-  filteredMembers = members;
+      return Map.fromIterables(keys, entry.map((e) => e?.toString() ?? ""));
+    }).toList();
+    filteredMembers = members;
     if (mounted) {
-  setState(() {
-    // 상태 업데이트
-  });
-}
+      setState(() {
+        // 상태 업데이트
+      });
+    }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -150,11 +154,9 @@ class _UserpageState extends State<Userpage> {
                   children: [
                     Text(
                       '회원 정보검색',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold
-                      ),
-                      ),
+                      style:
+                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    ),
                   ],
                 ),
               ),
@@ -173,7 +175,8 @@ class _UserpageState extends State<Userpage> {
                       ),
                     ],
                   ),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: Row(
                     children: [
                       // 드롭다운 버튼
@@ -182,15 +185,15 @@ class _UserpageState extends State<Userpage> {
                           dropdownColor: Colors.white,
                           value: selectedFilter, // 현재 선택된 값
                           items: ['아이디', '회원명', '로그인방법']
-                  .map((String option) => DropdownMenuItem<String>(
-                        value: option,
-                        child: Text(option),
-                      ))
-                  .toList(),
+                              .map((String option) => DropdownMenuItem<String>(
+                                    value: option,
+                                    child: Text(option),
+                                  ))
+                              .toList(),
                           onChanged: (String? value) {
-                setState(() {
-                  selectedFilter = value!; // 선택된 값 업데이트
-                });
+                            setState(() {
+                              selectedFilter = value!; // 선택된 값 업데이트
+                            });
                           },
                         ),
                       ),
@@ -200,21 +203,76 @@ class _UserpageState extends State<Userpage> {
                         child: TextField(
                           controller: searchController,
                           decoration: const InputDecoration(
-                hintText: "검색어를 입력하세요",
-                border: InputBorder.none,
+                            hintText: "검색어를 입력하세요",
+                            border: InputBorder.none,
                           ),
                           onSubmitted: (value) {
                             filterMembers();
                           },
                         ),
                       ),
+                      // 시작 날짜 선택 버튼
+                      ElevatedButton(
+                        onPressed: () async {
+                          DateTime? picked = await showDatePicker(
+                            context: context,
+                            initialDate: startDate ?? DateTime.now(),
+                            firstDate: DateTime(2000),
+                            lastDate: DateTime(2100),
+                          );
+                          if (picked != null) {
+                            setState(() {
+                              startDate = picked;
+                            });
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: Colors.black,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(5)
+                          )
+                        ),
+                        child: Text(startDate == null
+                            ? "시작 날짜 선택"
+                            : "${startDate!.toLocal()}".split(' ')[0]),
+                      ),
+                      const SizedBox(width: 10),
+
+                      // 종료 날짜 선택 버튼
+                      ElevatedButton(
+                        onPressed: () async {
+                          DateTime? picked = await showDatePicker(
+                            context: context,
+                            initialDate: endDate ?? DateTime.now(),
+                            firstDate: DateTime(2000),
+                            lastDate: DateTime(2100),
+                          );
+                          if (picked != null) {
+                            setState(() {
+                              endDate = picked;
+                            });
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: Colors.black,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(5)
+                          )
+                        ),
+                        child: Text(endDate == null
+                            ? "종료 날짜 선택"
+                            : "${endDate!.toLocal()}".split(' ')[0]),
+                      ),
+                      const SizedBox(width: 10),
                       // 검색 버튼
                       ElevatedButton.icon(
                         onPressed: filterMembers,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.black,
                           shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(5),
+                            borderRadius: BorderRadius.circular(5),
                           ),
                         ),
                         icon: const Icon(Icons.search, color: Colors.white),
@@ -237,97 +295,82 @@ class _UserpageState extends State<Userpage> {
                   ),
                 ),
               ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(0, 50, 0, 0),
-          child: Container(
-            height: 80,
-            decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(15)
-            ),
-          child: Center(
-            child: Row(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 0, 0),
-            child: Text(
-              "총 회원 수 : ${filteredMembers.length}명",
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 17
+              Padding(
+                padding: const EdgeInsets.fromLTRB(0, 50, 0, 0),
+                child: Container(
+                  height: 80,
+                  decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(15)),
+                  child: Center(
+                    child: Row(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 0, 0, 0),
+                          child: Text(
+                            "총 회원 수 : ${filteredMembers.length}명",
+                            style: const TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 17),
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                ),
               ),
-              ),
-          )
-        ],
-            ),
-          ),
-          ),
-        ),
               const Padding(
                 padding: EdgeInsets.fromLTRB(0, 20, 0, 0),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                      Expanded(
-                        child: Text(
+                    Expanded(
+                      child: Text(
                         '회원명',
                         style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold
-                        ),
+                            fontSize: 15, fontWeight: FontWeight.bold),
                         textAlign: TextAlign.center,
-                        ),
                       ),
-                      Expanded(
-                        child: Text(
+                    ),
+                    Expanded(
+                      child: Text(
                         '아이디',
                         style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold
-                        ),
+                            fontSize: 15, fontWeight: FontWeight.bold),
                         textAlign: TextAlign.center,
-                        ),
                       ),
-                      Expanded(
-                        child: Text(
+                    ),
+                    Expanded(
+                      child: Text(
                         '로그인방법',
                         style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold
-                        ),
+                            fontSize: 15, fontWeight: FontWeight.bold),
                         textAlign: TextAlign.center,
-                        ),
                       ),
-                      Expanded(
-                        child: Text(
+                    ),
+                    Expanded(
+                      child: Text(
                         '이메일',
                         style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold
-                        ),
+                            fontSize: 15, fontWeight: FontWeight.bold),
                         textAlign: TextAlign.center,
-                        ),
                       ),
-                      Expanded(
-                        child: Text(
+                    ),
+                    Expanded(
+                      child: Text(
                         '가입일시',
                         style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold
-                        ),
+                            fontSize: 15, fontWeight: FontWeight.bold),
                         textAlign: TextAlign.center,
-                        ),
                       ),
-                      Expanded(
-                        child: Text(
+                    ),
+                    Expanded(
+                      child: Text(
                         '등록주소',
                         style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold
-                        ),
+                            fontSize: 15, fontWeight: FontWeight.bold),
                         textAlign: TextAlign.center,
-                        ),
                       ),
+                    ),
                   ],
                 ),
               ),
@@ -337,9 +380,8 @@ class _UserpageState extends State<Userpage> {
                 child: Container(
                   height: 600,
                   decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(15)
-                  ),
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(15)),
                   child: ListView.builder(
                     itemCount: filteredMembers.length,
                     itemBuilder: (context, index) {
@@ -353,43 +395,43 @@ class _UserpageState extends State<Userpage> {
                               child: Text(
                                 "${member['회원명']}",
                                 textAlign: TextAlign.center,
-                                ),
+                              ),
                             ),
                             Expanded(
                               child: Text(
                                 "${member['아이디']}",
                                 textAlign: TextAlign.center,
-                                ),
+                              ),
                             ),
                             Expanded(
                               child: Text(
                                 "${member['로그인방법']}",
                                 textAlign: TextAlign.center,
-                                ),
+                              ),
                             ),
                             Expanded(
                               child: Text(
                                 "${member['이메일']}",
                                 textAlign: TextAlign.center,
-                                ),
+                              ),
                             ),
                             Expanded(
                               child: Text(
-                                "${member['가입일시']}",
+                                "${member['가입일시'] ?? ""}",
                                 textAlign: TextAlign.center,
-                                ),
+                              ),
                             ),
                             Expanded(
                               child: Text(
-                                "${member['등록주소']}",
+                                "${member['등록주소'] ?? ""}",
                                 textAlign: TextAlign.center,
-                                ),
+                              ),
                             ),
                           ],
                         ),
                       );
                     },
-                    ),
+                  ),
                 ),
               ),
             ],
@@ -401,19 +443,32 @@ class _UserpageState extends State<Userpage> {
   // -----Function-----
 
   // dropdown에서 선택한 검색어로 검색
-  filterMembers(){
+  filterMembers() {
     String query = searchController.text.trim();
-    if (query.isEmpty){
-      filteredMembers = members; // 검색어 없으면 전체 표시
-    } else {
-      filteredMembers = members.where((member) {
-        return member[selectedFilter].toString().contains(query);
-      }).toList();
-    }
+
+    filteredMembers = members.where((member) {
+      bool matchesQuery =
+          query.isEmpty || member[selectedFilter].toString().contains(query);
+
+      // ✅ 가입일시 필터 적용 (날짜가 `startDate` ~ `endDate` 범위 내에 있는지 확인)
+      bool matchesDateRange = true;
+      if (startDate != null && endDate != null && member['가입일시'] != "") {
+        DateTime memberDate =
+            DateTime.tryParse(member['가입일시']) ?? DateTime(1900); // 변환 오류 방지
+        matchesDateRange = (memberDate.isAfter(startDate!) ||
+                memberDate.isAtSameMomentAs(startDate!)) &&
+            (memberDate.isBefore(endDate!) ||
+                memberDate.isAtSameMomentAs(endDate!));
+      }
+
+      return matchesQuery && matchesDateRange;
+    }).toList();
+
     setState(() {});
   }
+
   // 검색창 초기화
-  resetFilter(){
+  resetFilter() {
     searchController.clear();
     filteredMembers = members; // 지금은 초기화 하면 임시데이터를 넣지만 DB가 있을땐 초기 DB데이터를 넣어야 함
     setState(() {});

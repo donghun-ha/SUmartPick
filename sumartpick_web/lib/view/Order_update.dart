@@ -40,7 +40,7 @@ class _OrderUpdateState extends State<OrderUpdate> {
       'Refund',
       'Return_Requested'
     ];
-    print(value);
+    // print(value);
   }
 
   @override
@@ -59,11 +59,11 @@ class _OrderUpdateState extends State<OrderUpdate> {
           padding: const EdgeInsets.fromLTRB(30, 10, 30, 30),
           child: Column(
             children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(0, 50, 0, 0),
+              const Padding(
+                padding: EdgeInsets.fromLTRB(0, 50, 0, 0),
                 child: Row(
                   children: [
-                    const Text(
+                    Text(
                       '주문 수정',
                       style:
                           TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
@@ -144,8 +144,8 @@ class _OrderUpdateState extends State<OrderUpdate> {
                   ),
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(0, 30, 0, 0),
+              const Padding(
+                padding: EdgeInsets.fromLTRB(0, 30, 0, 0),
                 child: Divider(
                   thickness: 1,
                   color: Color(0xffD9D9D9),
@@ -218,8 +218,6 @@ class _OrderUpdateState extends State<OrderUpdate> {
                                       DateFormat('yyyy-MM-dd HH:mm:ss').format(now).toString()
                                   : deliveryFinishtime.text = '';
                             });
-                            print(selectedOrderstate);
-                            print(deliveryFinishtime.text);
                           },
                         ),
                       ),
@@ -259,21 +257,21 @@ class _OrderUpdateState extends State<OrderUpdate> {
     "&Order_ID=${value[0]}"
     "&Product_seq=${value[1]}"
   );
-    try {
+    // try {
     var response = await http.get(url);
     var dataConvertedJSON = json.decode(utf8.decode(response.bodyBytes));
     var result = dataConvertedJSON['results'];
 
-    if (result == 'OK') {
-      print("✅ 업데이트 성공");
-    } else {
-      print("❌ 업데이트 실패: $result");
-    }
+    // if (result == 'OK') {
+    //   print("✅ 업데이트 성공");
+    // } else {
+    //   print("❌ 업데이트 실패: $result");
+    // }
 
     setState(() {});
-  } catch (e) {
-    print("❌ 요청 실패: $e");
-  }
+  // } catch (e) {
+  //   print("❌ 요청 실패: $e");
+  // }
   }
 
   updateJSONRefundData() async{
@@ -285,20 +283,20 @@ class _OrderUpdateState extends State<OrderUpdate> {
     "&Order_ID=${value[0]}"
     "&Product_seq=${value[1]}"
   );
-    try {
+    // try {
     var response = await http.get(url);
     var dataConvertedJSON = json.decode(utf8.decode(response.bodyBytes));
     var result = dataConvertedJSON['results'];
 
-    if (result == 'OK') {
-      print("✅ 업데이트 성공");
-    } else {
-      print("❌ 업데이트 실패: $result");
-    }
+    // if (result == 'OK') {
+    //   print("✅ 업데이트 성공");
+    // } else {
+    //   print("❌ 업데이트 실패: $result");
+    // }
 
     setState(() {});
-  } catch (e) {
-    print("❌ 요청 실패: $e");
-  }
+  // } catch (e) {
+  //   print("❌ 요청 실패: $e");
+  // }
   }
 }
