@@ -324,6 +324,15 @@ class AuthenticationState: ObservableObject {
 
     // 로그아웃 메서드 (UserDefaults의 저장 값도 삭제)
     func logout() {
+        do {
+            let realm = try Realm()
+            try realm.write {
+                realm.deleteAll() // 🚀 로그아웃 시 저장된 계정 삭제
+            }
+        } catch {
+            print("❌ Realm 데이터 삭제 실패: \(error.localizedDescription)")
+        }
+        
         self.isAuthenticated = false
         self.userIdentifier = nil
         self.userFullName = nil
