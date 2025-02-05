@@ -127,10 +127,19 @@ struct CartView: View {
                                     quantity: item.quantity,
                                     total_price: Int(item.price * Double(item.quantity))
                                 )
-                            }
+                            },
+                        onPaymentSuccess: {
+                            clearCart()
+                        }
                     )
             }
             .navigationBarHidden(true)
+        }
+    }
+    
+    private func clearCart() {
+        for item in cartItems {
+            cartViewModel.removeFromCart(userId: item.userId, productId: item.productId)
         }
     }
 }
