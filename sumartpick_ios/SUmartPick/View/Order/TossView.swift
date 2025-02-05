@@ -35,6 +35,7 @@ struct TossView: View {
     let userId: String
     let address: String
     let products: [OrderModels]
+    var onPaymentSuccess: (() -> Void)?
     
     var totalPrice: Int {
         return products.reduce(0) { $0 + $1.total_price }
@@ -63,6 +64,7 @@ struct TossView: View {
                 Task {
                     await processOrder()
                     DispatchQueue.main.async {
+                        onPaymentSuccess?()
                             isShow = false // 결제 완료 시 자동으로 닫힘
                         }
                 }
