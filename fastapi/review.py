@@ -4,6 +4,7 @@ import pymysql
 
 router = APIRouter()
 
+
 @router.get("/get_reviews/{product_id}")
 async def get_reviews(product_id: int):
     """
@@ -79,6 +80,7 @@ async def get_user_reviews(user_id: str):
         raise HTTPException(status_code=500, detail="Database error occurred.")
     finally:
         conn.close()
+
 
 # 리뷰 작성
 @router.post("/reviews")

@@ -37,7 +37,8 @@ class _OrderUpdateState extends State<OrderUpdate> {
       'Preparing_for_delivery',
       'In_delivery',
       'Delivered',
-      'Refund'
+      'Refund',
+      'Return_Requested'
     ];
     print(value);
   }
