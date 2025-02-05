@@ -141,9 +141,9 @@ struct DetailView: View {
                         Divider().padding(.horizontal)
                         
                         // 장바구니로 이동
-                        NavigationLink(destination: CartView(), isActive: $navigateToCart) {
-                            EmptyView()
-                        }
+                            .navigationDestination(isPresented: $navigateToCart){
+                                CartView()
+                            }
 
                         // ✅ 리뷰 섹션
                         VStack(alignment: .leading, spacing: 15) {

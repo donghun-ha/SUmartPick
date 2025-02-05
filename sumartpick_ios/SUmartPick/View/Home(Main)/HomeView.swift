@@ -19,6 +19,7 @@ struct HomeView: View {
     @State private var selectedProductID: Int? = nil
     @State private var selectedCategoryID: Int? = nil
     @State private var isNavigatingToDetail = false
+    @State private var isNavigatingToCart = false
 
     let categories = [
         (id: 4, name: "가구", icon: "bed.double"),
@@ -66,7 +67,29 @@ struct HomeView: View {
                     DetailView(productID: productID)
                 }
             }
+            .navigationDestination(isPresented: $isNavigatingToCart){
+                CartView()
             }
+            }
+        }
+        private var headerView: some View {
+            HStack {
+                Text("SUmartPick")
+                    .font(.title)
+                    .fontWeight(.bold)
+                    .padding(.leading)
+                Spacer()
+            
+                Button(action: {
+                    isNavigatingToCart = true
+                }) {
+                    Image(systemName: "cart")
+                        .resizable()
+                        .frame(width: 24, height: 24)
+                        .padding(.trailing)
+                }
+            }
+            .padding(.top)
         }
     }
     
@@ -146,19 +169,4 @@ struct HomeView: View {
             }
             .padding(.horizontal)
         }
-    }
-    
-    private var headerView: some View {
-        HStack {
-            Text("SUmartPick")
-                .font(.title)
-                .fontWeight(.bold)
-                .padding(.leading)
-            Spacer()
-            Image(systemName: "cart")
-                .resizable()
-                .frame(width: 24, height: 24)
-                .padding(.trailing)
-        }
-        .padding(.top)
     }
