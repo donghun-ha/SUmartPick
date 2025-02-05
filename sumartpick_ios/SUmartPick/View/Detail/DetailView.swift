@@ -9,8 +9,15 @@ import SwiftUI
 
 struct DetailView: View {
     @StateObject private var viewModel = ProductDetailViewModel()
+    @StateObject private var cartViewModel = CartViewModel()
+    @EnvironmentObject var authState: AuthenticationState
+    
     let productID: Int
     @State private var quantity: Int = 1
+    
+    // alert 상태관리
+    @State private var showAlert = false
+    @State private var navigateToCart = false
     @State private var isNavigatingToToss = false
     
     // UserDefaults에서 로그인된 사용자 정보 불러오기
@@ -47,7 +54,7 @@ struct DetailView: View {
                         .frame(height: 300)
                         .padding(.horizontal)
 
-                        // ✅ 카테고리명 + 별점 + 리뷰 개수
+                        // 카테고리명 + 별점 + 리뷰 개수
                         HStack {
                             Text(product.category)
                                 .font(.subheadline)
@@ -103,7 +110,12 @@ struct DetailView: View {
                         // 장바구니 & 바로구매 버튼
                         HStack(spacing: 16) {
                             Button("장바구니 담기") {
-                                print("장바구니 버튼 클릭")
+                                if let userId = authState.userIdentifier {
+                                    cartViewModel.addToCart(userId: userId, product: product, quantity: quantity)
+                                    showAlert = true
+                                }else{
+                                    print("로그인 후 이용해주세요.")
+                                }
                             }
                             .font(.headline)
                             .foregroundColor(.blue)
@@ -127,6 +139,11 @@ struct DetailView: View {
                         .padding(.horizontal)
 
                         Divider().padding(.horizontal)
+                        
+                        // 장바구니로 이동
+                        NavigationLink(destination: CartView(), isActive: $navigateToCart) {
+                            EmptyView()
+                        }
 
                         // ✅ 리뷰 섹션
                         VStack(alignment: .leading, spacing: 15) {
@@ -170,9 +187,19 @@ struct DetailView: View {
         .onAppear {
             viewModel.fetchProductDetails(productID: productID)
         }
+        .alert(isPresented: $showAlert) {
+            Alert(
+                title: Text("상품이 장바구니에 담겼습니다"),
+                message: Text("장바구니로 이동하시겠습니까?"),
+                primaryButton: .default(Text("장바구니로 이동"), action: {
+                    navigateToCart = true
+                }),
+                secondaryButton: .cancel(Text("쇼핑 계속하기"))
+            )
+        }
         .navigationDestination(isPresented: $isNavigatingToToss) {
                 TossView(
-                    userId: userName,
+                    userId: authState.userIdentifier ?? "",
                     address: "서울 강남구 테헤란로",
                     products: [
                         OrderModels(

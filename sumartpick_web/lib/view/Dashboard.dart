@@ -7,6 +7,9 @@ import 'package:sumatpick_web/view/Orderpage.dart';
 import 'package:sumatpick_web/view/Productspage.dart';
 import 'package:sumatpick_web/view/Userpage.dart';
 import 'package:http/http.dart' as http;
+import 'package:syncfusion_flutter_charts/charts.dart';
+
+import '../model/chart_data.dart';
 
 class Dashboard extends StatefulWidget {
   const Dashboard({super.key});
@@ -758,6 +761,82 @@ getJSONOrderData();
                             color: const Color.fromARGB(255, 14, 101, 171),
                           ),
                         ),
+                        // -------------Chart---------------
+                        const Text(
+                          "차트",
+                          style: TextStyle(
+                            fontSize: 18,
+                          ),
+                          textAlign: TextAlign.center,
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              // ------------------차트 그리는 부분--------------------
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    Container(
+                      width: 800,
+                      height: 600,
+                      decoration: BoxDecoration(
+                            color: Colors.white, // 배경색
+                            border: Border.all(
+                              color: const Color.fromARGB(255, 199, 199, 199), // 외곽선 색상
+                              width: 1.0, // 외곽선 두께
+                            ),
+                            ),
+      //                       child: SfCartesianChart(
+      //   title: ChartTitle(text: '주문 통계'),
+      //   legend: Legend(isVisible: true),
+      //   primaryXAxis: CategoryAxis(),
+      //   primaryYAxis: NumericAxis(),
+      //   series: <ChartSeries>[
+      //     ColumnSeries<ChartData, String>(
+      //       dataSource: chartData,
+      //       xValueMapper: (ChartData data, _) => data.label,
+      //       yValueMapper: (ChartData data, _) => data.value,
+      //       name: '주문 상태',
+      //       dataLabelSettings: const DataLabelSettings(isVisible: true),
+      //     )
+      //   ],
+      // ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(15, 0, 0, 0),
+                      child: Container(
+                        width: 800,
+                        height: 600,
+                        decoration: BoxDecoration(
+                              color: Colors.white, // 배경색
+                              border: Border.all(
+                                color: const Color.fromARGB(255, 199, 199, 199), // 외곽선 색상
+                                width: 1.0, // 외곽선 두께
+                              ),
+                              ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(0, 30, 0, 10),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(0, 0, 5, 0),
+                          child: Container(
+                            width: 5,
+                            height: 18,
+                            color: const Color.fromARGB(255, 14, 101, 171),
+                          ),
+                        ),
                         const Text(
                           "최근 주문내역",
                           style: TextStyle(
@@ -877,6 +956,7 @@ getJSONOrderData();
                     DataColumn(label: Text('이름')),
                     DataColumn(label: Text('이메일')),
                     DataColumn(label: Text('가입일시')),
+                    DataColumn(label: Text('등록주소')),
                   ], 
                   rows: recentlyRegistered.map((row) {
             return DataRow(

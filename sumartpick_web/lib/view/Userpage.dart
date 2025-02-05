@@ -33,7 +33,7 @@ class _UserpageState extends State<Userpage> {
     members = [];
     filteredMembers = [];
     // key
-    keys = ["아이디", "로그인방법", "회원명", "이메일", "가입일시"];
+    keys = ["아이디", "로그인방법", "회원명", "이메일", "가입일시", "등록주소"];
 
     selectedFilter = "아이디";
     searchController = TextEditingController();
@@ -318,6 +318,16 @@ class _UserpageState extends State<Userpage> {
                         textAlign: TextAlign.center,
                         ),
                       ),
+                      Expanded(
+                        child: Text(
+                        '등록주소',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold
+                        ),
+                        textAlign: TextAlign.center,
+                        ),
+                      ),
                   ],
                 ),
               ),
@@ -366,6 +376,12 @@ class _UserpageState extends State<Userpage> {
                             Expanded(
                               child: Text(
                                 "${member['가입일시']}",
+                                textAlign: TextAlign.center,
+                                ),
+                            ),
+                            Expanded(
+                              child: Text(
+                                "${member['등록주소']}",
                                 textAlign: TextAlign.center,
                                 ),
                             ),

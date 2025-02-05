@@ -1,24 +1,24 @@
 from fastapi import APIRouter, HTTPException
+from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 from datetime import datetime
 import pymysql
 import hosts
+import json
 
 router = APIRouter()
 
-
+# 주문 아이템 모델
 class OrderItem(BaseModel):
-    product_id: int
-    quantity: int
-    total_price: float
+    Product_ID: int
+    quantity: int  # 상품 개수 추가
 
-
+# 주문 요청 모델
 class OrderRequest(BaseModel):
-    user_id: str
-    order_date: datetime = datetime.now()
-    address: str
+    User_ID: str
+    Address: str
     payment_method: str
-    order_state: str = "Preparing_for_delivery"
+    Order_state: str = "Payment_completed"
     products: list[OrderItem]
 
 
@@ -39,53 +39,62 @@ async def select():
 @router.post("/create_order")
 async def create_order(order: OrderRequest):
     try:
+        # JSON 직렬화 가능하게 변환
+        order_data = jsonable_encoder(order)
+        print("Received JSON:", json.dumps(order_data, indent=4, ensure_ascii=False))
+
         conn = hosts.connect_to_mysql()
         curs = conn.cursor()
 
-        # 먼저 `orders` 테이블에 주문 정보 저장 (Product_ID 없이 삽입)
-        sql_order = """
-        INSERT INTO orders (User_ID, Order_Date, Address, payment_method, Order_state)
-        VALUES (%s, %s, %s, %s, %s)
-        """
-        values_order = (
-            order.user_id,
-            order.order_date,
-            order.address,
-            order.payment_method,
-            order.order_state,
-        )
-        curs.execute(sql_order, values_order)
-
-        order_id = curs.lastrowid  # 새로 생성된 주문 ID 가져오기
-
-        # 주문한 각 상품을 `orders` 테이블에 추가
-        product_seq = 1  # 첫 번째 상품부터 시작
+        # 주문한 모든 상품이 `products` 테이블에 존재하는지 확인
         for product in order.products:
-            sql_product = """
-            INSERT INTO orders (Order_ID, Product_seq, User_ID, Product_ID, Order_Date, Address, payment_method, Order_state)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-            """
-            values_product = (
-                order_id,  # 방금 삽입한 주문 ID
-                product_seq,  # 순차적인 제품 번호
-                order.user_id,
-                product.product_id,  # 올바른 Product_ID 입력
-                order.order_date,
-                order.address,
-                order.payment_method,
-                order.order_state,
-            )
-            curs.execute(sql_product, values_product)
-            product_seq += 1  # 상품 순서 증가
+            curs.execute("SELECT 1 FROM products WHERE Product_ID = %s", (product.Product_ID,))
+            if not curs.fetchone():
+                raise HTTPException(status_code=400, detail=f"Product_ID {product.Product_ID} does not exist")
+
+        sql_order = """
+        SELECT Order_ID 
+        FROM orders
+        ORDER BY Order_ID DESC
+        LIMIT 1
+        """
+
+        curs.execute(sql_order,)
+        order_id = curs.fetchone()[0] + 1
+
+        
+        # 주문한 각 상품을 추가하면서 `Product_seq` 증가
+        sql_product = """
+        INSERT INTO orders (Order_ID, Product_seq, User_ID, Product_ID, Address, payment_method, Order_state)
+        VALUES (%s, %s, %s, %s, %s, %s, %s)
+        """
+        
+        product_seq = 1  # 첫 번째 상품부터 Product_seq 시작
+        for product in order.products:
+            for _ in range(product.quantity):  # 주문 개수만큼 반복하여 삽입
+                values_product = (
+                    order_id,
+                    product_seq,  # Product_seq 증가
+                    order.User_ID,
+                    product.Product_ID,
+                    order.Address,
+                    order.payment_method,
+                    order.Order_state
+                )
+                curs.execute(sql_product, values_product)
+                product_seq += 1  # Product_seq 증가
 
         conn.commit()
         conn.close()
 
-        return {"message": "Order created successfully", "order_id": order_id}
+        return {
+            "message": "Order created successfully"
+            }
+
     except Exception as e:
+        print("JSON 직렬화 오류:", str(e))
         raise HTTPException(status_code=500, detail=str(e))
-
-
+    
 # 환불요청 없는 주문 상태 업데이트
 @router.get("/norefund_orders_update")
 async def update(

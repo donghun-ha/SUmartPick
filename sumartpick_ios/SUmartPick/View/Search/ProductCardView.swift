@@ -7,8 +7,6 @@
 
 import SwiftUI
 
-import SwiftUI
-
 struct ProductCardView: View {
     let product: SearchProduct
 

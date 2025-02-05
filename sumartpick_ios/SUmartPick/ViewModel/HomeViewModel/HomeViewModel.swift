@@ -34,7 +34,8 @@ class HomeViewModel: ObservableObject {
     /// - API: `/get_all_products`
     /// - 최대 10개의 상품을 가져와 `products`에 저장
     func fetchHomeProducts() async {
-        guard let url = URL(string: "\(baseURL)/get_all_products") else {
+        let id : String = "apple-987654321"
+        guard let url = URL(string: "\(baseURL)/get_all_products?id=\(id)") else {
             print("❌ URL 생성 실패")
             return
         }
