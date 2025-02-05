@@ -32,6 +32,7 @@ class AuthenticationState: ObservableObject {
             self.userFullName = userDefaults.string(forKey: "user_name")
             self.userAddress = userDefaults.string(forKey: "user_address")
             self.isAuthenticated = true
+            print("AuthenticationState init - userAddress: \(self.userAddress ?? "nil")")
         }
     }
 
@@ -53,15 +54,19 @@ class AuthenticationState: ObservableObject {
 
                 let rawGivenName = appleIDCredential.fullName?.givenName ?? ""
                 let rawFamilyName = appleIDCredential.fullName?.familyName ?? ""
-                let combinedName = [rawGivenName, rawFamilyName]
-                    .filter { !$0.isEmpty }
-                    .joined(separator: " ")
+                let combinedName = [rawGivenName, rawFamilyName].filter { !$0.isEmpty }.joined(separator: " ")
 
                 Task {
                     do {
+                        // 서버에서 사용자 정보를 가져올 때 address 필드도 파싱
                         let existingUser = try await fetchUserFromServer(userID: userID)
                         let finalName = combinedName.isEmpty ? (existingUser?.name ?? "Unknown") : combinedName
                         let finalEmail = appleIDCredential.email ?? (existingUser?.email ?? "Unknown")
+
+                        // 만약 서버에 저장된 주소가 있다면 업데이트
+                        if let existingAddress = existingUser?.address, !existingAddress.isEmpty {
+                            self.userAddress = existingAddress
+                        }
 
                         self.userFullName = finalName
 
@@ -86,7 +91,8 @@ class AuthenticationState: ObservableObject {
         }
     }
 
-    func fetchUserFromServer(userID: String) async throws -> (name: String, email: String)? {
+    // 서버에서 사용자 정보를 가져올 때 address 필드도 파싱하여 반환
+    func fetchUserFromServer(userID: String) async throws -> (name: String, email: String, address: String)? {
         guard let url = URL(string: "\(SUmartPickConfig.baseURL)/users/\(userID)") else {
             throw AuthenticationError.invalidURL
         }
@@ -104,7 +110,8 @@ class AuthenticationState: ObservableObject {
         else {
             throw AuthenticationError.parsingError
         }
-        return (name, email)
+        let address = userData["address"] as? String ?? ""
+        return (name, email, address)
     }
 
     // Google 로그인 진행
@@ -149,7 +156,7 @@ class AuthenticationState: ObservableObject {
         }
     }
 
-    // 사용자 정보를 서버(MySQL)에 저장
+    // 사용자 정보를 서버(MySQL)에 저장 (address 필드 포함)
     func saveUserToDatabase(userIdentifier: String, email: String?, fullName: String?, provider: AuthProvider) async throws {
         guard let url = URL(string: "\(SUmartPickConfig.baseURL)/users") else {
             throw AuthenticationError.invalidURL
@@ -159,11 +166,15 @@ class AuthenticationState: ObservableObject {
         request.httpMethod = "POST"
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
 
+        // userAddress가 nil이면 빈 문자열 사용
+        let addressValue = self.userAddress ?? ""
+
         let userData: [String: Any] = [
             "User_ID": userIdentifier,
             "auth_provider": provider.rawValue,
             "name": fullName ?? "Unknown",
-            "email": email ?? "Unknown"
+            "email": email ?? "Unknown",
+            "address": addressValue
         ]
 
         do {
