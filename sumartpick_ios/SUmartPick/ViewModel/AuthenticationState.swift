@@ -26,13 +26,13 @@ class AuthenticationState: ObservableObject {
 
     // 초기화 시 UserDefaults에서 기존 저장된 사용자 정보를 불러옴
     init() {
+        autoLogin()
         let userDefaults = UserDefaults.standard
         if let id = userDefaults.string(forKey: "user_id") {
             self.userIdentifier = id
             self.userFullName = userDefaults.string(forKey: "user_name")
             self.userAddress = userDefaults.string(forKey: "user_address")
             self.isAuthenticated = true
-            autoLogin()
         }
     }
     
