@@ -8,10 +8,12 @@ import json
 
 router = APIRouter()
 
+
 # 주문 아이템 모델
 class OrderItem(BaseModel):
     Product_ID: int
     quantity: int  # 상품 개수 추가
+
 
 # 주문 요청 모델
 class OrderRequest(BaseModel):
@@ -48,9 +50,14 @@ async def create_order(order: OrderRequest):
 
         # 주문한 모든 상품이 `products` 테이블에 존재하는지 확인
         for product in order.products:
-            curs.execute("SELECT 1 FROM products WHERE Product_ID = %s", (product.Product_ID,))
+            curs.execute(
+                "SELECT 1 FROM products WHERE Product_ID = %s", (product.Product_ID,)
+            )
             if not curs.fetchone():
-                raise HTTPException(status_code=400, detail=f"Product_ID {product.Product_ID} does not exist")
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Product_ID {product.Product_ID} does not exist",
+                )
 
         sql_order = """
         SELECT Order_ID 
@@ -59,16 +66,17 @@ async def create_order(order: OrderRequest):
         LIMIT 1
         """
 
-        curs.execute(sql_order,)
+        curs.execute(
+            sql_order,
+        )
         order_id = curs.fetchone()[0] + 1
 
-        
         # 주문한 각 상품을 추가하면서 `Product_seq` 증가
         sql_product = """
         INSERT INTO orders (Order_ID, Product_seq, User_ID, Product_ID, Address, payment_method, Order_state)
         VALUES (%s, %s, %s, %s, %s, %s, %s)
         """
-        
+
         product_seq = 1  # 첫 번째 상품부터 Product_seq 시작
         for product in order.products:
             for _ in range(product.quantity):  # 주문 개수만큼 반복하여 삽입
@@ -79,7 +87,7 @@ async def create_order(order: OrderRequest):
                     product.Product_ID,
                     order.Address,
                     order.payment_method,
-                    order.Order_state
+                    order.Order_state,
                 )
                 curs.execute(sql_product, values_product)
                 product_seq += 1  # Product_seq 증가
@@ -87,14 +95,13 @@ async def create_order(order: OrderRequest):
         conn.commit()
         conn.close()
 
-        return {
-            "message": "Order created successfully"
-            }
+        return {"message": "Order created successfully"}
 
     except Exception as e:
         print("JSON 직렬화 오류:", str(e))
         raise HTTPException(status_code=500, detail=str(e))
-    
+
+
 # 환불요청 없는 주문 상태 업데이트
 @router.get("/norefund_orders_update")
 async def update(
@@ -277,29 +284,11 @@ async def request_refund(order_id: int):
         conn.close()
 
 
-#### 배송조회쪽(고칠예정)
-@router.get("/{order_id}/track")
-async def track_order(order_id: int):
-    conn = hosts.connect_to_mysql()
-    cursor = conn.cursor(pymysql.cursors.DictCursor)
-    try:
-        sql = """
-            SELECT Order_ID, TrackingNumber, Carrier, ShippingStatus
-            FROM orders
-            WHERE Order_ID = %s
-        """
-        cursor.execute(sql, (order_id,))
-        tracking_info = cursor.fetchone()
+### 머신러닝 테스트
+@router.get("/ml_test2")
+async def ml_test2(order_id: int):
+    import datetime
 
-        # 만약 tracking_info가 None이면 order_id에 해당하는 레코드가 없는 경우
-        if not tracking_info:
-            raise HTTPException(status_code=404, detail="Order not found.")
-
-        return tracking_info
-    except pymysql.MySQLError as ex:
-        print("Error:", ex)
-        raise HTTPException(status_code=500, detail="Database error occurred.")
-    finally:
-        conn.close()
-        print("Error:", e)
-        return {"results": "Error", "error": str(e)}
+    return {
+        "result": datetime.now(),
+    }
