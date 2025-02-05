@@ -307,15 +307,15 @@ async def track_order(order_id: int):
 
 
 ### 머신러닝 테스트
-@router.get("/ml_test")
-async def ml_test(order_id: int):
+@router.get("/mltest")
+async def mltest(order_id: int):
     return{'result' : order_id}
 
 
 
-### 머신러닝 테스트
-@router.get("/ml_test2")
-async def ml_test2(order_id: int):
-    return {
-        'result' : datetime.now(),
-    }
+# ### 머신러닝 테스트
+# @router.get("/ml_test2")
+# async def ml_test2(order_id: int):
+#     return {
+#         'result' : datetime.now(),
+#     }
