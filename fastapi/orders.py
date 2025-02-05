@@ -395,6 +395,6 @@ async def track_order(order_id: int):
         }
     )
 
-
+    print({'results' : loaded_rf.predict(pred).item()})
     return {'results' : loaded_rf.predict(pred).item()}
 
