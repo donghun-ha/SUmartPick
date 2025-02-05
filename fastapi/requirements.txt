@@ -21,3 +21,4 @@ Redis == 5.2.1
 geopy == 2.4.1
 pandas == 2.2.2
 joblib == 1.4.2
+scikit-learn == 1.5.1
