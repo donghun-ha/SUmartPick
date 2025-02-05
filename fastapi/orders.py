@@ -322,6 +322,7 @@ async def ml_test(order_id: int):
     import pymysql
     import pandas as pd
     import hashlib
+    from datetime import timedelta
 
     def text_to_number(text):
         hash_object = hashlib.md5(text.encode('utf-8'))  # MD5 해시 생성
@@ -397,7 +398,10 @@ async def ml_test(order_id: int):
         }
     )
 
-    return {'results' : loaded_rf.predict(pred).item()}
+    pred_result = loaded_rf.predict(pred).item()
+    result =  orders[0]['Order_Date'] + timedelta(pred_result +1)
+    
+    return {'results' : result}
 
 
 
@@ -407,6 +411,4 @@ async def ml_test(order_id: int):
     import datetime
     return {
         'result' : datetime.now(),
-        'order_id' : order_id,
-            }
-
+    }
