@@ -26,10 +26,10 @@ class AuthenticationState: ObservableObject {
 
     // 초기화 시 UserDefaults에서 기존 저장된 사용자 정보를 불러옴
     init() {
-        autoLogin()
-        loadUserDefaults()
+        self.autoLogin()
+        self.loadUserDefaults()
     }
-    
+
     func loadUserDefaults() {
         let userDefaults = UserDefaults.standard
         if let id = userDefaults.string(forKey: "user_id") {
@@ -40,24 +40,24 @@ class AuthenticationState: ObservableObject {
             print("AuthenticationState init - userAddress: \(self.userAddress ?? "nil")")
         }
     }
-    
+
     func autoLogin() {
-            Task {
-                do {
-                    let realm = try await Realm()
-                    if let account = realm.objects(EasyLoginAccount.self).first {
-                        print("✅ Realm 계정으로 자동 로그인 성공: \(account.email)")
-                        self.userIdentifier = account.id
-                        self.userFullName = account.fullName
-                        self.isAuthenticated = true
-                    } else {
-                        print("ℹ️ Realm에 저장된 계정이 없습니다.")
-                    }
-                } catch {
-                    print("❌ Realm 자동 로그인 오류: \(error.localizedDescription)")
+        Task {
+            do {
+                let realm = try await Realm()
+                if let account = realm.objects(EasyLoginAccount.self).first {
+                    print("✅ Realm 계정으로 자동 로그인 성공: \(account.email)")
+                    self.userIdentifier = account.id
+                    self.userFullName = account.fullName
+                    self.isAuthenticated = true
+                } else {
+                    print("ℹ️ Realm에 저장된 계정이 없습니다.")
                 }
+            } catch {
+                print("❌ Realm 자동 로그인 오류: \(error.localizedDescription)")
             }
         }
+    }
 
     // Apple 로그인 요청 시 설정
     func configureSignInWithApple(_ request: ASAuthorizationAppleIDRequest) {
@@ -127,14 +127,24 @@ class AuthenticationState: ObservableObject {
         guard httpResponse.statusCode == 200 else {
             throw AuthenticationError.serverError(statusCode: httpResponse.statusCode)
         }
-        guard let userData = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-              let name = userData["name"] as? String,
-              let email = userData["email"] as? String
-        else {
-            throw AuthenticationError.parsingError
+        // 우선 딕셔너리 형태로 파싱 시도
+        if let userData = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+           let name = userData["name"] as? String,
+           let email = userData["email"] as? String
+        {
+            let address = userData["address"] as? String ?? ""
+            return (name, email, address)
         }
-        let address = userData["address"] as? String ?? ""
-        return (name, email, address)
+        // 딕셔너리 파싱에 실패하면 배열 형태로 파싱 시도 (서버가 튜플 형태로 반환하는 경우)
+        if let userArray = try? JSONSerialization.jsonObject(with: data) as? [Any],
+           userArray.count >= 3,
+           let email = userArray[1] as? String,
+           let name = userArray[2] as? String
+        {
+            // 인덱스는 서버 응답 순서에 따라 다를 수 있으므로, 실제 순서를 확인해야 합니다.
+            return (name, email, "")
+        }
+        throw AuthenticationError.parsingError
     }
 
     // Google 로그인 진행
@@ -184,14 +194,10 @@ class AuthenticationState: ObservableObject {
         guard let url = URL(string: "\(SUmartPickConfig.baseURL)/users") else {
             throw AuthenticationError.invalidURL
         }
-
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-
-        // userAddress가 nil이면 빈 문자열 사용
         let addressValue = self.userAddress ?? ""
-
         let userData: [String: Any] = [
             "User_ID": userIdentifier,
             "auth_provider": provider.rawValue,
@@ -199,18 +205,15 @@ class AuthenticationState: ObservableObject {
             "email": email ?? "Unknown",
             "address": addressValue
         ]
-
         do {
             request.httpBody = try JSONSerialization.data(withJSONObject: userData)
         } catch {
             throw AuthenticationError.serializationError
         }
-
         let (data, response) = try await URLSession.shared.data(for: request)
         guard let httpResponse = response as? HTTPURLResponse else {
             throw AuthenticationError.serverError(statusCode: -1)
         }
-
         switch httpResponse.statusCode {
             case 200:
                 if let responseData = String(data: data, encoding: .utf8) {
@@ -231,7 +234,6 @@ class AuthenticationState: ObservableObject {
             account.id = userIdentifier
             account.email = email ?? "Unknown"
             account.fullName = fullName ?? "Unknown"
-
             try realm.write {
                 realm.add(account, update: .modified)
             }
@@ -267,11 +269,11 @@ class AuthenticationState: ObservableObject {
     func performEasyLogin() async {
         do {
             let realm = try await Realm()
+            // 저장된 계정 조회
             guard let account = realm.objects(EasyLoginAccount.self).first else {
                 throw AuthenticationError.authenticationFailed("저장된 간편 로그인 계정을 찾을 수 없습니다.")
             }
             print("간편 로그인 계정 불러오기 성공: \(account.email)")
-
             let isValid = try await validateAccountWithServer(userIdentifier: account.id)
             if isValid {
                 self.userIdentifier = account.id
@@ -294,7 +296,6 @@ class AuthenticationState: ObservableObject {
         guard let httpResponse = response as? HTTPURLResponse else {
             throw AuthenticationError.serverError(statusCode: -1)
         }
-
         switch httpResponse.statusCode {
             case 200:
                 guard let userData = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
@@ -320,32 +321,51 @@ class AuthenticationState: ObservableObject {
         guard let url = URL(string: "\(SUmartPickConfig.baseURL)/users/\(userIdentifier)") else {
             throw AuthenticationError.invalidURL
         }
-
         let (data, response) = try await URLSession.shared.data(from: url)
         guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
             throw AuthenticationError.serverError(statusCode: (response as? HTTPURLResponse)?.statusCode ?? -1)
         }
-
-        guard let userData = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-              let email = userData["email"] as? String,
-              let fullName = userData["name"] as? String
-        else {
-            throw AuthenticationError.parsingError
+        // 딕셔너리로 파싱 시도
+        if let userData = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+           let email = userData["email"] as? String,
+           let fullName = userData["name"] as? String
+        {
+            print("registerEasyLogin: Parsed user data: email=\(email), fullName=\(fullName)")
+            try await self.clearAccountFromRealm()
+            try await self.saveAccountToRealm(
+                userIdentifier: userIdentifier,
+                email: email,
+                fullName: fullName
+            )
+            // 저장 후 Realm에서 객체를 조회하여 확인
+            let realm = try await Realm()
+            if let savedAccount = realm.objects(EasyLoginAccount.self).first {
+                print("계정 저장 확인: \(savedAccount.email), \(savedAccount.fullName)")
+            } else {
+                print("계정 저장 실패: Realm에서 조회되지 않음")
+            }
+            self.userFullName = fullName
+            self.isAuthenticated = true
+            return
         }
-
-        // 기존 Realm 데이터 삭제(중복 계정 등록 방지)
-        try await self.clearAccountFromRealm()
-
-        // 새 계정 정보 저장
-        try await self.saveAccountToRealm(
-            userIdentifier: userIdentifier,
-            email: email,
-            fullName: fullName
-        )
-
-        // 상태 갱신
-        self.userFullName = fullName
-        self.isAuthenticated = true
+        // 배열 형태로 파싱 시도 (필요시)
+        if let userArray = try? JSONSerialization.jsonObject(with: data) as? [Any],
+           userArray.count >= 3,
+           let email = userArray[1] as? String,
+           let fullName = userArray[2] as? String
+        {
+            print("registerEasyLogin: Parsed user array: email=\(email), fullName=\(fullName)")
+            try await self.clearAccountFromRealm()
+            try await self.saveAccountToRealm(
+                userIdentifier: userIdentifier,
+                email: email,
+                fullName: fullName
+            )
+            self.userFullName = fullName
+            self.isAuthenticated = true
+            return
+        }
+        throw AuthenticationError.parsingError
     }
 
     // Realm 데이터 전체 삭제
@@ -360,13 +380,12 @@ class AuthenticationState: ObservableObject {
     func logout() {
         do {
             let realm = try Realm()
-            try realm.write {
-                realm.deleteAll() // 🚀 로그아웃 시 저장된 계정 삭제
-            }
+            try realm.write {}
         } catch {
             print("❌ Realm 데이터 삭제 실패: \(error.localizedDescription)")
         }
-        
+
+        // 인증 상태와 관련된 메모리 및 UserDefaults 값만 초기화
         self.isAuthenticated = false
         self.userIdentifier = nil
         self.userFullName = nil
