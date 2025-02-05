@@ -36,7 +36,7 @@ class _OrderpageState extends State<Orderpage> {
     super.initState();
     data = [];
     filteredOrders = [];
-    keys = ["주문번호", "주문상세번호", "주문ID", "상품명", "상품금액", "주문일시", "배송주소", "환불요청시간", "환불시간", "결제방법", "배송도착시간", "배송상태"];
+    keys = ["주문번호", "주문상세번호", "주문ID", "상품명", "상품금액", "주문일시", "배송주소", "환불요청시간", "환불시간", "결제방법", "배송도착시간", "배송상태", "상품ID"];
     selectedFilter = "주문번호";
     searchController = TextEditingController();
     startDate = null; // 초기값 null
@@ -572,7 +572,8 @@ class _OrderpageState extends State<Orderpage> {
                                           product['주문상세번호'],
                                           product['환불요청시간'],
                                           product['배송도착시간'],
-                                          product['배송상태']
+                                          product['배송상태'],
+                                          product['상품ID']
                                           ]
                                           )!.then((value) => getJSONData(),);
                                       },
