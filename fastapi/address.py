@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from hosts import connect_to_mysql  # 기존 MySQL 연결 함수 재활용
+from hosts import connect_to_mysql
 
 router = APIRouter()
 
@@ -14,7 +14,7 @@ class UpdateAddressRequest(BaseModel):
 # 주소 업데이트 엔드포인트 (HTTP PUT)
 @router.put("/update_address")
 async def update_address(req: UpdateAddressRequest):
-    conn = connect_to_mysql()  # 기존 연결 함수 사용
+    conn = connect_to_mysql()
     cursor = conn.cursor()
     try:
         # users 테이블의 address 컬럼 업데이트

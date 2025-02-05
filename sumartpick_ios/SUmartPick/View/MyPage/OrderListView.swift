@@ -11,9 +11,12 @@ struct OrderListView: View {
     @EnvironmentObject var authState: AuthenticationState
     @StateObject var viewModel = OrdersViewModel()
 
-    // 배송조회 sheet 제어
-    @State private var showTrackingSheet: Bool = false
-    // 사용자가 반품을 신청하기 전, 확인용 Alert 띄우기 위해 선택한 주문
+    // 리뷰 작성 sheet (예시: 새로운 화면으로 이동)
+    @State private var showReviewWriteSheet: Bool = false
+    // 사용자가 리뷰 작성을 위한 주문 선택
+    @State private var selectedOrderForReview: OrderItem? = nil
+
+    // 반품 관련 Alert 변수는 그대로 유지 (원한다면 제거 가능)
     @State private var selectedOrderForRefund: OrderItem? = nil
 
     var body: some View {
@@ -35,21 +38,16 @@ struct OrderListView: View {
                                 ForEach(items) { order in
                                     OrderRow(
                                         order: order,
-                                        // ✅ Alert을 띄우기 위해 parent가 클로저를 받음
+                                        // 반품 신청 버튼은 기존대로 사용
                                         onRequestRefund: {
                                             selectedOrderForRefund = order
                                         },
-                                        onTracking: {
-                                            Task {
-                                                if let info = await viewModel.fetchTrackingInfo(orderID: order.id) {
-                                                    // 성공적으로 받아오면 ViewModel에 저장
-                                                    viewModel.selectedTrackingInfo = info
-                                                    showTrackingSheet = true
-                                                } else {
-                                                    // 실패 시 Alert 표시 등 처리 가능
-                                                    viewModel.errorMessage = "배송 정보를 불러올 수 없습니다."
-                                                    viewModel.showErrorAlert = true
-                                                }
+                                        // 리뷰 작성 버튼 액션: 주문 상태가 Delivered일 때만 활성화
+                                        onWriteReview: {
+                                            // 리뷰 작성 가능한 주문인지 확인
+                                            if order.orderState == "Delivered" {
+                                                selectedOrderForReview = order
+                                                showReviewWriteSheet = true
                                             }
                                         }
                                     )
@@ -75,22 +73,18 @@ struct OrderListView: View {
                     await viewModel.fetchOrders(for: userID)
                 }
             }
-
             // (C) 에러 처리 Alert
             .alert("오류 발생", isPresented: $viewModel.showErrorAlert) {
                 Button("확인", role: .cancel) {}
             } message: {
                 Text(viewModel.errorMessage)
             }
-
-            // (D) 반품 신청 확인 Alert
+            // (D) 반품 신청 확인 Alert (필요 시 유지)
             .alert(item: $selectedOrderForRefund) { order in
-                // Alert의 title, message, 버튼 지정
                 Alert(
                     title: Text("반품 신청"),
                     message: Text("정말 “\(order.productName)” 상품을 반품 신청하시겠습니까?"),
                     primaryButton: .destructive(Text("확인")) {
-                        // 실제 반품신청 로직 호출
                         Task {
                             await viewModel.requestRefund(orderID: order.id)
                             if let userID = authState.userIdentifier {
@@ -101,8 +95,13 @@ struct OrderListView: View {
                     secondaryButton: .cancel(Text("취소"))
                 )
             }
-
-            // (E) 배송 조회 Sheet
+            // (E) 리뷰 작성 Sheet
+            .sheet(isPresented: $showReviewWriteSheet) {
+                // 예시: 리뷰 작성 화면으로 이동 (예: ReviewWriteView)
+                if let order = selectedOrderForReview {
+                    ReviewWriteView(order: order)
+                }
+            }
         }
     }
 }
@@ -111,9 +110,10 @@ struct OrderListView: View {
 
 struct OrderRow: View {
     let order: OrderItem
-    // 클로저 파라미터로 버튼 액션을 부모에게 위임
+    // 기존 반품 신청 액션
     let onRequestRefund: () -> Void
-    let onTracking: () -> Void
+    // 새롭게 추가한 리뷰 작성 액션
+    let onWriteReview: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -134,39 +134,46 @@ struct OrderRow: View {
             Text("\(Int(order.productPrice))원 · 1개")
                 .font(.subheadline)
 
-            // (C) 교환/반품 신청, 배송조회 버튼
+            // 버튼 영역: 반품 신청과 리뷰 작성
             HStack {
                 if order.orderState == "Return_Requested" {
-                    // 이미 반품 신청된 상태
                     Label("반품 신청됨", systemImage: "exclamationmark.triangle.fill")
                         .foregroundColor(.orange)
                         .padding(.trailing, 8)
-
-                    // 기존 버튼을 숨기거나, 혹은 .disabled(true) 처리 가능
                     Button("반품 신청") { onRequestRefund() }
                         .buttonStyle(.bordered)
-                        .disabled(true) // 비활성화
-                        .opacity(0.3) // 흐리게
+                        .disabled(true)
+                        .opacity(0.3)
                 } else {
-                    // 아직 반품을 신청하지 않은 상태 -> 버튼 활성화
                     Button("반품 신청") {
                         onRequestRefund()
                     }
                     .buttonStyle(.bordered)
                 }
 
-                // 배송조회 버튼
-                Button("배송조회") {
-                    onTracking()
+                Spacer()
+
+                // 리뷰 작성 버튼: 주문 상태가 Delivered일 때만 활성화
+                if order.orderState == "Delivered" {
+                    Button("리뷰 작성") {
+                        onWriteReview()
+                    }
+                    .buttonStyle(.borderedProminent)
+                } else {
+                    Button("리뷰 작성") {
+                        // 배송 완료되지 않은 주문은 아무 동작도 하지 않음
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(true)
+                    .opacity(0.5)
                 }
-                .buttonStyle(.borderedProminent)
             }
             .padding(.top, 4)
         }
         .padding(.vertical, 6)
     }
 
-    // 날짜 포맷
+    // 날짜 포맷 함수
     func formatDate(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.dateFormat = "M/d(EEE)"
