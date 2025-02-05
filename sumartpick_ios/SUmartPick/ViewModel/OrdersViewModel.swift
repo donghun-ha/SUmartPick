@@ -18,9 +18,6 @@ class OrdersViewModel: ObservableObject {
     @Published var showErrorAlert: Bool = false
     @Published var errorMessage: String = ""
 
-    // 배송 조회 정보를 화면에 표시하기 위해 사용
-    @Published var selectedTrackingInfo: TrackingInfo? = nil
-
     // 기본 서버 URL
     let baseURL = "\(SUmartPickConfig.baseURL)"
 
@@ -75,26 +72,6 @@ class OrdersViewModel: ObservableObject {
         }
     }
 
-    // ============== 3) 배송조회 정보 요청 ==============
-    // 서버 측 가정: GET /orders/{order_id}/track
-    func fetchTrackingInfo(orderID: Int) async -> TrackingInfo? {
-        guard let url = URL(string: "\(baseURL)/orders/\(orderID)/track") else { return nil }
-
-        do {
-            let (data, response) = try await URLSession.shared.data(from: url)
-            guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
-                throw URLError(.badServerResponse)
-            }
-            let decoder = JSONDecoder()
-            let tracking = try decoder.decode(TrackingInfo.self, from: data)
-            return tracking
-        } catch {
-            errorMessage = error.localizedDescription
-            showErrorAlert = true
-            return nil
-        }
-    }
-
     // (옵션) 검색 로직
     var filteredOrders: [OrderItem] {
         if searchText.isEmpty {
@@ -125,20 +102,5 @@ class OrdersViewModel: ObservableObject {
             }
             return d1 > d2 // 최신 날짜가 먼저 오도록
         }
-    }
-}
-
-// ============== 4) 배송조회 결과 모델 (TrackingInfo) ==============
-struct TrackingInfo: Codable {
-    let orderID: Int
-    let trackingNumber: String?
-    let carrier: String?
-    let shippingStatus: String?
-
-    enum CodingKeys: String, CodingKey {
-        case orderID = "Order_ID"
-        case trackingNumber = "TrackingNumber"
-        case carrier = "Carrier"
-        case shippingStatus = "ShippingStatus"
     }
 }
