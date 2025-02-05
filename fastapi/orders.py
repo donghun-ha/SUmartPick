@@ -5,13 +5,16 @@ from datetime import datetime
 import pymysql
 import hosts
 import json
+import logging
 
 router = APIRouter()
+
 
 # 주문 아이템 모델
 class OrderItem(BaseModel):
     Product_ID: int
     quantity: int  # 상품 개수 추가
+
 
 # 주문 요청 모델
 class OrderRequest(BaseModel):
@@ -48,9 +51,14 @@ async def create_order(order: OrderRequest):
 
         # 주문한 모든 상품이 `products` 테이블에 존재하는지 확인
         for product in order.products:
-            curs.execute("SELECT 1 FROM products WHERE Product_ID = %s", (product.Product_ID,))
+            curs.execute(
+                "SELECT 1 FROM products WHERE Product_ID = %s", (product.Product_ID,)
+            )
             if not curs.fetchone():
-                raise HTTPException(status_code=400, detail=f"Product_ID {product.Product_ID} does not exist")
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Product_ID {product.Product_ID} does not exist",
+                )
 
         sql_order = """
         SELECT Order_ID 
@@ -59,16 +67,17 @@ async def create_order(order: OrderRequest):
         LIMIT 1
         """
 
-        curs.execute(sql_order,)
+        curs.execute(
+            sql_order,
+        )
         order_id = curs.fetchone()[0] + 1
 
-        
         # 주문한 각 상품을 추가하면서 `Product_seq` 증가
         sql_product = """
         INSERT INTO orders (Order_ID, Product_seq, User_ID, Product_ID, Address, payment_method, Order_state)
         VALUES (%s, %s, %s, %s, %s, %s, %s)
         """
-        
+
         product_seq = 1  # 첫 번째 상품부터 Product_seq 시작
         for product in order.products:
             for _ in range(product.quantity):  # 주문 개수만큼 반복하여 삽입
@@ -79,7 +88,7 @@ async def create_order(order: OrderRequest):
                     product.Product_ID,
                     order.Address,
                     order.payment_method,
-                    order.Order_state
+                    order.Order_state,
                 )
                 curs.execute(sql_product, values_product)
                 product_seq += 1  # Product_seq 증가
@@ -87,14 +96,13 @@ async def create_order(order: OrderRequest):
         conn.commit()
         conn.close()
 
-        return {
-            "message": "Order created successfully"
-            }
+        return {"message": "Order created successfully"}
 
     except Exception as e:
         print("JSON 직렬화 오류:", str(e))
         raise HTTPException(status_code=500, detail=str(e))
-    
+
+
 # 환불요청 없는 주문 상태 업데이트
 @router.get("/norefund_orders_update")
 async def update(
@@ -275,126 +283,3 @@ async def request_refund(order_id: int):
         raise HTTPException(status_code=500, detail="Database error.")
     finally:
         conn.close()
-
-
-#### 배송조회쪽(고칠예정)
-@router.get("/{order_id}/track")
-async def track_order(order_id: int):
-    conn = hosts.connect_to_mysql()
-    cursor = conn.cursor(pymysql.cursors.DictCursor)
-    try:
-        sql = """
-            SELECT Order_ID, TrackingNumber, Carrier, ShippingStatus
-            FROM orders
-            WHERE Order_ID = %s
-        """
-        cursor.execute(sql, (order_id,))
-        tracking_info = cursor.fetchone()
-
-        # 만약 tracking_info가 None이면 order_id에 해당하는 레코드가 없는 경우
-        if not tracking_info:
-            raise HTTPException(status_code=404, detail="Order not found.")
-
-        return tracking_info
-    except pymysql.MySQLError as ex:
-        print("Error:", ex)
-        raise HTTPException(status_code=500, detail="Database error occurred.")
-    finally:
-        conn.close()
-        print("Error:", e)
-        return {'results': 'Error', 'error': str(e)}
-    
-
-
-
-
-
-
-
-
-
-#### 머신러닝 테스트
-@router.get("/ml_test")
-async def track_order(order_id: int):
-    """
-    머신러닝 테스트용으로 만든 테스트에용
-    """
-    import pymysql
-    import pandas as pd
-    import hashlib
-
-    def text_to_number(text):
-        hash_object = hashlib.md5(text.encode('utf-8'))  # MD5 해시 생성
-        return int(hash_object.hexdigest(), 16)  # 16진수를 10진수 정수로 변환
-
-    import joblib
-    loaded_rf = joblib.load('best_random_forest_model.pkl')
-
-    seller_id_parser =  pd.read_csv('seller_id_parser.csv', index_col=0)
-    train =  pd.read_csv('time_train.csv', index_col=0)
-
-    dist_idx = text_to_number(orders[0]['Address']) % train.shape[0]
-    dist = train['dist'].iloc[dist_idx]
-
-    # order_id = 14
-
-
-    conn = hosts.connect_to_mysql()
-    curs = conn.cursor(pymysql.cursors.DictCursor)
-
-    sql = f"""
-        select *
-        from orders as o
-        JOIN products p ON p.Product_ID = o.Product_ID
-        WHERE o.order_id = {order_id}
-        """
-    curs.execute(sql)
-
-    orders = curs.fetchall()
-    conn.close()
-
-    product_id = orders[0]['Product_ID']
-    raw_price = orders[0]['price']
-
-    conn = hosts.connect_to_mysql()
-    curs = conn.cursor()
-
-    sql = f"""
-        SELECT
-            AVG(price) AS avg_price,  -- 평균
-            STDDEV(price) AS std_price  -- 표준편차
-        FROM products;
-    """
-    curs.execute(sql)
-
-    av_std_rows = curs.fetchall()
-    conn.close()
-    # print(av_std_rows)
-
-    your_mean = 1756.1477912569826
-
-    your_std = 3908.8645767822213
-    your_min = 5.2 
-
-    our_mean =  av_std_rows[0][0]
-    our_std = av_std_rows[0][1]
-
-
-    price = max(((raw_price - our_mean)/our_std *your_std) + your_mean, your_min)
-
-
-    customer_city_mean = train['customer_city_mean'].iloc[dist_idx]
-    seller_id_mean =  seller_id_parser.loc['6edacfd9f9074789dad6d62ba7950b9c'].item()
-
-    pred =  pd.DataFrame(
-        {
-            'price' : [price],
-            'dist' : [dist],
-            'seller_id_mean' : [seller_id_mean],
-            'customer_city_mean' : [customer_city_mean],
-        }
-    )
-
-    print({'results' : loaded_rf.predict(pred).item()})
-    return {'results' : loaded_rf.predict(pred).item()}
-

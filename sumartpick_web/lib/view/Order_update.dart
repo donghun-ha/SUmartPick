@@ -40,7 +40,7 @@ class _OrderUpdateState extends State<OrderUpdate> {
       'Refund',
       'Return_Requested'
     ];
-    // print(value);
+    print(value);
   }
 
   @override

@@ -90,3 +90,19 @@ async def select():
     print(rows)
     # 데이터가 많을때 쓰는 방법
     return {"results": rows}
+
+@router.get("/hub_qty_update")
+async def update(Product_ID: int=None, QTY :int=None):
+    conn = hosts.connect_to_mysql()
+    curs = conn.cursor()
+
+    try:
+        sql = "update stocktransfer set QTY = %s where Product_ID = %s"
+        curs.execute(sql, (QTY, Product_ID))
+        conn.commit()
+        conn.close()
+        return {'results' : 'OK'}
+    except Exception as e:
+        conn.close()
+        print("Error :", e)
+        return {'results' : 'Error'}

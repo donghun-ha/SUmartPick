@@ -133,25 +133,25 @@ class _DashboardState extends State<Dashboard> {
 
         // 🚨 응답이 200(정상)인지 확인
         if (response.statusCode != 200) {
-          print("❌ API 요청 실패: ${entry.key} - 상태코드: ${response.statusCode}");
+          // print("❌ API 요청 실패: ${entry.key} - 상태코드: ${response.statusCode}");
           continue;
         }
 
         // 🚨 API 응답 출력 (디버깅용)
-        print("🔍 API 응답 (${entry.key}): ${response.body}");
+        // print("🔍 API 응답 (${entry.key}): ${response.body}");
 
         var dataConvertedJSON = json.decode(utf8.decode(response.bodyBytes));
 
         // 🚨 JSON 구조 확인
         if (!dataConvertedJSON.containsKey('results')) {
-          print("❌ 'results' 키 없음 (${entry.key}): $dataConvertedJSON");
+          // print("❌ 'results' 키 없음 (${entry.key}): $dataConvertedJSON");
           continue;
         }
 
         List result = dataConvertedJSON['results'];
         entry.value(result); // 변수에 데이터 추가
       } catch (e) {
-        print("❌ API 요청 중 오류 발생 (${entry.key}): $e");
+        // print("❌ API 요청 중 오류 발생 (${entry.key}): $e");
       }
     }
 
