@@ -405,3 +405,9 @@ async def updateeeeee(
         return {"results": "OK"}
     except Exception as e:
         return {"results": "Error", "error": str(e)}
+
+
+@router.get("/test_test")
+async def test():
+    print("dd")
+    return {"test": "ok"}
