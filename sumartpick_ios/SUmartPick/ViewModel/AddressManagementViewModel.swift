@@ -12,9 +12,9 @@ final class AddressManagementViewModel: ObservableObject {
     @Published var address = ""
     @Published var showErrorAlert = false
     @Published var errorMessage = ""
+    @Published var isLoading = false // 로딩 상태 추가
 
     // 주소 업데이트 API 호출
-
     func updateAddress(userID: String) async {
         guard let url = URL(string: "https://fastapi.sumartpick.shop/update_address") else {
             errorMessage = "유효하지 않은 URL입니다."
@@ -26,9 +26,8 @@ final class AddressManagementViewModel: ObservableObject {
         request.httpMethod = "PUT"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
-        // AuthenticationState의 userIdentifier를 사용하여 API 요청 데이터 구성
         let requestBody: [String: Any] = [
-            "user_id": userID, // 전달받은 사용자 식별자 값 사용
+            "user_id": userID, // AuthenticationState의 userIdentifier 사용
             "address": address
         ]
 
@@ -42,7 +41,7 @@ final class AddressManagementViewModel: ObservableObject {
                 showErrorAlert = true
                 return
             }
-            // 성공적으로 업데이트되었음을 처리 (필요 시 추가 로직 구현)
+            // 성공적으로 업데이트되었음을 로그로 확인
             print("주소 업데이트 성공: \(String(data: data, encoding: .utf8) ?? "")")
         } catch {
             errorMessage = error.localizedDescription

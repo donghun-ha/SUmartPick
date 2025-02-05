@@ -14,11 +14,13 @@ from pydantic import BaseModel
 import pymysql
 
 
+# Pydantic 모델에 address 필드를 기본값 ""으로 추가
 class User(BaseModel):
     User_ID: str
     auth_provider: str
     name: str
     email: str
+    address: str = ""
 
 
 # FastAPI 라우터 생성
@@ -59,30 +61,35 @@ async def user_login(request: Request):
     cursor = mysql_conn.cursor()
 
     try:
-        # MySQL에서 사용자 확인
-        query = "SELECT User_Id, email, name, auth_provider, Creation_date FROM users WHERE email = %s"
+        # MySQL에서 사용자 확인 (address 컬럼 추가)
+        query = "SELECT User_Id, email, name, auth_provider, address, Creation_date FROM users WHERE email = %s"
         cursor.execute(query, (email,))
         user = cursor.fetchone()
 
         if user:
-            # MySQL 사용자 데이터를 반환
+            # MySQL 사용자 데이터를 반환 (address 포함)
             user_data = {
                 "User_Id": user[0],
                 "email": user[1],
                 "name": user[2],
                 "auth_provider": user[3],
-                "Creation_date": user[4].strftime("%Y-%m-%d %H:%M:%S"),
+                "address": user[4],
+                "Creation_date": (
+                    user[5].strftime("%Y-%m-%d %H:%M:%S")
+                    if user[5] is not None
+                    else None
+                ),
             }
-            # Redis에 사용자 데이터 캐싱
-            await redis.set(redis_key, json.dumps(user_data), ex=3600)  # 1시간 캐싱
+            # Redis에 사용자 데이터 캐싱 (1시간)
+            await redis.set(redis_key, json.dumps(user_data), ex=3600)
             return {"source": "mysql", "user_data": user_data}
 
-        # MySQL에 사용자 추가
+        # MySQL에 사용자 추가 (address 컬럼 기본값 "" 삽입)
         insert_query = """
-        INSERT INTO users (email, name, auth_provider, Creation_date)
-        VALUES (%s, %s, %s, NOW())
+        INSERT INTO users (email, name, auth_provider, address, Creation_date)
+        VALUES (%s, %s, %s, %s, NOW())
         """
-        cursor.execute(insert_query, (email, name, login_type))
+        cursor.execute(insert_query, (email, name, login_type, ""))
         mysql_conn.commit()
 
         user_id = cursor.lastrowid  # 새로 생성된 User_Id 가져오기
@@ -91,7 +98,8 @@ async def user_login(request: Request):
             "email": email,
             "name": name,
             "auth_provider": login_type,
-            "Creation_date": None,  # 새 사용자는 현재 Creation_date를 가져오지 않음
+            "address": "",
+            "Creation_date": None,  # 새 사용자는 Creation_date를 가져오지 않음
         }
         await redis.set(redis_key, json.dumps(user_data), ex=3600)
         return {"source": "mysql", "user_data": user_data}
@@ -108,14 +116,12 @@ async def user_login(request: Request):
 async def select():
     conn = connect_to_mysql()
     curs = conn.cursor()
-    # 결과값을 딕셔너리로 변환할때 쓰이는 SQL문장
+    # 결과값을 딕셔너리로 변환할 때 쓰는 SQL문
     sql = "SELECT * FROM users"
-    # sql = "select * from student"
     curs.execute(sql)
     rows = curs.fetchall()
     conn.close()
     print(rows)
-    # 데이터가 많을때 쓰는 방법
     return {"results": rows}
 
 
@@ -133,8 +139,10 @@ async def add_user(user: User):
         if existing_user:
             return {"message": "User already exists."}
 
-        sql = "INSERT INTO users (User_ID, auth_provider, name, email) VALUES (%s, %s, %s, %s)"
-        cursor.execute(sql, (user.User_ID, user.auth_provider, user.name, user.email))
+        sql = "INSERT INTO users (User_ID, auth_provider, name, email, address) VALUES (%s, %s, %s, %s, %s)"
+        cursor.execute(
+            sql, (user.User_ID, user.auth_provider, user.name, user.email, user.address)
+        )
         conn.commit()
         return {"message": "User successfully added."}
     except pymysql.MySQLError as ex:

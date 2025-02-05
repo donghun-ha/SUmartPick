@@ -198,17 +198,17 @@ struct DetailView: View {
             )
         }
         .navigationDestination(isPresented: $isNavigatingToToss) {
-                TossView(
-                    userId: authState.userIdentifier ?? "",
-                    address: "서울 강남구 테헤란로",
-                    products: [
-                        OrderModels(
-                            Product_ID: productID,
-                            quantity: quantity,
-                            total_price: Int(viewModel.product?.price ?? 0) * quantity
-                        )
-                    ]
-                )
+//                TossView(
+//                    userId: authState.userIdentifier ?? "",
+//                    address: "서울 강남구 테헤란로",
+//                    products: [
+//                        OrderModels(
+//                            Product_ID: productID,
+//                            quantity: quantity,
+//                            total_price: Int(viewModel.product?.price ?? 0) * quantity
+//                        )
+//                    ]
+//                )
         }
     }
 
