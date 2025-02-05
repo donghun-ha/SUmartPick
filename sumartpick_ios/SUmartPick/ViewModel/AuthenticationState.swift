@@ -27,6 +27,10 @@ class AuthenticationState: ObservableObject {
     // 초기화 시 UserDefaults에서 기존 저장된 사용자 정보를 불러옴
     init() {
         autoLogin()
+        loadUserDefaults()
+    }
+    
+    func loadUserDefaults() {
         let userDefaults = UserDefaults.standard
         if let id = userDefaults.string(forKey: "user_id") {
             self.userIdentifier = id
@@ -38,19 +42,22 @@ class AuthenticationState: ObservableObject {
     }
     
     func autoLogin() {
-            do {
-                let realm = try Realm()
-                if let account = realm.objects(EasyLoginAccount.self).first {
-                    self.userIdentifier = account.id
-                    self.userFullName = account.fullName
-                    self.isAuthenticated = true
-                    print("✅ 자동 로그인 성공: \(account.email)")
+            Task {
+                do {
+                    let realm = try await Realm()
+                    if let account = realm.objects(EasyLoginAccount.self).first {
+                        print("✅ Realm 계정으로 자동 로그인 성공: \(account.email)")
+                        self.userIdentifier = account.id
+                        self.userFullName = account.fullName
+                        self.isAuthenticated = true
+                    } else {
+                        print("ℹ️ Realm에 저장된 계정이 없습니다.")
+                    }
+                } catch {
+                    print("❌ Realm 자동 로그인 오류: \(error.localizedDescription)")
                 }
-            } catch {
-                print("❌ 자동 로그인 실패: \(error.localizedDescription)")
             }
         }
-
 
     // Apple 로그인 요청 시 설정
     func configureSignInWithApple(_ request: ASAuthorizationAppleIDRequest) {

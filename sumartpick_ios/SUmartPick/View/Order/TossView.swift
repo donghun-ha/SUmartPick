@@ -14,9 +14,12 @@ struct TossView: View {
     @Environment(\.presentationMode) var presentationMode // 뒤로 가기 기능 추가
     @EnvironmentObject var authState: AuthenticationState
     
+    
     let userId: String
     let address: String
     let products: [OrderModels]
+    var onPaymentSuccess: (()-> Void)?
+    
     
     var totalPrice: Int {
         return products.reduce(0) { $0 + $1.total_price }
@@ -42,6 +45,7 @@ struct TossView: View {
             .onSuccess { _, _, _ in
                 Task {
                     await processOrder()
+                    onPaymentSuccess?()
                 }
             }
             .onFail { _, errorMessage, _ in
