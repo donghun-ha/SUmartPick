@@ -540,3 +540,9 @@ async def get_product(product_id: int):
     finally:
         curs.close()
         conn.close()  # ✅ DB 연결 종료
+
+
+@router.get("/testtesttest")
+async def test():
+    print('와우')
+    return {"test": "ok"}
