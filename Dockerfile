@@ -31,7 +31,7 @@ WORKDIR /SUmartPick/fastapi
 
 # Install dependencies
 COPY ./fastapi/requirements.txt ./requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt && rm -rf /root/.cache/pip
 
 # Expose the port the app runs on
 EXPOSE 6003

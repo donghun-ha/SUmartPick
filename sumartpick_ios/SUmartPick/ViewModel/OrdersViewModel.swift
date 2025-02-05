@@ -18,10 +18,13 @@ class OrdersViewModel: ObservableObject {
     @Published var showErrorAlert: Bool = false
     @Published var errorMessage: String = ""
 
+    // 머신러닝 테스트 결과 저장 (예상 도착 시간)
+    @Published var mlTestResult: Date? = nil
+
     // 기본 서버 URL
     let baseURL = "\(SUmartPickConfig.baseURL)"
 
-    // ============== 1) 주문 목록 조회 (기존) ==============
+    // ============== 1) 주문 목록 조회 ==============
     func fetchOrders(for userID: String) async {
         guard let url = URL(string: "\(baseURL)/orders/\(userID)") else { return }
 
@@ -53,8 +56,6 @@ class OrdersViewModel: ObservableObject {
     }
 
     // ============== 2) 반품 신청 ==============
-    // 서버 측 가정: PUT /orders/{order_id}/requestRefund
-    // refund_demands_time = NOW(), Order_state = 'Return_Requested' 등
     func requestRefund(orderID: Int) async {
         guard let url = URL(string: "\(baseURL)/orders/\(orderID)/requestRefund") else { return }
         var request = URLRequest(url: url)
@@ -69,6 +70,33 @@ class OrdersViewModel: ObservableObject {
         } catch {
             errorMessage = error.localizedDescription
             showErrorAlert = true
+        }
+    }
+
+    // ============== 3) 머신러닝 테스트 데이터 가져오기 ==============
+    func fetchMLTest(order_id: Int) async {
+        guard let url = URL(string: "https://fastapi.sumartpick.shop/mlplus=\(order_id)") else { return }
+
+        do {
+            let (data, response) = try await URLSession.shared.data(from: url)
+
+            guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+                print("ML Test: Server error or invalid response.")
+                return
+            }
+
+            // JSON 응답 예시: { "result": "2025-02-05T15:30:00Z" }
+            let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .iso8601
+            struct MLTestResponse: Decodable {
+                let result: Date
+            }
+
+            let decodedResponse = try decoder.decode(MLTestResponse.self, from: data)
+            mlTestResult = decodedResponse.result
+            print("ML Test result: \(mlTestResult!)")
+        } catch {
+            print("Error fetching ML test data: \(error.localizedDescription)")
         }
     }
 
