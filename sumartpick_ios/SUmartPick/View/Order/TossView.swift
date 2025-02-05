@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import TossPayments
+//import TossPayments
 
 struct TossView: View {
     @State private var isShow: Bool = true
@@ -32,29 +32,29 @@ struct TossView: View {
             isShow = true
         }
         .sheet(isPresented: $isShow) {
-            TossPaymentsView(
-                clientKey: "test_ck_nRQoOaPz8L4dWb1vZJqW8y47BMw6",
-                paymentMethod: .CARD,
-                paymentInfo: DefaultPaymentInfo(
-                    amount: Double(totalPrice),
-                    orderId: UUID().uuidString,
-                    orderName: "SUmartPick 결제"
-                ),
-                isPresented: $isShow
-            )
-            .onSuccess { _, _, _ in
-                Task {
-                    await processOrder()
-                    onPaymentSuccess?()
-                }
-            }
-            .onFail { _, errorMessage, _ in
-                print("❌ 결제 실패: \(errorMessage)")
-                DispatchQueue.main.async {
-                    isShow = false // 결제 취소 시 자동으로 닫힘
-                    presentationMode.wrappedValue.dismiss() // 결제 실패 시 이전 화면으로 이동
-                }
-            }
+//            TossPaymentsView(
+//                clientKey: "test_ck_nRQoOaPz8L4dWb1vZJqW8y47BMw6",
+//                paymentMethod: .CARD,
+//                paymentInfo: DefaultPaymentInfo(
+//                    amount: Double(totalPrice),
+//                    orderId: UUID().uuidString,
+//                    orderName: "SUmartPick 결제"
+//                ),
+//                isPresented: $isShow
+//            )
+//            .onSuccess { _, _, _ in
+//                Task {
+//                    await processOrder()
+//                    onPaymentSuccess?()
+//                }
+//            }
+//            .onFail { _, errorMessage, _ in
+//                print("❌ 결제 실패: \(errorMessage)")
+//                DispatchQueue.main.async {
+//                    isShow = false // 결제 취소 시 자동으로 닫힘
+//                    presentationMode.wrappedValue.dismiss() // 결제 실패 시 이전 화면으로 이동
+//                }
+//            }
         }
         .alert(isPresented: $orderCompleted) {
             Alert(
