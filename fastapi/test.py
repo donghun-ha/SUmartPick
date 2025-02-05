@@ -744,9 +744,10 @@ async def ml_test2(order_id: int):
         'result' : datetime.now(),
     }
 
-@app.get("/app_test")
-async def merong():
-    return{ 'result' : 1}
+### 머신러닝 테스트
+@app.get("/mltest")
+async def mltest(order_id: int):
+    return{'result' : order_id}
 
 
 
