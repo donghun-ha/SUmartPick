@@ -1,26 +1,8 @@
-////
-////  TossView.swift
-////  SUmartPick
-////
-////  Created by 하동훈 on 3/2/2025.
-////
 //
-//import SwiftUI
-//import TossPayments
+//  TossView.swift
+//  SUmartPick
 //
-//struct TossView: View {
-//    @State private var isShow: Bool = true
-//    @State private var orderCompleted: Bool = false
-//    @EnvironmentObject(\.presentationMode) var presentationMode // 뒤로 가기 기능 추가
-//    @EnvironmentObject var authState: AuthenticationState
-//    
-//    let userId: String
-//    let address: String
-//    let products: [OrderModels]
-//    
-//    var totalPrice: Int {
-//        return products.reduce(0) { $0 + $1.total_price }
-//    }
+//  Created by 하동훈 on 3/2/2025.
 //
 
 import SwiftUI
@@ -46,9 +28,7 @@ struct TossView: View {
         .onAppear {
             isShow = true
         }
-        .sheet(isPresented: $isShow, onDismiss: {
-            presentationMode.wrappedValue.dismiss() // 결제 화면 닫힐 때 자동으로 뒤로
-        }) {
+        .sheet(isPresented: $isShow) {
             TossPaymentsView(
                 clientKey: "test_ck_nRQoOaPz8L4dWb1vZJqW8y47BMw6",
                 paymentMethod: .CARD,
@@ -62,9 +42,6 @@ struct TossView: View {
             .onSuccess { _, _, _ in
                 Task {
                     await processOrder()
-                    DispatchQueue.main.async {
-                            isShow = false // 결제 완료 시 자동으로 닫힘
-                        }
                 }
             }
             .onFail { _, errorMessage, _ in
@@ -80,7 +57,7 @@ struct TossView: View {
                 title: Text("결제 완료"),
                 message: Text("주문이 성공적으로 완료되었습니다!"),
                 dismissButton: .default(Text("확인"), action: {
-                    presentationMode.wrappedValue.dismiss() // 주문 완료시 닫힘
+                    presentationMode.wrappedValue.dismiss() // 결제 완료 시 이전 화면으로 이동
                 }))
         }
     }
