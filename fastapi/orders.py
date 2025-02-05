@@ -397,10 +397,11 @@ async def request_refund(order_id: int):
 #     return {'results' : result}
 
 
-
-### 머신러닝 테스트
-@router.get("/aab")
-async def ml_test2():
-    return {
-        'result' : datetime.now(),
-    }
+# 환불요청 주문 상태 업데이트
+@router.get("/refund_orders_updat")
+async def update(
+):
+    try:
+        return {"results": "OK"}
+    except Exception as e:
+        return {"results": "Error", "error": str(e)}
