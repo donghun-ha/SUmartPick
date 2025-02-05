@@ -75,7 +75,7 @@ class OrdersViewModel: ObservableObject {
 
     // ============== 3) 머신러닝 테스트 데이터 가져오기 ==============
     func fetchMLTest(order_id: Int) async {
-        guard let url = URL(string: "\(baseURL)/ml_test2?order_id=\(order_id)") else { return }
+        guard let url = URL(string: "https://fastapi.sumartpick.shop/mlplus=\(order_id)") else { return }
 
         do {
             let (data, response) = try await URLSession.shared.data(from: url)
