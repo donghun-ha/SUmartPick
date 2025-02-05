@@ -1,4 +1,3 @@
-// pipeline 연동
 pipeline {
     agent any
 
@@ -58,13 +57,17 @@ pipeline {
         }
         stage("Deploy") {
             steps {
-                sh '''
-                    echo "Deploying Docker Image with tag: ${DOCKER_IMAGE_TAG}"
-                    export DOCKER_IMAGE_TAG=${DOCKER_IMAGE_TAG}
-                    export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-                    export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-                    docker-compose -f docker-compose.yml up -d
-                '''
+                withCredentials([file(credentialsId: 'sumartpick-firebase', variable: 'FIREBASE_KEY')]) {
+                    sh '''
+                        echo "Deploying Docker Image with tag: ${DOCKER_IMAGE_TAG}"
+                        export DOCKER_IMAGE_TAG=${DOCKER_IMAGE_TAG}
+                        export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+                        export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+
+                        # docker-compose 실행
+                        docker-compose -f docker-compose.yml up -d --build
+                    '''
+                }
             }
         }
     }
