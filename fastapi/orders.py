@@ -277,32 +277,32 @@ async def request_refund(order_id: int):
         conn.close()
 
 
-#### 배송조회쪽(고칠예정)
-@router.get("/{order_id}/track")
-async def track_order(order_id: int):
-    conn = hosts.connect_to_mysql()
-    cursor = conn.cursor(pymysql.cursors.DictCursor)
-    try:
-        sql = """
-            SELECT Order_ID, TrackingNumber, Carrier, ShippingStatus
-            FROM orders
-            WHERE Order_ID = %s
-        """
-        cursor.execute(sql, (order_id,))
-        tracking_info = cursor.fetchone()
+# #### 배송조회쪽(고칠예정)
+# @router.get("/{order_id}/track")
+# async def track_order(order_id: int):
+#     conn = hosts.connect_to_mysql()
+#     cursor = conn.cursor(pymysql.cursors.DictCursor)
+#     try:
+#         sql = """
+#             SELECT Order_ID, TrackingNumber, Carrier, ShippingStatus
+#             FROM orders
+#             WHERE Order_ID = %s
+#         """
+#         cursor.execute(sql, (order_id,))
+#         tracking_info = cursor.fetchone()
 
-        # 만약 tracking_info가 None이면 order_id에 해당하는 레코드가 없는 경우
-        if not tracking_info:
-            raise HTTPException(status_code=404, detail="Order not found.")
+#         # 만약 tracking_info가 None이면 order_id에 해당하는 레코드가 없는 경우
+#         if not tracking_info:
+#             raise HTTPException(status_code=404, detail="Order not found.")
 
-        return tracking_info
-    except pymysql.MySQLError as ex:
-        print("Error:", ex)
-        raise HTTPException(status_code=500, detail="Database error occurred.")
-    finally:
-        conn.close()
-        print("Error:", e)
-        return {'results': 'Error', 'error': str(e)}
+#         return tracking_info
+#     except pymysql.MySQLError as ex:
+#         print("Error:", ex)
+#         raise HTTPException(status_code=500, detail="Database error occurred.")
+#     finally:
+#         conn.close()
+#         print("Error:", e)
+#         return {'results': 'Error', 'error': str(e)}
     
 
 
@@ -399,7 +399,7 @@ async def track_order(order_id: int):
 
 
 ### 머신러닝 테스트
-@router.get("/mlminus")
+@router.get("/aab")
 async def ml_test2():
     return {
         'result' : datetime.now(),
