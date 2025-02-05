@@ -99,7 +99,7 @@ class CartViewModel: ObservableObject {
 
     // 서버로 추가 요청 보내기
     private func syncAddToServer(userId: String, product: Product, quantity: Int) {
-        guard let url = URL(string: "https://fastapi.sumartpick.shop/cart/add") else { return }
+        guard let url = URL(string: "http://127.0.0.1:8000/cart/add") else { return }
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -124,7 +124,7 @@ class CartViewModel: ObservableObject {
 
     //  서버로 수량 수정 요청 보내기
     private func syncUpdateQuantityToServer(userId: String, productId: Int, quantity: Int) {
-        guard let url = URL(string: "https://fastapi.sumartpick.shop/cart/update") else { return }
+        guard let url = URL(string: "http://127.0.0.1:8000/cart/update") else { return }
 
         var request = URLRequest(url: url)
         request.httpMethod = "PUT"
@@ -150,7 +150,7 @@ class CartViewModel: ObservableObject {
 
     //  서버에서 상품 삭제 요청 보내기
     private func syncRemoveFromServer(userId: String, productId: Int) {
-        guard let url = URL(string: "https://fastapi.sumartpick.shop/cart/delete/\(userId)/\(productId)") else { return }
+        guard let url = URL(string: "http://127.0.0.1:8000/cart/delete/\(userId)/\(productId)") else { return }
         var request = URLRequest(url: url)
         request.httpMethod = "DELETE"
 

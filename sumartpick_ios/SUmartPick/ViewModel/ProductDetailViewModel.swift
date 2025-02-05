@@ -16,7 +16,7 @@ class ProductDetailViewModel: ObservableObject {
         isLoading = true
         errorMessage = nil
 
-        guard let url = URL(string: "https://fastapi.sumartpick.shop/get_product/\(productID)") else {
+        guard let url = URL(string: "http://127.0.0.1:8000/get_product/\(productID)") else {
             self.errorMessage = "Invalid URL"
             return
         }
@@ -57,7 +57,7 @@ class ProductDetailViewModel: ObservableObject {
 
     // ✅ 리뷰 API 호출 및 디코딩 오류 수정
     func fetchReviews(productID: Int) {
-        guard let url = URL(string: "https://fastapi.sumartpick.shop/get_reviews/\(productID)") else {
+        guard let url = URL(string: "http://127.0.0.1:8000/get_reviews/\(productID)") else {
             print("Invalid Review URL")
             return
         }

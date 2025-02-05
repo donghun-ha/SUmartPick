@@ -9,7 +9,7 @@ import Foundation
 
 class OrderService {
     static let shared = OrderService()
-    private let baseURL = "https://fastapi.sumartpick.shop"
+    private let baseURL = "http://127.0.0.1:8000"
     
     // 주문 생성 API 호출
     func createOrder(order: OrderRequest) async throws -> String {

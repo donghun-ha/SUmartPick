@@ -12,7 +12,7 @@ enum AppEnvironment {
 }
 
 enum SUmartPickConfig {
-    static let dbenvironment: AppEnvironment = .server
+    static let dbenvironment: AppEnvironment = .local
 
     static var baseURL: String {
         switch dbenvironment {

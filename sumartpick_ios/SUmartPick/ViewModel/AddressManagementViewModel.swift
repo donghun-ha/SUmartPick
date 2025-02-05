@@ -16,7 +16,7 @@ final class AddressManagementViewModel: ObservableObject {
 
     // 주소 업데이트 API 호출
     func updateAddress(userID: String) async {
-        guard let url = URL(string: "https://fastapi.sumartpick.shop/update_address") else {
+        guard let url = URL(string: "http://127.0.0.1:8000/update_address") else {
             errorMessage = "유효하지 않은 URL입니다."
             showErrorAlert = true
             return

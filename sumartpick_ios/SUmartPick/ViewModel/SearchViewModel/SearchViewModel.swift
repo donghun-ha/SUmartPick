@@ -31,7 +31,7 @@ class SearchViewModel: ObservableObject {
     @Published var searchHistory: [SearchHistory] = [] // Realm에서 불러온 검색 기록
     
     private let realm = try! Realm() // Realm 인스턴스
-    private let baseURL = "https://fastapi.sumartpick.shop"
+    private let baseURL = "http://127.0.0.1:8000"
     
     init() {
         loadSearchHistory() // 초기화 시 검색 기록 로드

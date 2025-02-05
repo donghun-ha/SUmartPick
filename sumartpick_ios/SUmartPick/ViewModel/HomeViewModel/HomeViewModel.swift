@@ -22,7 +22,7 @@ struct ProductResponse: Codable {
 class HomeViewModel: ObservableObject {
     @Published var products: [Product] = [] // 홈 화면에 표시할 상품 목록
     @Published var searchResults: [Product] = [] // 검색 결과 목록
-    private let baseURL = "https://fastapi.sumartpick.shop" // API 기본 URL
+    private let baseURL = "http://127.0.0.1:8000" // API 기본 URL
     
     init() {
         Task {
