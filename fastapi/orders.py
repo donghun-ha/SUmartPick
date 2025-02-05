@@ -407,7 +407,7 @@ async def ml_test(order_id: int):
 
 ### 머신러닝 테스트
 @router.get("/ml_test2")
-async def ml_test(order_id: int):
+async def ml_test2(order_id: int):
     import datetime
     return {
         'result' : datetime.now(),
