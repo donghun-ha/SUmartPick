@@ -4,6 +4,7 @@ import hosts
 
 router = APIRouter()
 
+
 # -------------1번허브---------------
 @router.get("/inventory_1_select")
 async def select():
@@ -16,7 +17,8 @@ async def select():
     conn.close()
     print(rows)
     # 데이터가 많을때 쓰는 방법
-    return {'results' : rows}
+    return {"results": rows}
+
 
 @router.get("/inventory_total_1_select")
 async def select():
@@ -29,7 +31,8 @@ async def select():
     conn.close()
     print(rows)
     # 데이터가 많을때 쓰는 방법
-    return {'results' : rows}
+    return {"results": rows}
+
 
 # -------------2번허브---------------
 @router.get("/inventory_2_select")
@@ -43,7 +46,8 @@ async def select():
     conn.close()
     print(rows)
     # 데이터가 많을때 쓰는 방법
-    return {'results' : rows}
+    return {"results": rows}
+
 
 @router.get("/inventory_total_2_select")
 async def select():
@@ -56,7 +60,8 @@ async def select():
     conn.close()
     print(rows)
     # 데이터가 많을때 쓰는 방법
-    return {'results' : rows}
+    return {"results": rows}
+
 
 # -------------3번허브---------------
 @router.get("/inventory_3_select")
@@ -70,7 +75,8 @@ async def select():
     conn.close()
     print(rows)
     # 데이터가 많을때 쓰는 방법
-    return {'results' : rows}
+    return {"results": rows}
+
 
 @router.get("/inventory_total_3_select")
 async def select():
@@ -83,4 +89,4 @@ async def select():
     conn.close()
     print(rows)
     # 데이터가 많을때 쓰는 방법
-    return {'results' : rows}
+    return {"results": rows}

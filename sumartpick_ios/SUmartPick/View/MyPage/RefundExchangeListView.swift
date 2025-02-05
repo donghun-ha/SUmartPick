@@ -63,29 +63,59 @@ struct RefundExchangeListView: View {
     @ViewBuilder
     private func refundOrderRow(for order: OrderItem) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            // 1) 반품 완료/신청 날짜 표시
-            if let refundTime = order.refundTime {
-                // 실제 반품이 완료되었을 때
-                Text("\(formatDate(refundTime)) 반품 완료")
-                    .font(.subheadline)
-                    .foregroundColor(.green)
-            } else if let demandsTime = order.refundDemandsTime {
-                // 반품 신청만 했을 때
-                Text("\(formatDate(demandsTime)) 반품 신청")
-                    .font(.subheadline)
-                    .foregroundColor(.orange)
+            switch order.orderState {
+                case "Cancelled":
+                    // 1) 취소인 경우
+                    Text("\(formatDate(order.orderDate)) 취소 완료")
+                        .font(.subheadline)
+                        .foregroundColor(.gray)
+
+                case "Returned":
+                    // 2) 반품이 실제 완료된 경우
+                    //   -> refund_time이 있을 것이므로 해당 날짜 등 표시
+                    if let refundTime = order.refundTime {
+                        Text("\(formatDate(refundTime)) 반품 완료")
+                            .font(.subheadline)
+                            .foregroundColor(.green)
+                    } else {
+                        // refund_time이 없는데 상태만 Returned로 되어 있다면
+                        Text("반품 완료")
+                            .font(.subheadline)
+                            .foregroundColor(.green)
+                    }
+
+                case "Exchanged":
+                    // 3) 교환 완료된 경우
+                    Text("\(formatDate(order.orderDate)) 교환 완료")
+                        .font(.subheadline)
+                        .foregroundColor(.blue)
+
+                case "Return_Requested":
+                    // 4) 반품 신청
+                    if let demandsTime = order.refundDemandsTime {
+                        Text("\(formatDate(demandsTime)) 반품 신청")
+                            .font(.subheadline)
+                            .foregroundColor(.orange)
+                    } else {
+                        // refund_demands_time이 없는데 상태만 Return_Requested라면
+                        Text("반품 신청")
+                            .font(.subheadline)
+                            .foregroundColor(.orange)
+                    }
+
+                default:
+                    // 그 외 상태(혹은 에러)
+                    Text("알 수 없는 상태: \(order.orderState)")
+                        .font(.subheadline)
+                        .foregroundColor(.red)
             }
 
-            // 2) 상품명 및 수량/가격
+            // 공통: 상품명 및 가격
             Text(order.productName)
                 .font(.headline)
-                .foregroundColor(.primary)
-
             Text("\(Int(order.productPrice))원 · 1개")
                 .font(.subheadline)
                 .foregroundColor(.secondary)
-
-            // 3) 추가 기능이나 상태 표시가 필요할 경우 여기에 추가
         }
         .padding(.vertical, 6)
     }

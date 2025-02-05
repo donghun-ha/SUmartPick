@@ -11,7 +11,12 @@ import RealmSwift
 struct CartView: View {
     @ObservedResults(CartItem.self) var cartItems
     @StateObject private var cartViewModel = CartViewModel()
+    @StateObject private var viewModel = ProductDetailViewModel()
+    @State private var isNavigatingToToss = false
+    @EnvironmentObject var authState: AuthenticationState
 
+    @State private var quantity: Int = 1
+    
     var totalPrice: Double {
         cartItems.reduce(0) { $0 + ($1.price * Double($1.quantity)) }
     }
@@ -98,6 +103,7 @@ struct CartView: View {
                         .font(.headline)
                     Spacer()
                     Button("구매하기") {
+                        isNavigatingToToss = true
                         print("✅ 결제 진행 중...")
                     }
                     .foregroundColor(.white)
@@ -109,6 +115,20 @@ struct CartView: View {
                 .padding()
                 .background(Color.white)
                 .shadow(color: .gray.opacity(0.3), radius: 3, x: 0, y: -2)
+            }
+            .navigationDestination(isPresented: $isNavigatingToToss) {
+                    TossView(
+                        userId: authState.userIdentifier ?? "",
+                        address: "서울 강남구 테헤란로",
+                        products:
+                            cartItems.map { item in
+                                OrderModels(
+                                    Product_ID: item.productId,
+                                    quantity: item.quantity,
+                                    total_price: Int(item.price * Double(item.quantity))
+                                )
+                            }
+                    )
             }
             .navigationBarHidden(true)
         }

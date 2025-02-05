@@ -19,15 +19,6 @@ struct DetailView: View {
     @State private var showAlert = false
     @State private var navigateToCart = false
     @State private var isNavigatingToToss = false
-    
-    // UserDefaults에서 로그인된 사용자 정보 불러오기
-    private var userId: Int {
-        UserDefaults.standard.integer(forKey: "user_id")
-    }
-    
-    private var userName: String {
-        UserDefaults.standard.string(forKey: "user_name") ?? "Guest"
-    }
 
     var body: some View {
         VStack {
@@ -141,9 +132,9 @@ struct DetailView: View {
                         Divider().padding(.horizontal)
                         
                         // 장바구니로 이동
-                        NavigationLink(destination: CartView(), isActive: $navigateToCart) {
-                            EmptyView()
-                        }
+                            .navigationDestination(isPresented: $navigateToCart){
+                                CartView()
+                            }
 
                         // ✅ 리뷰 섹션
                         VStack(alignment: .leading, spacing: 15) {
@@ -198,17 +189,17 @@ struct DetailView: View {
             )
         }
         .navigationDestination(isPresented: $isNavigatingToToss) {
-                TossView(
-                    userId: String(userId),
-                    address: "서울 강남구 테헤란로",
-                    products: [
-                        OrderModels(
-                            Product_ID: productID,
-                            quantity: quantity,
-                            total_price: Int(viewModel.product?.price ?? 0) * quantity
-                        )
-                    ]
-                )
+//                TossView(
+//                    userId: authState.userIdentifier ?? "",
+//                    address: "서울 강남구 테헤란로",
+//                    products: [
+//                        OrderModels(
+//                            Product_ID: productID,
+//                            quantity: quantity,
+//                            total_price: Int(viewModel.product?.price ?? 0) * quantity
+//                        )
+//                    ]
+//                )
         }
     }
 
