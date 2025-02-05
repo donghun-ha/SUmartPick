@@ -5,6 +5,7 @@ from datetime import datetime
 import pymysql
 import hosts
 import json
+import logging
 
 router = APIRouter()
 
@@ -396,18 +397,22 @@ async def request_refund(order_id: int):
     
 #     return {'results' : result}
 
+logging.basicConfig(filename="app.log", level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+
 
 # 환불요청 주문 상태 업데이트
 @router.get("/refund_orders_updat")
-async def updateeeeee(
-):
+def updateeeeee():
     try:
+        logger.debug("refund")
         return {"results": "OK"}
     except Exception as e:
         return {"results": "Error", "error": str(e)}
 
 
+
 @router.get("/test_test")
 async def test():
-    print("dd")
+    logger.debug("dd")
     return {"test": "ok"}
