@@ -307,31 +307,15 @@ async def track_order(order_id: int):
 
 
 ### 머신러닝 테스트
-@router.get("/ml_test")
-async def ml_test(order_id: int):
+@router.get("/mltest")
+async def mltest(order_id: int):
     return{'result' : order_id}
 
 
 
-### 머신러닝 테스트
-@router.get("/ml_test2")
-async def ml_test2(order_id: int):
-    return {
-        'result' : datetime.now(),
-    }
-
-@router.get("/preparing_for_delivery_hub_update")
-async def update(Product_ID: int=None):
-    conn = hosts.connect_to_mysql()
-    curs = conn.cursor()
-
-    try:
-        sql = "update stocktransfer set QTY = QTY - 1 where Product_ID = %s"
-        curs.execute(sql, (Product_ID))
-        conn.commit()
-        conn.close()
-        return {'results' : 'OK'}
-    except Exception as e:
-        conn.close()
-        print("Error :", e)
-        return {'results' : 'Error'}
+# ### 머신러닝 테스트
+# @router.get("/ml_test2")
+# async def ml_test2(order_id: int):
+#     return {
+#         'result' : datetime.now(),
+#     }
