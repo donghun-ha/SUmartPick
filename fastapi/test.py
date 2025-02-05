@@ -10,6 +10,13 @@ import shutil
 import config
 import hosts
 
+
+import pymysql
+import pandas as pd
+import hashlib
+import joblib
+
+
 app = FastAPI()
 
 # CORS 설정
@@ -642,9 +649,6 @@ async def ml_test(order_id: int):
     """
     머신러닝 테스트용으로 만든 테스트에용
     """
-    import pymysql
-    import pandas as pd
-    import hashlib
 
     def text_to_number(text):
         hash_object = hashlib.md5(text.encode('utf-8'))  # MD5 해시 생성
@@ -732,6 +736,13 @@ async def ml_test(order_id: int):
     return {'results' : loaded_rf.predict(pred).item()}
 
 
+### 머신러닝 테스트
+@app.get("/ml_test2")
+async def ml_test2(order_id: int):
+    from datetime import datetime
+    return {
+        'result' : datetime.now(),
+    }
 
 @app.get("/app_test")
 async def merong():

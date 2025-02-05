@@ -306,109 +306,16 @@ async def track_order(order_id: int):
     
 
 
-
-
-
-
-
-
-
 ### 머신러닝 테스트
 @router.get("/ml_test")
 async def ml_test(order_id: int):
-    """
-    머신러닝 테스트용으로 만든 테스트에용
-    """
-    import pymysql
-    import pandas as pd
-    import hashlib
-    from datetime import timedelta
-
-    def text_to_number(text):
-        hash_object = hashlib.md5(text.encode('utf-8'))  # MD5 해시 생성
-        return int(hash_object.hexdigest(), 16)  # 16진수를 10진수 정수로 변환
-    
-
-
-    import joblib
-    loaded_rf = joblib.load('best_random_forest_model.pkl')
-
-    seller_id_parser =  pd.read_csv('seller_id_parser.csv', index_col=0)
-    train =  pd.read_csv('time_train.csv', index_col=0)
-
-
-    conn = hosts.connect_to_mysql()
-    curs = conn.cursor(pymysql.cursors.DictCursor)
-
-    sql = f"""
-        select *
-        from orders as o
-        JOIN products p ON p.Product_ID = o.Product_ID
-        WHERE o.order_id = {order_id}
-        """
-    curs.execute(sql)
-
-    orders = curs.fetchall()
-    conn.close()
-
-
-    dist_idx = text_to_number(orders[0]['Address']) % train.shape[0]
-    dist = train['dist'].iloc[dist_idx]
-
-
-    product_id = orders[0]['Product_ID']
-    raw_price = orders[0]['price']
-
-    conn = hosts.connect_to_mysql()
-    curs = conn.cursor()
-
-    sql = f"""
-        SELECT
-            AVG(price) AS avg_price,  -- 평균
-            STDDEV(price) AS std_price  -- 표준편차
-        FROM products;
-    """
-    curs.execute(sql)
-
-    av_std_rows = curs.fetchall()
-    conn.close()
-    # print(av_std_rows)
-
-    your_mean = 1756.1477912569826
-
-    your_std = 3908.8645767822213
-    your_min = 5.2 
-
-    our_mean =  av_std_rows[0][0]
-    our_std = av_std_rows[0][1]
-
-
-    price = max(((raw_price - our_mean)/our_std *your_std) + your_mean, your_min)
-
-
-    customer_city_mean = train['customer_city_mean'].iloc[dist_idx]
-    seller_id_mean =  seller_id_parser.loc['6edacfd9f9074789dad6d62ba7950b9c'].item()
-
-    pred =  pd.DataFrame(
-        {
-            'price' : [price],
-            'dist' : [dist],
-            'seller_id_mean' : [seller_id_mean],
-            'customer_city_mean' : [customer_city_mean],
-        }
-    )
-
-    pred_result = loaded_rf.predict(pred).item()
-    result =  orders[0]['Order_Date'] + timedelta(pred_result +1)
-    
-    return {'results' : result}
+    return{'result' : order_id}
 
 
 
 ### 머신러닝 테스트
 @router.get("/ml_test2")
 async def ml_test2(order_id: int):
-    import datetime
     return {
         'result' : datetime.now(),
     }
