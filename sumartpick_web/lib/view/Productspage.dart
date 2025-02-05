@@ -28,6 +28,9 @@ class _ProductspageState extends State<Productspage> {
   // 검색 데이터 선언
   late List<Map<String, dynamic>> filteredProducts;
 
+  late DateTime? startDate; // 시작 날짜
+  late DateTime? endDate; // 종료 날짜
+
   @override
   void initState() {
     super.initState();
@@ -36,6 +39,8 @@ class _ProductspageState extends State<Productspage> {
     selectedFilter = "상품코드";
     searchController = TextEditingController();
     keys = ["이미지", "상품코드", "상품명", "카테고리", "등록일", "판매가"];
+    startDate = null; // 초기값 null
+    endDate = null; // 초기값 null
     getJSONData();
   }
     getJSONData() async{
@@ -205,6 +210,61 @@ class _ProductspageState extends State<Productspage> {
                         },
                       ),
                     ),
+                    // 시작 날짜 선택 버튼
+                      ElevatedButton(
+                        onPressed: () async {
+                          DateTime? picked = await showDatePicker(
+                            context: context,
+                            initialDate: startDate ?? DateTime.now(),
+                            firstDate: DateTime(2000),
+                            lastDate: DateTime(2100),
+                          );
+                          if (picked != null) {
+                            setState(() {
+                              startDate = picked;
+                            });
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: Colors.black,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(5)
+                          )
+                        ),
+                        child: Text(startDate == null
+                            ? "시작 날짜 선택"
+                            : "${startDate!.toLocal()}".split(' ')[0]),
+                      ),
+                      const SizedBox(width: 10),
+
+                      // 종료 날짜 선택 버튼
+                      ElevatedButton(
+                        onPressed: () async {
+                          DateTime? picked = await showDatePicker(
+                            context: context,
+                            initialDate: endDate ?? DateTime.now(),
+                            firstDate: DateTime(2000),
+                            lastDate: DateTime(2100),
+                          );
+                          if (picked != null) {
+                            setState(() {
+                              endDate = picked;
+                            });
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: Colors.black,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(5)
+                          )
+                        ),
+                        child: Text(endDate == null
+                            ? "종료 날짜 선택"
+                            : "${endDate!.toLocal()}".split(' ')[0]),
+                      ),
+                      const SizedBox(width: 10),
                     // 검색 버튼
                     ElevatedButton.icon(
                       onPressed: filterproducts,
@@ -501,15 +561,39 @@ class _ProductspageState extends State<Productspage> {
   // -----Function-----
 
   // dropdown에서 선택한 검색어로 검색
+  // filterproducts() {
+  //   String query = searchController.text.trim();
+  //   if (query.isEmpty) {
+  //     filteredProducts = products; // 검색어 없으면 전체 표시
+  //   } else {
+  //     filteredProducts = products.where((product) {
+  //       return product[selectedFilter].toString().contains(query);
+  //     }).toList();
+  //   }
+  //   setState(() {});
+  // }
+
   filterproducts() {
     String query = searchController.text.trim();
-    if (query.isEmpty) {
-      filteredProducts = products; // 검색어 없으면 전체 표시
-    } else {
-      filteredProducts = products.where((product) {
-        return product[selectedFilter].toString().contains(query);
-      }).toList();
-    }
+
+    filteredProducts = products.where((product) {
+      bool matchesQuery =
+          query.isEmpty || product[selectedFilter].toString().contains(query);
+
+      // ✅ 등록일 필터 적용 (날짜가 `startDate` ~ `endDate` 범위 내에 있는지 확인)
+      bool matchesDateRange = true;
+      if (startDate != null && endDate != null && product['등록일'] != "") {
+        DateTime productDate =
+            DateTime.tryParse(product['등록일']) ?? DateTime(1900); // 변환 오류 방지
+        matchesDateRange = (productDate.isAfter(startDate!) ||
+                productDate.isAtSameMomentAs(startDate!)) &&
+            (productDate.isBefore(endDate!) ||
+                productDate.isAtSameMomentAs(endDate!));
+      }
+
+      return matchesQuery && matchesDateRange;
+    }).toList();
+
     setState(() {});
   }
 

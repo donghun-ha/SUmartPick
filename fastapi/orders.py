@@ -5,6 +5,7 @@ from datetime import datetime
 import pymysql
 import hosts
 import json
+import logging
 
 router = APIRouter()
 
