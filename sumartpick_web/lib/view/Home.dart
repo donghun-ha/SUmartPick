@@ -27,7 +27,7 @@ class _HomeState extends State<Home> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
+            const Text(
               "SUMartpick",
               style: TextStyle(
                 fontSize: 110,
@@ -37,7 +37,7 @@ class _HomeState extends State<Home> {
                 padding: const EdgeInsets.fromLTRB(500, 70, 500, 50),
                 child: TextField(
                   controller: idController,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     hintText: '아이디를 입력하세요'
                   ),
                 ),
@@ -46,7 +46,7 @@ class _HomeState extends State<Home> {
                 padding: const EdgeInsets.fromLTRB(500, 0, 500, 0),
                 child: TextField(
                   controller: passwordController,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     hintText: '비밀번호를 입력하세요'
                   ),
                   obscureText: true,
@@ -90,7 +90,7 @@ class _HomeState extends State<Home> {
                     borderRadius: BorderRadius.circular(20), // 모서리 둥글기 설정
                   ),
                     ),
-                    child: Text(
+                    child: const Text(
                       'Login',
                       style: TextStyle(
                         fontSize: 20

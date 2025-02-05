@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:sumatpick_web/view/Inventory_update.dart';
 import 'package:sumatpick_web/view/Orderpage.dart';
 
 import 'Dashboard.dart';
@@ -324,18 +325,18 @@ class _InventorypageState extends State<Inventorypage> {
                             ),
                           ),
                         ),
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(0, 0, 30, 0),
-                          child: TextButton(
-                              onPressed: () {
-                                //
-                              },
-                              child: const Text(
-                                '재고등록',
-                                style: TextStyle(
-                                    color: Colors.black, fontSize: 16),
-                              )),
-                        )
+                        // Padding(
+                        //   padding: const EdgeInsets.fromLTRB(0, 0, 30, 0),
+                        //   child: TextButton(
+                        //       onPressed: () {
+                        //         //
+                        //       },
+                        //       child: const Text(
+                        //         '재고등록',
+                        //         style: TextStyle(
+                        //             color: Colors.black, fontSize: 16),
+                        //       )),
+                        // )
                       ],
                     ),
                   ),
@@ -593,7 +594,7 @@ class _InventorypageState extends State<Inventorypage> {
                                   width: 70,
                                   child: ElevatedButton(
                                     onPressed: () {
-                                      // 버튼 동작 추가
+                                      Get.to(const InventoryUpdate(), arguments: [selectHubId, product['상품코드'], product['상품명'], product['재고량']])!.then((value) => reloadData(),);
                                     },
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: Colors.black,
