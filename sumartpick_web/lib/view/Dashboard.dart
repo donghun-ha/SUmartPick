@@ -7,6 +7,9 @@ import 'package:sumatpick_web/view/Orderpage.dart';
 import 'package:sumatpick_web/view/Productspage.dart';
 import 'package:sumatpick_web/view/Userpage.dart';
 import 'package:http/http.dart' as http;
+import 'package:syncfusion_flutter_charts/charts.dart';
+
+import '../model/chart_data.dart';
 
 class Dashboard extends StatefulWidget {
   const Dashboard({super.key});
@@ -786,6 +789,21 @@ getJSONOrderData();
                               width: 1.0, // 외곽선 두께
                             ),
                             ),
+      //                       child: SfCartesianChart(
+      //   title: ChartTitle(text: '주문 통계'),
+      //   legend: Legend(isVisible: true),
+      //   primaryXAxis: CategoryAxis(),
+      //   primaryYAxis: NumericAxis(),
+      //   series: <ChartSeries>[
+      //     ColumnSeries<ChartData, String>(
+      //       dataSource: chartData,
+      //       xValueMapper: (ChartData data, _) => data.label,
+      //       yValueMapper: (ChartData data, _) => data.value,
+      //       name: '주문 상태',
+      //       dataLabelSettings: const DataLabelSettings(isVisible: true),
+      //     )
+      //   ],
+      // ),
                     ),
                     Padding(
                       padding: const EdgeInsets.fromLTRB(15, 0, 0, 0),

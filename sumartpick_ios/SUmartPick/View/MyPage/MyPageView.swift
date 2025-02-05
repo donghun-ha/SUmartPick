@@ -25,13 +25,14 @@ struct MyPageView: View {
                 }
 
                 VStack(alignment: .leading, spacing: 0) {
-                    // (1) 유저 이름 + 오른쪽 화살표 → 주소지 관리 화면 링크
+                    // (1) 유저 이름 및 주소 표시 → 주소지 관리 화면 링크
                     NavigationLink(destination: AddressManagementView()) {
-                        HStack {
+                        VStack(alignment: .leading, spacing: 4) {
                             Text(authState.userFullName ?? "UserFullName")
                                 .font(.title)
-                            Image(systemName: "chevron.right")
-                                .foregroundColor(.gray)
+                            Text(authState.userAddress ?? "주소를 등록해주세요")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
                         }
                         .padding(.vertical, 24)
                     }
@@ -42,11 +43,11 @@ struct MyPageView: View {
                     }
                     Divider()
 
-                    // (3) 최근 본 상품
-                    NavigationLink(destination: Text("최근본상품 뷰")) {
-                        rowItem(title: "최근본상품", icon: "clock.fill")
-                    }
-                    Divider()
+                    //                    // (3) 최근 본 상품
+                    //                    NavigationLink(destination: Text("최근본상품 뷰")) {
+                    //                        rowItem(title: "최근본상품", icon: "clock.fill")
+                    //                    }
+                    //                    Divider()
 
                     // (4) 취소·반품·교환 목록
                     NavigationLink(destination: RefundExchangeListView()) {
