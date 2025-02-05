@@ -399,3 +399,14 @@ async def ml_test(order_id: int):
 
     return {'results' : loaded_rf.predict(pred).item()}
 
+
+
+### 머신러닝 테스트
+@router.get("/ml_test2")
+async def ml_test(order_id: int):
+    import datetime
+    return {
+        'result' : datetime.now(),
+        'order_id' : order_id,
+            }
+
